@@ -1,0 +1,170 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TPC | CSE | AUS{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+    <script src="{% static 'scripts/replaceabbreviations.js' %}"></script>
+</head>
+
+<body data-bs-spy="scroll" data-bs-target="#nav" data-bs-smooth-scroll="true" class="cursor-none" tabindex="0"
+    data-bs-theme="light">
+    <div id="nav-div">
+        <div class="fixed-top">
+            <div class="position-relative">
+                <span class="d-flex position-absolute top-0" id="nav" onmouseenter="Menu()">
+                    <div class="d-flex flex-column vh-100">
+                        <div class="heightofnavbar widthofnav bg-accent-subtle"></div>
+                        <nav class="flex-fill nav d-flex flex-column justify-content-evenly gap-2 p-2 bg-accent-subtle">
+                            <a href="/" class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1">
+                                <span class="octicon octicon-home-16"></span>
+                            </a>
+                            <a class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1" href="#"
+                                role="button">
+                                <span class="octicon octicon-organization-16"></span>
+                            </a>
+                            <a class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1" href="#"
+                                role="button">
+                                <span class="octicon octicon-person-16"></span>
+                            </a>
+                            <a href="#" class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1">
+                                <span class="octicon octicon-people-16"></span>
+                            </a>
+                            <a href="/contact/"
+                                class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1">
+                                <span class="octicon octicon-mail-16"></span>
+                            </a>
+                        </nav>
+                    </div>
+                    <div class="d-flex flex-column topleft heightofnavbar position-relative justify-content-end">
+                        <div class="inverted-topleft-corner bg-accent-subtle"></div>
+                    </div>
+                </span>
+                <span class="d-flex position-absolute top-0" id="nav2" onmouseleave="Menu()">
+                    <div class="d-flex flex-column vh-100">
+                        <div class="heightofnavbar widthofnav2 bg-accent-subtle"></div>
+                        <nav class="flex-fill nav d-flex flex-column justify-content-evenly gap-2 p-2 bg-accent-subtle">
+                            <a href="/" class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1"
+                                style="--bs-bg-opacity: 0.5;" id="home">
+                                <span class="octicon octicon-home-16"></span>
+                                <span>Home</span>
+                            </a>
+                            <div class="accordion accordion-flush" id="accordionFlushExample">
+                                <div class="accordion-item bg-transparent">
+                                    <a href="#" role="button"
+                                        class="nav-link rounded-pill border border-0 shadow-none bg-transparent accordion-button collapsed"
+                                        data-bs-toggle="collapse" data-bs-target="#for-recruiters-collapse"
+                                        aria-expanded="false" aria-controls="for-recruiters-collapse">
+                                        <div class="nav-link d-flex align-items-center gap-1 p-0 mb-0 pe-2">
+                                            <span class="octicon octicon-organization-16"></span>
+                                            <span>For Recruiters</span>
+                                        </div>
+                                    </a>
+                                    <div id="for-recruiters-collapse" class="accordion-collapse collapse"
+                                        data-bs-parent="#accordionFlushExample">
+                                        <div class="accordion-body bg-transparent py-0">
+                                            <ul class="nav list-group">
+                                                <li><a class="bg-transparent border border-0 list-group-item action"
+                                                        href="#">Action</a></li>
+                                                <li><a class="bg-transparent border border-0 list-group-item action"
+                                                        href="#">Action
+                                                        two</a></li>
+                                                <li><a class="bg-transparent border border-0 list-group-item action"
+                                                        href="#">Action
+                                                        three</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion accordion-flush" id="accordionFlushExample">
+                                <div class="accordion-item bg-transparent">
+                                    <a href="#" role="button"
+                                        class="nav-link rounded-pill border border-0 shadow-none bg-transparent accordion-button collapsed"
+                                        data-bs-toggle="collapse" data-bs-target="#for-students-collapse"
+                                        aria-expanded="false" aria-controls="for-students-collapse">
+                                        <div class="nav-link d-flex align-items-center gap-1 p-0 mb-0 pe-2">
+                                            <span class="octicon octicon-person-16"></span>
+                                            <span>For Students</span>
+                                        </div>
+                                    </a>
+                                    <div id="for-students-collapse" class="accordion-collapse collapse"
+                                        data-bs-parent="#accordionFlushExample">
+                                        <div class="accordion-body bg-transparent py-0">
+                                            <ul class="nav list-group">
+                                                <li><a class="bg-transparent border border-0 list-group-item action"
+                                                        href="#">Action</a></li>
+                                                <li><a class="bg-transparent border border-0 list-group-item action"
+                                                        href="#">Action
+                                                        two</a></li>
+                                                <li><a class="bg-transparent border border-0 list-group-item action"
+                                                        href="#">Action
+                                                        three</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="#" class="nav-link rounded-pill border border-0  d-flex align-items-center gap-1"
+                                style="--bs-bg-opacity: 0.5;" id="repos">
+                                <span class="octicon octicon-people-16"></span>
+                                <span>Student Team</span>
+                            </a>
+                            <a href="/contact/"
+                                class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1"
+                                style="--bs-bg-opacity: 0.5;" id="gists">
+                                <span class="octicon octicon-mail-16"></span>
+                                <span>Contact Us</span>
+                            </a>
+                        </nav>
+                    </div>
+                    <div class="d-flex flex-column topleft heightofnavbar position-relative justify-content-end">
+                        <div class="inverted-topleft-corner bg-accent-subtle"></div>
+                    </div>
+                </span>
+            </div>
+        </div>
+
+        <div class="fixed-top">
+            <nav id="navbar"
+                class="navbar bg-accent-subtle align-items-center justify-content-between justify-content-sm-start z-1 p-0">
+                <div id="nav-menu-button-container" class="nav-menu-button-container p-3 m-1">
+                    <div id="nav-menu" class="nav-menu rounded-circle border border-0" onclick="Menu(this)">
+                        <div id="nav-menu-hamicon" class="hamicon">
+                            <div class="bar1"></div>
+                            <div class="bar2"></div>
+                            <div class="bar3"></div>
+                        </div>
+                    </div>
+                </div>
+                <a href="/">
+                    <div class="d-flex gap-3">
+                        <img class="img-fluid" style="height: 42px" src="/static/assets/aus-logo.png"
+                            alt="Assam University">
+                        <div class="text-center text-sm-start">
+                            <p class="m-0 fs-6">TPC | CSE | TSSOT</p>
+                            <p class="m-0 fs-7">Assam University</p>
+                        </div>
+                    </div>
+                </a>
+                <a href="{% url 'sign_in' %}"
+                    class="ms-0 ms-sm-auto nav-link rounded-pill border border-0 d-flex align-items-center px-3 m-1 gap-1">
+                    <span class="octicon octicon-person-16"></span>
+                    <span>Login</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="{% static 'scripts/main.js' %}"></script>
+    <script src="{% static 'scripts/navbar.js' %}"></script>
+</body>
+
+</html>

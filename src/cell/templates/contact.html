@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us | TPC | CSE | AUS{% endblock %}
+
+{% block content %}
+<div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
+    <div class="d-flex align-items-start g-0">
+        <div class="my-3 p-lg-4">
+            <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Its easy to reach here</h1>
+            <div class="d-flex flex-column gap-4 py-3">
+                <div class="d-flex align-items-center gap-4">
+                    <i class="bi bi-train-front fs-4 flex-shrink-0"></i>
+                    <div>
+                        <h3 class="fw-bold mb-0 fs-4 text-body-emphasis">22 Km from Silchar Railway Station
+                        </h3>
+                        <p class="mb-0">regular trains from all over India</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-4">
+                    <i class="bi bi-airplane fs-4 flex-shrink-0"></i>
+                    <div>
+                        <h3 class="fw-bold mb-0 fs-4 text-body-emphasis">45 Km from Silchar Airport</h3>
+                        <p class="mb-0">connecting Kolkata, Guwahati and Imphal</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-4">
+                    <i class="bi bi-bus-front fs-4 flex-shrink-0"></i>
+                    <div>
+                        <h3 class="fw-bold mb-0 fs-4 text-body-emphasis">330 Km direct route by Bus</h3>
+                        <p class="mb-0">from ISBT Guwahati</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-4">
+                    <i class="bi bi-truck-front fs-4 flex-shrink-0"></i>
+                    <div>
+                        <h3 class="fw-bold mb-0 fs-4 text-body-emphasis">Affordable share Taxis and Auto
+                            Rickshaws</h3>
+                        <p class="mb-0">connecting Silchar, Hailakandi and other local areas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex-fill position-relative h-100 d-none">
+            <i class="bi bi-compass display-1 position-absolute top-0" style="transform: scale(2)"></i>
+            <i class="bi bi-signpost-split display-1 position-absolute bottom-0" style="transform: scale(2); transform-origin: 100% 0%;"></i>
+        </div>
+    </div>
+    <div class="row flex-lg-row-reverse align-items-start g-0">
+        <div class="col-12 col-lg-6 col-xl-5 my-3 p-lg-4">
+            <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Contact Us</h1>
+            <div class="d-flex flex-column gap-4 py-3">
+                <div class="d-flex align-items-center gap-4">
+                    <i class="bi bi-telephone fs-4 flex-shrink-0"></i>
+                    <div>
+                        <h3 class="fw-bold mb-0 fs-4 text-body-emphasis">+91-xxxxx-xxxxx</h3>
+                        <p class="mb-0">Phone</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-4">
+                    <i class="bi bi-envelope fs-4 flex-shrink-0"></i>
+                    <div>
+                        <h3 class="fw-bold mb-0 fs-4 text-body-emphasis">tpc-cse@aus.ac.in</h3>
+                        <p class="mb-0">Email</p>
+                    </div>
+                </div>
+            </div>
+            <div class="py-3">
+                <h1 class="fw-bold text-body-emphasis lh-1 mb-3">Postal Address</h1>
+                <p class="mb-0">Training and Placement Cell</p>
+                <p class="mb-0">Department of Computer Science and Engineering</p>
+                <p class="mb-0">Assam University</p>
+                <p class="mb-0">Locality: Dargakona, City: Silchar</p>
+                <p class="mb-0">District: Cachar, State: Assam, PIN: 788011</p>
+            </div>
+        </div>
+        <div id="contact-us-form" class="col my-3 p-lg-4">
+            <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Send Us a message</h1>
+            <form action="#contact-us-form" method="POST" class="py-3">
+                {% csrf_token %}
+                <div class="form-floating mb-3">
+                    {{ form.sender }}
+                    {{ form.sender.label_tag }}
+                </div>
+                <div class="row">
+                    <div class="col-12 col-sm">
+                        <div class="form-floating mb-3">
+                            {{ form.sender_designation }}
+                            {{ form.sender_designation.label_tag  }}
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm">
+                        <div class="form-floating mb-3">
+                            {{ form.sender_company }}
+                            {{ form.sender_company.label_tag  }}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-sm">
+                        <div class="form-floating mb-3">
+                            {{ form.sender_phone }}
+                            {{ form.sender_phone.label_tag  }}
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm">
+                        <div class="form-floating mb-3">
+                            {{ form.sender_email }}
+                            {{ form.sender_email.label_tag  }}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-floating">
+                    {{ form.message }}
+                    {{ form.message.label_tag  }}
+                </div>
+                <input type="submit" class="btn btn-primary btn-lg w-100 my-3" value="Submit">
+                {% if success %}
+                <div class="alert alert-success" role="alert">
+                    <i class="bi bi-check-circle"></i>
+                    <span>{{ success }}</span>
+                </div>
+                {% endif %}
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span>{{ error }}</span>
+                </div>
+                {% endif %}
+                {% if warning %}
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-exclamation-circle"></i>
+                    <span>{{ error }}</span>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    <div class="my-3 p-lg-4">
+        <h1 class="display-6 fw-bold text-body-emphasis lh-1 mb-3 text-center">Contact a Team Member</h1>
+        <div class="d-flex flex-wrap align-items-center justify-content-evenly gap-4 g-0">
+            <div class="card rounded-4 border shadow-lg" style="min-width: fit-content;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-person-circle fs-1"></i>
+                        <div class="w-100">
+                            <h5 class="card-title placeholder-glow"><span class="placeholder col-12"></span>
+                            </h5>
+                            <h6 class="card-subtitle mb-2 text-body-secondary placeholder-glow"><span
+                                    class="placeholder col-12"></span></h6>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-telephone"></i>
+                        <h6 class="card-subtitle text-body-secondary">+91-xxxxx-xxxxx
+                        </h6>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-envelope"></i>
+                        <h6 class="card-subtitle text-body-secondary">email@email.com
+                        </h6>
+                    </div>
+                </div>
+            </div>
+            <div class="card rounded-4 border shadow-lg" style="min-width: fit-content;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-person-circle fs-1"></i>
+                        <div class="w-100">
+                            <h5 class="card-title placeholder-glow"><span class="placeholder col-12"></span>
+                            </h5>
+                            <h6 class="card-subtitle mb-2 text-body-secondary placeholder-glow"><span
+                                    class="placeholder col-12"></span></h6>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-telephone"></i>
+                        <h6 class="card-subtitle text-body-secondary">+91-xxxxx-xxxxx
+                        </h6>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-envelope"></i>
+                        <h6 class="card-subtitle text-body-secondary">email@email.com
+                        </h6>
+                    </div>
+                </div>
+            </div>
+            <div class="card rounded-4 border shadow-lg" style="min-width: fit-content;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-person-circle fs-1"></i>
+                        <div class="w-100">
+                            <h5 class="card-title placeholder-glow"><span class="placeholder col-12"></span>
+                            </h5>
+                            <h6 class="card-subtitle mb-2 text-body-secondary placeholder-glow"><span
+                                    class="placeholder col-12"></span></h6>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-telephone"></i>
+                        <h6 class="card-subtitle text-body-secondary">+91-xxxxx-xxxxx
+                        </h6>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-envelope"></i>
+                        <h6 class="card-subtitle text-body-secondary">email@email.com
+                        </h6>
+                    </div>
+                </div>
+            </div>
+            <div class="card rounded-4 border shadow-lg" style="min-width: fit-content;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-person-circle fs-1"></i>
+                        <div class="w-100">
+                            <h5 class="card-title placeholder-glow"><span class="placeholder col-12"></span>
+                            </h5>
+                            <h6 class="card-subtitle mb-2 text-body-secondary placeholder-glow"><span
+                                    class="placeholder col-12"></span></h6>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-telephone"></i>
+                        <h6 class="card-subtitle text-body-secondary">+91-xxxxx-xxxxx
+                        </h6>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-envelope"></i>
+                        <h6 class="card-subtitle text-body-secondary">email@email.com
+                        </h6>
+                    </div>
+                </div>
+            </div>
+            <div class="card rounded-4 border shadow-lg" style="min-width: fit-content;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-person-circle fs-1"></i>
+                        <div class="w-100">
+                            <h5 class="card-title placeholder-glow"><span class="placeholder col-12"></span>
+                            </h5>
+                            <h6 class="card-subtitle mb-2 text-body-secondary placeholder-glow"><span
+                                    class="placeholder col-12"></span></h6>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-telephone"></i>
+                        <h6 class="card-subtitle text-body-secondary">+91-xxxxx-xxxxx
+                        </h6>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-envelope"></i>
+                        <h6 class="card-subtitle text-body-secondary">email@email.com
+                        </h6>
+                    </div>
+                </div>
+            </div>
+            <div class="card rounded-4 border shadow-lg" style="min-width: fit-content;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-person-circle fs-1"></i>
+                        <div class="w-100">
+                            <h5 class="card-title placeholder-glow"><span class="placeholder col-12"></span>
+                            </h5>
+                            <h6 class="card-subtitle mb-2 text-body-secondary placeholder-glow"><span
+                                    class="placeholder col-12"></span></h6>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-telephone"></i>
+                        <h6 class="card-subtitle text-body-secondary">+91-xxxxx-xxxxx
+                        </h6>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-envelope"></i>
+                        <h6 class="card-subtitle text-body-secondary">email@email.com
+                        </h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

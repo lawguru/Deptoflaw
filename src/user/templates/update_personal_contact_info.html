@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Info | TPC | CSE | AUS{% endblock %}
+
+{% block content %}
+<div class="container-md col-lg-8 p-3 p-sm-4 p-md-5">
+    <div id="personal-info">
+        <div class="d-flex align-items-center gap-3 pe-0 my-5">
+            <i class="bi bi-person-circle display-3 fw-bold text-body-emphasis lh-1"></i>
+            <div class="flex-fill">
+                <strong class="display-5 fw-bold text-body-emphasis lh-1">{{ user.full_name }}</strong>
+                <p class="fs-5 text-body-secondary mb-0">{{ user.subtext }}</p>
+            </div>
+            <a class="btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Edit"
+                href="{% url 'change_user' user.pk %}">
+                <i class="bi bi-pen"></i>
+            </a>
+        </div>
+        <div class="d-flex align-items-center gap-3 pe-0 mx-3 my-4">
+            <i class="bi bi-calendar-event fs-1"></i>
+            <div>
+                <strong class="fw-bold text-body-emphasis lh-1 fs-5">{{ user.date_of_birth }}</strong>
+                <small class="d-block text-body-secondary">Date of Birth</small>
+            </div>
+        </div>
+        <div class="mx-3 my-4">
+            <strong class="fw-bold text-body-emphasis lh-1 fs-5">About</strong>
+            <p class="replace-abbreviation">{{ user.bio }}</p>
+        </div>
+    </div>
+    <div id="phone-numbers" class="my-5">
+        <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Phone Numbers</h2>
+        <ul class="list-group list-group-flush">
+            {% for phone_number in phone_numbers %}
+            <li class="list-group-item d-flex align-items-center justify-content-between pe-0">
+                <span>{{ phone_number }}</span>
+                {% if phone_number.is_primary %}
+                <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Primary"></i>
+                {% else %}
+                <span class="d-flex">
+                    <form action="{% url 'delete_phone_number' phone_number.pk %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn border border-0 m-0" data-bs-toggle="tooltip"
+                            data-bs-title="Remove">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </form>
+                    <form action="{% url 'set_primary_phone_number' phone_number.pk %}" method="POST">
+                        {% csrf_token %}
+                        <input class="d-none" type="checkbox" name="is_primary" checked>
+                        <button type="submit" class="btn border border-0 m-0" data-bs-toggle="tooltip"
+                            data-bs-title="Set as Primary">
+                            <i class="bi bi-star"></i>
+                        </button>
+                    </form>
+                </span>
+                {% endif %}
+            </li>
+            {% endfor %}
+            <form action="{% url 'add_phone_number' user.pk %}" method="POST" class="py-3">
+                {% csrf_token %}
+                <div class="d-none">
+                    {{ phone_number_form.user }}
+                </div>
+                <div class="input-group">
+                    <div class="input-group-text bg-transparent p-0 z-1">
+                        <div class="form-floating" style="width: 14ch">
+                            {{ phone_number_form.country_code }}
+                            {{ phone_number_form.country_code.label_tag }}
+                        </div>
+                    </div>
+                    <div class="form-floating">
+                        {{ phone_number_form.phone_number }}
+                        {{ phone_number_form.phone_number.label_tag }}
+                    </div>
+                    <button class="btn border m-0" type="submit" data-bs-toggle="tooltip" data-bs-title="Add">
+                        <bi class="bi-plus-circle"></bi>
+                    </button>
+                </div>
+            </form>
+        </ul>
+    </div>
+    <div id="emails" class="my-5">
+        <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Emails</h2>
+        <ul class="list-group list-group-flush">
+            {% for email in emails %}
+            <li class="list-group-item d-flex align-items-center justify-content-between pe-0">
+                <span>{{ email }}</span>
+                {% if email.is_primary %}
+                <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Primary"></i>
+                {% else %}
+                <span class="d-flex">
+                    <form action="{% url 'delete_email' email.pk %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn border border-0 m-0" data-bs-toggle="tooltip"
+                            data-bs-title="Remove">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </form>
+                    <form action="{% url 'set_primary_email' email.pk %}" method="POST">
+                        {% csrf_token %}
+                        <input class="d-none" type="checkbox" name="is_primary" checked>
+                        <button type="submit" class="btn border border-0 m-0" data-bs-toggle="tooltip"
+                            data-bs-title="Set as Primary">
+                            <i class="bi bi-star"></i>
+                        </button>
+                    </form>
+                </span>
+                {% endif %}
+            </li>
+            {% endfor %}
+            <form action="{% url 'add_email' user.pk %}" method="POST" class="py-3">
+                {% csrf_token %}
+                <div class="d-none">
+                    {{ email_form.user }}
+                </div>
+                <div class="input-group">
+                    <div class="form-floating">
+                        {{ email_form.email }}
+                        {{ email_form.email.label_tag }}
+                    </div>
+                    <button class="btn border m-0" type="submit" data-bs-toggle="tooltip" data-bs-title="Add">
+                        <bi class="bi-plus-circle"></bi>
+                    </button>
+                </div>
+            </form>
+        </ul>
+    </div>
+    <div id="addresses" class="my-5">
+        <div class="d-flex align-items-center justify-content-between">
+            <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Addresses</h2>
+            <a class="btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Add new"
+                href="{% url 'add_address' user.pk %}">
+                <i class="bi bi-plus-circle"></i>
+            </a>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for address in addresses %}
+            <li class="list-group-item pe-0">
+                <p class="lead mb-0">{{address.address}}</p>
+                <p class="mb-0">
+                    {{address.city}},
+                    {{address.state}},
+                    {{address.country}}
+                </p>
+                <p>PIN/ZIP: {{address.pincode}}</p>
+                <span class="d-flex">
+                    <a class="btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Edit"
+                        href="{% url 'add_address' user.pk %}">
+                        <i class="bi bi-pen"></i>
+                    </a>
+                    {% if address.is_primary %}
+                    <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip"
+                        data-bs-title="Primary"></i>
+                    {% else %}
+                    <form action="{% url 'set_primary_address' address.pk %}" method="POST">
+                        {% csrf_token %}
+                        <input class="d-none" type="checkbox" name="is_primary" checked>
+                        <button type="submit" class="btn border border-0 m-0" data-bs-toggle="tooltip"
+                            data-bs-title="Set as Primary">
+                            <i class="bi bi-star"></i>
+                        </button>
+                    </form>
+                    <form action="{% url 'delete_address' address.pk %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn border border-0 m-0" data-bs-toggle="tooltip"
+                            data-bs-title="Remove">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div id="links" class="my-5">
+        <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Links</h2>
+        <ul class="list-group list-group-flush">
+            {% for link in links %}
+            <li class="list-group-item d-flex align-items-center justify-content-between pe-0">
+                <a href="{{ link.url }}">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="{{ link.icon }} fs-4"></i>
+                        <div>
+                            <p class="mb-0"><strong>{{ link.title }}</strong></p>
+                            <p class="mb-0"><small>{{ link.url }}</small></p>
+                        </div>
+                    </div>
+                </a>
+                <form action="{% url 'delete_link' link.pk %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn border border-0 m-0" data-bs-toggle="tooltip"
+                        data-bs-title="Remove">
+                        <i class="bi bi-x-circle"></i>
+                    </button>
+                </form>
+            </li>
+            {% endfor %}
+            <form action="{% url 'add_link' user.pk %}" method="POST" class="py-3">
+                {% csrf_token %}
+                <div class="d-none">
+                    {{ link_form.user }}
+                </div>
+                <div class="input-group">
+                    <div class="form-floating">
+                        {{ link_form.title }}
+                        {{ link_form.title.label_tag }}
+                    </div>
+                    <div class="form-floating">
+                        {{ link_form.url }}
+                        {{ link_form.url.label_tag }}
+                    </div>
+                    <button class="btn border m-0" type="submit" data-bs-toggle="tooltip" data-bs-title="Add">
+                        <bi class="bi-plus-circle"></bi>
+                    </button>
+                </div>
+            </form>
+        </ul>
+    </div>
+    <a class="btn btn-primary btn-lg w-100 m-0" href="{% url 'build_profile' %}">
+        Proceed
+    </a>
+    {% if success %}
+    <div class="alert alert-success" role="alert">
+        <i class="bi bi-check-circle"></i>
+        <span>{{ success }}</span>
+    </div>
+    {% endif %}
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+    {% if warning %}
+    <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-circle"></i>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+</div>
+<script>
+    document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {
+        element.innerHTML = replaceAbbreviations(element.innerHTML);
+    });
+</script>
+{% endblock %}

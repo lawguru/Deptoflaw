@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Certification | TPC | CSE | AUS{% endblock %}
+
+{% block content %}
+<div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
+    <div id="certificate-form" class="col my-3 p-lg-4">
+        <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Tell Us about the Certificate you earned</h1>
+        <form action="#certificate-form" method="POST" class="py-3">
+            {% csrf_token %}
+            <div class="d-none">
+                {{ form.user }}
+            </div>
+            <div class="form-floating mb-3">
+                {{ form.title }}
+                {{ form.title.label_tag }}
+            </div>
+            <div class="row gap-3 g-0">
+                <div class="col-12 col-sm form-floating mb-3">
+                    {{ form.issuer }}
+                    {{ form.issuer.label_tag }}
+                </div>
+                <div class="col-12 col-sm form-floating mb-3">
+                    {{ form.issue_date }}
+                    {{ form.issue_date.label_tag }}
+                </div>
+            </div>
+            <div class="form-floating">
+                {{ form.description }}
+                {{ form.description.label_tag }}
+            </div>
+            <div class="form-text m-3 mb-0">
+                Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup Language)
+            </div>
+            <input type="submit" class="btn btn-primary btn-lg w-100 my-3" value="Submit">
+            {% if success %}
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-check-circle"></i>
+                <span>{{ success }}</span>
+            </div>
+            {% endif %}
+            {% if error %}
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+            {% if warning %}
+            <div class="alert alert-warning" role="alert">
+                <i class="bi bi-exclamation-circle"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

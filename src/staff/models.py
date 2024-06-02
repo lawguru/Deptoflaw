@@ -1,0 +1,65 @@
+from django.db import models
+from user.models import User
+
+# Create your models here.
+class StaffProfile(models.Model):
+    qualification_choices = [
+        ('PhD', 'Doctor of Philosophy'),
+        ('M.Phil', 'Master of Philosophy'),
+        ('M.Tech', 'Master of Technology'),
+        ('MCA', 'Master of Computer Applications'),
+        ('ME', 'Master of Engineering'),
+        ('MBA', 'Master of Business Administration'),
+        ('M.Arch', 'Master of Architecture'),
+        ('MSc', 'Master of Science'),
+        ('LLM', 'Master of Law'),
+        ('M.Ed', 'Master of Education'),
+        ('M.Des', 'Master of Design'),
+        ('M.Com', 'Master of Commerce'),
+        ('MA', 'Master of Arts'),
+        ('B.Tech', 'Bachelor of Technology'),
+        ('BCA', 'Bachelor of Computer Applications'),
+        ('BE', 'Bachelor of Engineering'),
+        ('BBA', 'Bachelor of Business Administration'),
+        ('B.Arch', 'Bachelor of Architecture'),
+        ('BSc', 'Bachelor of Science'),
+        ('LLB', 'Bachelor of Law'),
+        ('B.Ed', 'Bachelor of Education'),
+        ('B.Des', 'Bachelor of Design'),
+        ('B.Com', 'Bachelor of Commerce'),
+        ('BA', 'Bachelor of Arts'),
+        ('Others', 'Others'),
+    ]
+    designation_choices = [
+        ('Professor', 'Professor'),
+        ('Assistant Professor', 'Assistant Professor'),
+        ('Associate Professor', 'Associate Professor'),
+        ('Lecturer', 'Lecturer'),
+        ('Guest Faculty', 'Guest Faculty'),
+        ('Teaching Assistant', 'Teaching Assistant'),
+        ('Instructor', 'Instructor'),
+        ('Lab Attendant', 'Lab Attendant'),
+        ('Research Assistant', 'Research Assistant'),
+        ('Technical Staff', 'Technical Staff'),
+        ('Non-Teaching Staff', 'Non-Teaching Staff'),
+        ('Others', 'Others'),
+    ]
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='staff_profile')
+    id_number = models.CharField('ID Number', max_length=50, unique=True)
+    qualification = models.CharField(max_length=6, choices=qualification_choices, default='others')
+    designation = models.CharField(max_length=20, choices=designation_choices, default='others')
+    is_hod = models.BooleanField(default=False)
+    is_tpc_head = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if self.is_hod:
+            StaffProfile.objects.filter(is_hod=True).update(is_hod=False)
+        if self.is_tpc_head:
+            StaffProfile.objects.filter(is_tpc_head=True).update(is_tpc_head=False)
+        if not self.pk and not hasattr(self, 'user'):
+            self.user = User.objects.create(role='staff')
+        super().save(*args, **kwargs)
+        self.user.save()
+    
+    def __str__(self):
+        return self.user.first_name + ' ' + self.user.last_name

@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Report Card | TPC | CSE | AUS{% endblock %}
+
+{% load template_filters %}
+{% block content %}
+<div class="container-lg col-xxl-8 p-2 p-sm-3">
+    <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Report Card</h2>
+
+    <div id="subject-input-group" class="d-none">
+        <div class="row align-items-center g-0 gap-2 gap-sm-3 mb-2 mb-sm-3">
+            <div class="col-4 col-sm-3 form-floating">
+                <input type="text" class="form-control" name="subject_codes" value="subject_code_value"
+                    placeholder="Paper Code" required><label for="subject_codes">Paper Code</label>
+            </div>
+            <div class="col d-flex align-items-center gap-2 gap-sm-3">
+                <div class="form-floating flex-fill">
+                    <input type="text" class="form-control" name="subjects" value="subject_value"
+                        placeholder="Paper Name" required><label for="subjects">Paper Name</label>
+                </div>
+                <button type="button" class="btn btn-danger btn-lg p-3 m-0 lh-1" onclick="removeRow(this)"><i
+                        class="bi bi-x-circle"></i></button>
+            </div>
+        </div>
+        <div class="row align-items-center g-0 gap-2 gap-sm-3">
+            <div class="col-4 col-sm-3 form-floating">
+                <input type="number" step=".1" class="form-control" name="subject_credits" value="subject_credit_value" min="0"
+                    max="10" placeholder="Credit" required><label for="subject_credits">Credit</label>
+            </div>
+            <div class="col input-group">
+                <div class="form-floating">
+                    <input type="number" step=".1" class="form-control" name="subject_passing_grade_points"
+                        value="subject_passing_grade_point_value" min="0" max="10" placeholder="Passing Points"
+                        required><label for="subject_passing_grade_points">Passing
+                        Points</label>
+                </div>
+                <div class="input-group-text bg-transparent">
+                    out of 10
+                </div>
+            </div>
+            <div class="col-12 col-lg-5 row g-0 gap-2 gap-sm-3 flex-lg-row-reverse">
+                <div class="col-4 col-sm-3 form-floating">
+                    <select class="form-control" name="subject_letter_grades" placeholder="Grade">
+                        <option value="O" subject_letter_grade_value_o>O</option>
+                        <option value="A+" subject_letter_grade_value_ap>A+</option>
+                        <option value="A" subject_letter_grade_value_a>A</option>
+                        <option value="B+" subject_letter_grade_value_bp>B+</option>
+                        <option value="B" subject_letter_grade_value_b>B</option>
+                        <option value="C" subject_letter_grade_value_c>C</option>
+                        <option value="F" subject_letter_grade_value_f>F</option>
+                    </select>
+                    <label for="subject_letter_grades">Grade</label>
+                </div>
+                <div class="col input-group">
+                    <div class="form-floating">
+                        <input type="number" step=".1" class="form-control" name="subject_grade_points"
+                            value="subject_grade_point_value" min="0" max="10" placeholder="Scored Points" required>
+                        <label for="subject_grade_points">Scored Points</label>
+                    </div>
+                    <div class="input-group-text bg-transparent">
+                        out of 10
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form action="#semester-report-card-form" class="d-none" id="semester-report-card-form" method="POST">
+        {% csrf_token %}
+        {{ form }}
+    </form>
+
+    <form id="dynamic-form" onsubmit="prepareFormData(event)">
+        <ul id="dynamic-fields" class="list-group"></ul>
+        <button type="button" class="btn btn-primary mt-3 mb-3" onclick="addRow()">Add Subject</button>
+        <button type="submit" class="btn btn-success">Submit</button>
+    </form>
+
+    <script>
+        function addRow(subject_code_value = "\"\"", subject_value = "\"\"", subject_credit_value = "\"3\"", subject_passing_grade_point_value = "\"5\"", subject_grade_point_value = "\"0\"", subject_letter_grade_value = "F") {
+            const dynamicFields = document.getElementById('dynamic-fields');
+            const subjectinputgroup = document.getElementById('subject-input-group')
+            const newel = document.createElement('li');
+            newel.classList.add('list-group-item');
+            newel.classList.add('list-group-item-accent');
+            newel.classList.add('p-sm-3');
+            newel.classList.add('p-2');
+            field_group_HTML = subjectinputgroup.innerHTML
+            field_group_HTML = field_group_HTML.replace(/"subject_code_value"/g, subject_code_value);
+            field_group_HTML = field_group_HTML.replace(/"subject_value"/g, subject_value);
+            field_group_HTML = field_group_HTML.replace(/"subject_credit_value"/g, subject_credit_value);
+            field_group_HTML = field_group_HTML.replace(/"subject_passing_grade_point_value"/g, subject_passing_grade_point_value);
+            field_group_HTML = field_group_HTML.replace(/"subject_grade_point_value"/g, subject_grade_point_value);
+            console.log(subject_letter_grade_value)
+            if (subject_letter_grade_value == "O")
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_o/g, "selected");
+            else if (subject_letter_grade_value == "A+")
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_ap/g, "selected");
+            else if (subject_letter_grade_value == "A")
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_a/g, "selected");
+            else if (subject_letter_grade_value == "B+")
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_bp/g, "selected");
+            else if (subject_letter_grade_value == "B")
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_b/g, "selected");
+            else if (subject_letter_grade_value == "C")
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_c/g, "selected");
+            else
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_f/g, "selected");
+            newel.innerHTML = field_group_HTML;
+            dynamicFields.appendChild(newel);
+        }
+
+        function removeRow(button) {
+            button.parentElement.parentElement.parentElement.remove();
+        }
+
+        function populateDynamicForm() {
+            const formData = new FormData(document.getElementById('semester-report-card-form'));
+            const jsonData = {};
+            for (const [key, value] of formData.entries()) {
+                if (!jsonData[key]) {
+                    try {
+                        jsonData[key] = JSON.parse(value);
+                    }
+                    catch {
+                        jsonData[key] = value;
+                    }
+                }
+            }
+            console.log(jsonData)
+            for (let i = 0; i < jsonData.subject_codes.length; i++) {
+                addRow(jsonData.subject_codes[i], jsonData.subjects[i], jsonData.subject_credits[i], jsonData.subject_passing_grade_points[i], jsonData.subject_grade_points[i], jsonData.subject_letter_grades[i])
+            }
+        }
+
+        populateDynamicForm()
+
+        function prepareFormData(event) {
+            event.preventDefault();
+            const formData = new FormData(document.getElementById('dynamic-form'));
+            const jsonData = {};
+            for (const [key, value] of formData.entries()) {
+                if (!jsonData[key]) {
+                    jsonData[key] = [];
+                }
+                jsonData[key].push(value);
+            }
+            for (const [key, value] of Object.entries(jsonData)) {
+                console.log('id_' + key)
+                console.log(value)
+                document.getElementById('id_' + key).value = JSON.stringify(value);
+            }
+            document.getElementById("semester-report-card-form").submit();
+        }
+    </script>
+</div>
+
+{% endblock %}
