@@ -124,7 +124,7 @@ class StudentProfile(models.Model):
 
     def save(self, *args, **kwargs):
         self.registration_year = int(f'{self.registration_number}'[:4])
-        self.id_card = f'{self.registration_year % 100}CSE{'BTC' if self.course == 'B.Tech' else 'MTC' if self.course == 'M.Tech' else 'PHD'}{self.id_number:03d}'
+        self.id_card = f'{self.registration_year % 100}CSE{"BTC" if self.course == "B.Tech" else "MTC" if self.course == "M.Tech" else "PHD"}{self.id_number:03d}'
         self.backlog_count = sum([semester_report_card.backlogs for semester_report_card in self.semester_report_cards.all()])
         self.passed_semesters = sum([1 for semester_report_card in self.semester_report_cards.all() if semester_report_card.passed])
         self.cgpa = self.calculate_cgpa()
