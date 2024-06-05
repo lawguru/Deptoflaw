@@ -4,7 +4,7 @@ from .views import *
 
 urlpatterns = [
     path('', StaffListView.as_view() , name='staffs_list'),
-    path('<int:pk>/', StaffProfileDetail.as_view(), name='staff_profile'), 
+    path('<int:pk>/', StaffProfileDetail.as_view(), name='staff_detail'), 
     path('<int:pk>/change/', ChangeStaffProfile.as_view(), name='change_staff_profile'),
     path('signup/', StaffSignUp.as_view(), name='staff_sign_up'),
     path('signin/', StaffSignIn.as_view(), name='staff_sign_in'),

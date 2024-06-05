@@ -22,7 +22,8 @@ class UserListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        filters = self.request.GET.get('filters', '{"role": [ "staff", "student" ]}')
+        filters = self.request.GET.get(
+            'filters', '{"role": [ "staff", "student" ]}')
         orderby = self.request.GET.get('orderby', 'id')
         new_context = self.model.objects.filter(
             state=filter_val,
@@ -31,7 +32,8 @@ class UserListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(MyView, self).get_context_data(**kwargs)
-        context['filters'] = self.request.GET.get('filter', 'give-default-value')
+        context['filters'] = self.request.GET.get(
+            'filter', 'give-default-value')
         context['orderby'] = self.request.GET.get('orderby', 'id')
         return context
 
@@ -58,18 +60,20 @@ class BuildProfile(TemplateView):
 
 
 @method_decorator(login_required, name="dispatch")
+class SelfUser(View):
+    def get(self, request):
+        return redirect(reverse('update_personal_contact_info', request.user.pk))
+
+
+@method_decorator(login_required, name="dispatch")
 class UpdatePersonalContactInfo(TemplateView):
     template_name = 'update_personal_contact_info.html'
 
     def get(self, request, pk):
-        if not pk.isdigit():
-            return redirect('update_personal_contact_info', self.request.user.id)
-        else:
-            pk = int(pk)
-            if not User.objects.filter(pk=pk).exists():
-                raise ObjectDoesNotExist()
-            elif User.objects.get(pk=pk) != self.request.user and not request.user.is_superuser:
-                raise PermissionDenied()
+        if not User.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        elif User.objects.get(pk=pk) != request.user and not request.user.is_superuser:
+            raise PermissionDenied()
         return super().get(request, pk)
 
     def get_context_data(self, **kwargs):
@@ -95,19 +99,68 @@ class ChangeUser(ChangeObject):
     redirect_url_name = 'update_personal_contact_info'
     redirect_url_params = '#personal-info'
 
+    def get_redirect_url_args(self, request, pk, *args, **kwargs):
+        return [pk]
+
     def check_permission(self, request, pk, *args, **kwargs):
-        if self.model.objects.get(pk=pk) != self.request.user and not request.user.is_superuser:
+        if self.model.objects.get(pk=pk) != request.user and not request.user.is_superuser:
             return False
         return super().check_permission(request, pk, *args, **kwargs)
 
-    def get_redirect_url(self, request, pk, *args, **kwargs):
-        return reverse(self.redirect_url_name, args=[pk]) + self.redirect_url_params
 
-    def get(self, request, pk):
-        return super().get(request, pk, id=request.user.id)
+@method_decorator(login_required, name="dispatch")
+class SetPrimaryPhoneNumber(ChangeUser):
+    model = User
+    redirect_url_name = 'phone_numbers'
 
-    def post(self, request, pk):
-        return super().post(request, pk, id=request.user.id)
+    def get(self, request, pk, phone_number):
+        raise BadRequest()
+
+    def post(self, request, pk, phone_number):
+        if not self.model.objects.filter(pk=pk).exists() or not PhoneNumber.objects.filter(pk=phone_number).exists():
+            raise ObjectDoesNotExist()
+        if not self.check_permission(request, pk):
+            raise PermissionDenied()
+        obj = self.model.objects.get(pk=pk)
+        obj.primary_phone_number = PhoneNumber.objects.get(pk=phone_number)
+        obj.save()
+        return redirect(self.get_redirect_url(request, pk))
+
+
+@method_decorator(login_required, name="dispatch")
+class SetPrimaryEmail(ChangeUser):
+    redirect_url_name = 'emails'
+
+    def get(self, request, user, pk, email):
+        raise BadRequest()
+
+    def post(self, request, pk, email):
+        if not self.model.objects.filter(pk=pk).exists() or not Email.objects.filter(pk=email).exists():
+            raise ObjectDoesNotExist()
+        if not self.check_permission(request, pk):
+            raise PermissionDenied()
+        obj = self.model.objects.get(pk=pk)
+        obj.primary_email = Email.objects.get(pk=email)
+        obj.save()
+        return redirect(self.get_redirect_url(request, pk))
+
+
+@method_decorator(login_required, name="dispatch")
+class SetPrimaryAddress(ChangeUser):
+    redirect_url_name = 'addresses'
+
+    def get(self, request, user, pk, address):
+        raise BadRequest()
+
+    def post(self, request, pk, address):
+        if not self.model.objects.filter(pk=pk).exists() or not Address.objects.filter(pk=address).exists():
+            raise ObjectDoesNotExist()
+        if not self.check_permission(request, pk):
+            raise PermissionDenied()
+        obj = self.model.objects.get(pk=pk)
+        obj.primary_address = Address.objects.get(pk=address)
+        obj.save()
+        return redirect(self.get_redirect_url(request, pk))
 
 
 @method_decorator(login_required, name="dispatch")
@@ -121,28 +174,9 @@ class AddPhoneNumber(AddUserKeyObject):
 
 
 @method_decorator(login_required, name="dispatch")
-class SetPrimaryPhoneNumber(ChangeObject):
-    model = PhoneNumber
-    redirect_url_name = 'phone_numbers'
-
-    def get(self, request, pk):
-        raise BadRequest()
-
-    def post(self, request, pk):
-        if self.model.objects.filter(pk=pk, user=request.user).exists():
-            obj = self.model.objects.get(pk=pk, user=request.user)
-            obj.is_primary = True
-            obj.save()
-        return redirect(self.get_redirect_url(request, pk, user=obj.user))
-
-
-@method_decorator(login_required, name="dispatch")
 class DeletePhoneNumber(DeleteUserKeyObject):
     model = PhoneNumber
     redirect_url_name = 'phone_numbers'
-
-    def post(self, request, pk):
-        return super().post(request, pk, is_primary=False)
 
 
 @method_decorator(login_required, name="dispatch")
@@ -156,28 +190,9 @@ class AddEmail(AddUserKeyObject):
 
 
 @method_decorator(login_required, name="dispatch")
-class SetPrimaryEmail(ChangeObject):
-    model = Email
-    redirect_url_name = 'emails'
-
-    def get(self, request, pk):
-        raise BadRequest()
-
-    def post(self, request, pk):
-        if self.model.objects.filter(pk=pk, user=request.user).exists():
-            obj = self.model.objects.get(pk=pk, user=request.user)
-            obj.is_primary = True
-            obj.save()
-        return redirect(self.get_redirect_url(request, pk, user=obj.user))
-
-
-@method_decorator(login_required, name="dispatch")
 class DeleteEmail(DeleteUserKeyObject):
     model = Email
     redirect_url_name = 'emails'
-
-    def post(self, request, pk):
-        return super().post(request, pk, is_primary=False)
 
 
 @method_decorator(login_required, name="dispatch")
@@ -186,22 +201,6 @@ class AddAddress(AddUserKeyObject):
     form = AddressForm
     template_name = 'address.html'
     redirect_url_name = 'addresses'
-
-
-@method_decorator(login_required, name="dispatch")
-class SetPrimaryAddress(ChangeUserKeyObject):
-    model = Address
-    redirect_url_name = 'addresses'
-
-    def get(self, request, pk):
-        raise BadRequest()
-
-    def post(self, request, pk):
-        if self.model.objects.filter(pk=pk, user=request.user).exists():
-            obj = self.model.objects.get(pk=pk, user=request.user)
-            obj.is_primary = True
-            obj.save()
-        return redirect(self.get_redirect_url(request, pk, user=obj.user))
 
 
 @method_decorator(login_required, name="dispatch")
@@ -217,9 +216,6 @@ class DeleteAddress(DeleteUserKeyObject):
     model = Address
     redirect_url_name = 'addresses'
 
-    def post(self, request, pk):
-        return super().post(request, pk, is_primary=False)
-
 
 @method_decorator(login_required, name="dispatch")
 class AddLink(AddUserKeyObject):
@@ -229,6 +225,7 @@ class AddLink(AddUserKeyObject):
 
     def get(self, request, user):
         raise BadRequest()
+
 
 @method_decorator(login_required, name="dispatch")
 class DeleteLink(DeleteUserKeyObject):

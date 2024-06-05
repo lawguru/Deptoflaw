@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Recruitment Post | TPC | CSE | AUS{% endblock %}
+
+{% block content %}
+<div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
+    <div id="recruitment-post-form" class="col my-3 p-lg-4">
+        <div>
+            <strong class="display-6 fw-bold text-body-emphasis lh-1 mb-0">{{ post.title }}</strong>
+            <p class="fs-5 text-body-secondary mb-3">
+                required at {{ post.company }}
+            </p>
+        </div>
+        {% if request.user.is_admin or request.user == post.user %}
+        <ul class="list-group list-group-flush my-4">
+            <li class="list-group-item list-group-item-action list-group-item-accent p-0">
+                <form id="toggle-is-active"
+                    action="{% if post.is_active %} {% url 'deactivate_recruitment_post' post.pk %} {% else %} {% url 'activate_recruitment_post' post.pk %} {% endif %}"
+                    method="POST">
+                    <a href="#" roll="button" onclick="document.getElementById('toggle-is-active').submit()"
+                        class="d-flex align-items-center gap-3 p-3 m-0 icon-link icon-link-hover no-shadow">
+                        {% csrf_token %}
+                        <div class="flex-fill">
+                            <strong class="fs-4 fw-bold {% if post.is_active %} text-danger-emphasis {% else %} text-success-emphasis {% endif %} lh-1">
+                                {% if post.is_active %}
+                                Stop Receiving Applications
+                                {% else %}
+                                Start Receiving Applications
+                                {% endif %}
+                            </strong>
+                            <p class="fs-6 text-body-secondary mb-0 {% if post.is_active %} text-success {% else %} text-danger {% endif %}">
+                                {% if post.is_active %}
+                                This post is set to receive application
+                                {% else %}
+                                This post is set to not receive application
+                                {% endif %}
+                            </p>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </form>
+            </li>
+            <li class="list-group-item list-group-item-action list-group-item-accent p-0">
+                <a href="{% url 'change_recruitment_post' post.pk %}"
+                    class="d-flex align-items-center gap-3 p-3 m-0 icon-link icon-link-hover no-shadow">
+                    <div class="flex-fill">
+                        <strong class="fs-4 fw-bold text-body-emphasis lh-1">
+                            Edit
+                        </strong>
+                        <p class="fs-6 text-body-secondary mb-0">
+                            Edit / Add Instructions for Applicants
+                        </p>
+                    </div>
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+        {% endif %}
+        <ul class="list-group list-group-flush my-4">
+            <li class="list-group-item d-flex align-items-center gap-3 p-2">
+                <i class="bi bi-person-circle fs-1"></i>
+                <div>
+                    <span class="fs-5">Posted by</span>
+                    <strong class="fw-bold text-body-emphasis lh-1 fs-5">{{ post.user.get_full_name }}</strong>
+                    <small class="d-block text-body-secondary">{{ post.user.subtext }}</small>
+                </div>
+            </li>
+            <li class="list-group-item d-flex align-items-center gap-3 p-2">
+                <i class="bi bi-clock-history fs-1"></i>
+                <div>
+                    <strong class="fw-bold text-body-emphasis lh-1 fs-5">{{ post.posted_on }}</strong>
+                    <small class="d-block text-body-secondary">Post time</small>
+                </div>
+            </li>
+            <li class="list-group-item d-flex align-items-center gap-3 p-2">
+                <i class="bi bi-person-workspace fs-1"></i>
+                <div>
+                    <strong class="fw-bold text-body-emphasis lh-1 fs-5">
+                        {{ post.get_workplace_type_display }}
+                        {{ post.get_job_type_display }}
+                    </strong>
+                    <small class="d-block text-body-secondary">Type</small>
+                </div>
+            </li>
+            <li class="list-group-item d-flex align-items-center gap-3 p-2">
+                <i class="bi bi-cash-stack fs-1"></i>
+                <div>
+                    <strong class="fw-bold text-body-emphasis lh-1 fs-5">
+                        {{ post.get_sallary_currency_display|slice:"6:" }} {{ post.sallary }}
+                    </strong>
+                    <small class="d-block text-body-secondary">Sallary</small>
+                </div>
+            </li>
+            {% if post.fee %}
+            <li class="list-group-item d-flex align-items-center gap-3 p-2">
+                <i class="bi bi-receipt fs-1"></i>
+                <div>
+                    <strong class="fw-bold text-body-emphasis lh-1 fs-5">{{ post.get_fee_currency_display|slice:"6:" }}
+                        {{ post.fee }}</strong>
+                    <small class="d-block text-body-secondary">Fee</small>
+                </div>
+            </li>
+            {% endif %}
+            {% if post.description %}
+            <div class="my-4">
+                <p class="replace-abbreviation">{{ post.description }}</p>
+            </div>
+            {% endif %}
+            {% if user.bio %}
+            <div class="mx-3 my-4">
+                <strong class="fw-bold text-body-emphasis lh-1 fs-5">About</strong>
+                <p class="replace-abbreviation">{{ user.bio }}</p>
+            </div>
+            {% endif %}
+            {% if post.pending_application_instructions %}
+            <div class="mx-3 my-4">
+                <strong class="fw-bold text-body-emphasis lh-1 fs-5">Application Pending?</strong>
+                <p class="replace-abbreviation">{{ post.pending_application_instructions }}</p>
+            </div>
+            {% endif %}
+            {% if post.rejected_application_instructions %}
+            <div class="mx-3 my-4">
+                <strong class="fw-bold text-body-emphasis lh-1 fs-5">Application Rejected?</strong>
+                <p class="replace-abbreviation">{{ post.rejected_application_instructions }}</p>
+            </div>
+            {% endif %}
+            {% if post.selected_application_instructions %}
+            <div class="mx-3 my-4">
+                <strong class="fw-bold text-body-emphasis lh-1 fs-5">Application Selected?</strong>
+                <p class="replace-abbreviation">{{ post.selected_application_instructions }}</p>
+            </div>
+            {% endif %}
+            {% if post.shortlisted_application_instructions %}
+            <div class="mx-3 my-4">
+                <strong class="fw-bold text-body-emphasis lh-1 fs-5">Application Shortlisted for Interview?</strong>
+                <p class="replace-abbreviation">{{ post.shortlisted_application_instructions }}</p>
+            </div>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

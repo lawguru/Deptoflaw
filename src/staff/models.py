@@ -56,7 +56,7 @@ class StaffProfile(models.Model):
             StaffProfile.objects.filter(is_hod=True).update(is_hod=False)
         if self.is_tpc_head:
             StaffProfile.objects.filter(is_tpc_head=True).update(is_tpc_head=False)
-        if not self.pk and not hasattr(self, 'user'):
+        if not self.pk and self.user == None:
             self.user = User.objects.create(role='staff')
         super().save(*args, **kwargs)
         self.user.save()

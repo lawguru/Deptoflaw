@@ -39,7 +39,7 @@
             <a href="{% url 'update_staff_info' profile.pk %}"
                 class="d-flex align-items-center justify-content-between m-0 p-4 icon-link icon-link-hover no-shadow">
                 <div class="d-flex align-items-center gap-4">
-                    <i class="bi  bi-receipt display-5"></i>
+                    <i class="bi bi-receipt display-5"></i>
                     <div class="me-auto">
                         <h2 class="fw-bold text-body-emphasis lh-1">Staff Info</h2>
                         <div>Your Staff Details.</div>
@@ -49,6 +49,21 @@
             </a>
         </li>
         {% endif %}
+        {% if request.user.role == 'recruiter' %}
+        <li class="list-group-item list-group-item-action list-group-item-accent">
+            <a href="{% url 'update_recruiter_info' profile.pk %}"
+                class="d-flex align-items-center justify-content-between m-0 p-4 icon-link icon-link-hover no-shadow">
+                <div class="d-flex align-items-center gap-4">
+                    <i class="bi bi-receipt display-5"></i>
+                    <div class="me-auto">
+                        <h2 class="fw-bold text-body-emphasis lh-1">Recruiter Info</h2>
+                        <div>Your Company and Designation.</div>
+                    </div>
+                </div>
+                <i class="bi bi-chevron-right h3"></i>
+            </a>
+        </li>
+        {% else %}
         <li class="list-group-item list-group-item-action list-group-item-accent">
             <a href="{% url 'update_education_info' profile.user.pk %}"
                 class="d-flex align-items-center justify-content-between m-0 p-4 icon-link icon-link-hover no-shadow">
@@ -82,7 +97,7 @@
                     <i class="bi bi-journals display-5"></i>
                     <div class="me-auto">
                         <h2 class="fw-bold text-body-emphasis lh-1">Intellectual Properties</h2>
-                        <div>Research Papers, Publications etc. you authored or contributed</div>
+                        <div>Research Papers, Publications etc. you authored or contributed.</div>
                     </div>
                 </div>
                 <i class="bi bi-chevron-right h3"></i>
@@ -96,12 +111,13 @@
                     <div class="me-auto">
                         <h2 class="fw-bold text-body-emphasis lh-1">What else?</h2>
                         <div>Achievements, conducted Conferences/Events, Presentations or other things you want to
-                            mention</div>
+                            mention.</div>
                     </div>
                 </div>
                 <i class="bi bi-chevron-right h3"></i>
             </a>
         </li>
+        {% endif %}
     </ul>
 </div>
 {% endblock %}

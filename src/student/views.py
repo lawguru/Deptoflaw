@@ -69,14 +69,13 @@ class StudentSignUp(TemplateView):
     def post(self, request):
         form = StudentSignUpForm(request.POST)
         if form.is_valid():
+            email = Email.objects.create(email=form.cleaned_data['email'])
             student = StudentProfile.objects.create(registration_number=form.cleaned_data['registration_number'], course=form.cleaned_data['course'], number=int(
-                form.cleaned_data['number']), id_number=int(form.cleaned_data['id_number']))
+                form.cleaned_data['number']), id_number=int(form.cleaned_data['id_number']), primary_email=email)
             student.user.first_name = form.cleaned_data['first_name']
             student.user.last_name = form.cleaned_data['last_name']
             student.user.set_password(form.cleaned_data['password'])
             student.user.save()
-            email = Email.objects.create(
-                user=student.user, email=form.cleaned_data['email'], is_primary=True)
             email.save()
             return redirect('student_sign_in')
         return render(request, self.template_name, {'form': form})
@@ -125,9 +124,9 @@ class StudentProfileDetail(TemplateView):
         if not StudentProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         student_profile = StudentProfile.objects.get(pk=pk)
-        if student_profile.user != self.request.user and not request.user.is_superuser and not request.user.is_coordinator():
+        if student_profile.user != request.user and not request.user.is_superuser and not request.user.is_coordinator():
             raise PermissionDenied()
-        if student_profile.user == self.request.user and not student_profile.user.is_approved:
+        if student_profile.user == request.user and not student_profile.user.is_approved:
             return redirect('build_profile')
         return super().get(request, pk)
 
@@ -139,7 +138,7 @@ class UpdateAcademicInfo(TemplateView):
     def get(self, request, pk):
         if not StudentProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
-        elif StudentProfile.objects.get(pk=pk).user != self.request.user and not request.user.is_superuser:
+        elif StudentProfile.objects.get(pk=pk).user != request.user and not request.user.is_superuser:
             raise PermissionDenied()
         return super().get(request, pk)
 
@@ -158,7 +157,10 @@ class ChangeStudentProfile(ChangeUserKeyObject):
     model = StudentProfile
     form = StudentProfileForm
     template_name = 'student_profile.html'
-    redirect_url_name = 'student-profile'
+    redirect_url_name = 'student_profile'
+
+    def get_redirect_url_args(self, request, pk):
+        return [pk]
 
 
 @method_decorator(login_required, name="dispatch")

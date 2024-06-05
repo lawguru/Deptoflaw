@@ -2,13 +2,13 @@ from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, reverse
 from views import ChangeUserKeyObject
 from user.models import Email
 from .models import RecruiterProfile
 from .forms import *
 from django.views.generic import ListView
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, RedirectView
 
 # Create your views here.
 
@@ -62,13 +62,12 @@ class RecruiterSignUp(TemplateView):
     def post(self, request):
         form = RecruiterSignUpForm(request.POST)
         if form.is_valid():
-            recruiter = RecruiterProfile.objects.create(id_number=form.cleaned_data['id_number'], qualification=form.cleaned_data['qualification'], designation=form.cleaned_data['designation'])
+            email = Email.objects.create(email=form.cleaned_data['email'])
+            recruiter = RecruiterProfile.objects.create(company_name=form.cleaned_data['company_name'], designation=form.cleaned_data['designation'], primary_email=email)
             recruiter.user.first_name = form.cleaned_data['first_name']
             recruiter.user.last_name = form.cleaned_data['last_name']
             recruiter.user.set_password(form.cleaned_data['password'])
             recruiter.user.save()
-            email = Email.objects.create(
-                user=recruiter.user, email=form.cleaned_data['email'], is_primary=True)
             email.save()
             return redirect('recruiter_sign_in')
         return render(request, self.template_name, {'form': form})
@@ -85,11 +84,11 @@ class RecruiterSignIn(TemplateView):
     def post(self, request):
         form = RecruiterSigninForm(request.POST)
         if form.is_valid():
-            id_number = form.cleaned_data['id_number']
+            primary_email = form.cleaned_data['primary_email']
             password = form.cleaned_data['password']
-            if RecruiterProfile.objects.filter(id_number=id_number).exists():
+            if RecruiterProfile.objects.filter(user__primary_email__email=primary_email).exists():
                 recruiter = RecruiterProfile.objects.get(
-                    id_number=id_number)
+                    user__primary_email__email=primary_email)
                 user = authenticate(username=recruiter.user.pk, password=password)
                 if user is not None:
                     login(request, user)
@@ -111,9 +110,9 @@ class RecruiterProfileDetail(TemplateView):
         if not RecruiterProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         recruiter_profile = RecruiterProfile.objects.get(pk=pk)
-        if recruiter_profile.user != self.request.user and not request.user.is_superuser and not request.user.is_coordinator():
+        if recruiter_profile.user != request.user and not request.user.is_superuser and not request.user.is_coordinator():
             raise PermissionDenied()
-        if recruiter_profile.user == self.request.user and not recruiter_profile.user.is_approved:
+        if recruiter_profile.user == request.user and not recruiter_profile.user.is_approved:
             return redirect('build_profile')
         return super().get(request, pk)
 
@@ -125,7 +124,7 @@ class UpdateRecruiterInfo(TemplateView):
     def get(self, request, pk):
         if not RecruiterProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
-        elif RecruiterProfile.objects.get(pk=pk).user != self.request.user and not request.user.is_superuser:
+        elif RecruiterProfile.objects.get(pk=pk).user != request.user and not request.user.is_superuser:
             raise PermissionDenied()
         return super().get(request, pk)
 
@@ -142,4 +141,7 @@ class ChangeRecruiterProfile(ChangeUserKeyObject):
     model = RecruiterProfile
     form = RecruiterProfileForm
     template_name = 'recruiter_profile.html'
-    redirect_url_name = 'recruiter-profile'
+    redirect_url_name = 'recruiter_profile'
+
+    def get_redirect_url_args(self, request, pk):
+        return [pk]

@@ -16,17 +16,12 @@
                 <i class="bi bi-pen"></i>
             </a>
         </div>
-        <div class="d-flex align-items-center gap-3 pe-0 mx-3 my-4">
-            <i class="bi bi-calendar-event fs-1"></i>
-            <div>
-                <strong class="fw-bold text-body-emphasis lh-1 fs-5">{{ user.date_of_birth }}</strong>
-                <small class="d-block text-body-secondary">Date of Birth</small>
-            </div>
-        </div>
+        {% if user.bio %}
         <div class="mx-3 my-4">
             <strong class="fw-bold text-body-emphasis lh-1 fs-5">About</strong>
             <p class="replace-abbreviation">{{ user.bio }}</p>
         </div>
+        {% endif %}
     </div>
     <div id="phone-numbers" class="my-5">
         <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Phone Numbers</h2>
@@ -34,7 +29,7 @@
             {% for phone_number in phone_numbers %}
             <li class="list-group-item d-flex align-items-center justify-content-between pe-0">
                 <span>{{ phone_number }}</span>
-                {% if phone_number.is_primary %}
+                {% if phone_number.user.primary_phone_number == phone_number %}
                 <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Primary"></i>
                 {% else %}
                 <span class="d-flex">
@@ -45,7 +40,7 @@
                             <i class="bi bi-x-circle"></i>
                         </button>
                     </form>
-                    <form action="{% url 'set_primary_phone_number' phone_number.pk %}" method="POST">
+                    <form action="{% url 'set_primary_phone_number' phone_number.user.pk phone_number.pk %}" method="POST">
                         {% csrf_token %}
                         <input class="d-none" type="checkbox" name="is_primary" checked>
                         <button type="submit" class="btn border border-0 m-0" data-bs-toggle="tooltip"
@@ -86,7 +81,7 @@
             {% for email in emails %}
             <li class="list-group-item d-flex align-items-center justify-content-between pe-0">
                 <span>{{ email }}</span>
-                {% if email.is_primary %}
+                {% if email.user.primary_email == email %}
                 <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Primary"></i>
                 {% else %}
                 <span class="d-flex">
@@ -97,7 +92,7 @@
                             <i class="bi bi-x-circle"></i>
                         </button>
                     </form>
-                    <form action="{% url 'set_primary_email' email.pk %}" method="POST">
+                    <form action="{% url 'set_primary_email' email.user.pk email.pk %}" method="POST">
                         {% csrf_token %}
                         <input class="d-none" type="checkbox" name="is_primary" checked>
                         <button type="submit" class="btn border border-0 m-0" data-bs-toggle="tooltip"
@@ -149,11 +144,11 @@
                         href="{% url 'add_address' user.pk %}">
                         <i class="bi bi-pen"></i>
                     </a>
-                    {% if address.is_primary %}
+                    {% if address.user.primary_address == address %}
                     <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip"
                         data-bs-title="Primary"></i>
                     {% else %}
-                    <form action="{% url 'set_primary_address' address.pk %}" method="POST">
+                    <form action="{% url 'set_primary_address' address.user.pk address.pk %}" method="POST">
                         {% csrf_token %}
                         <input class="d-none" type="checkbox" name="is_primary" checked>
                         <button type="submit" class="btn border border-0 m-0" data-bs-toggle="tooltip"

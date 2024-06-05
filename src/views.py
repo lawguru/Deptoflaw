@@ -5,23 +5,28 @@ from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, BadRequ
 from django.views import View
 from user.models import User
 
+
 class ObjectView(View):
     model = None
     redirect_url_name = None
     redirect_url_params = ''
-    redirect_url_args = []
+
+    def get_redirect_url_args(self, request, *args, **kwargs):
+        return []
 
     def check_permission(self, request, *args, **kwargs):
         return True
 
     def get_redirect_url(self, request, *args, **kwargs):
-        return reverse(self.redirect_url_name, args=self.redirect_url_args) + self.redirect_url_params
+        return reverse(self.redirect_url_name, args=self.get_redirect_url_args(request, *args, **kwargs)) + self.redirect_url_params
+
 
 class AddObject(ObjectView):
     form = None
     template_name = None
 
     def form_unvalid(self, request, form, *args, **kwargs):
+        print(form.errors)
         raise BadRequest()
 
     def get(self, request, *args, **kwargs):
@@ -44,100 +49,91 @@ class AddObject(ObjectView):
             self.form_unvalid(request, form, *args, **kwargs)
         return redirect(self.get_redirect_url(request, *args, **kwargs))
 
+
 class ChangeObject(ObjectView):
     form = None
     template_name = None
-
-    def check_permission(self, request, pk, *args, **kwargs):
-        return True
-
-    def get_redirect_url(self, request, pk, *args, **kwargs):
-        return reverse(self.redirect_url_name, args=self.redirect_url_args) + self.redirect_url_params
 
     def form_unvalid(self, request, form, *args, **kwargs):
         raise BadRequest()
 
     def get(self, request, pk, *args, **kwargs):
-        if self.model.objects.filter(pk=pk, **kwargs).exists():
-            obj = self.model.objects.get(pk=pk, **kwargs)
-            if self.template_name and self.form:
-                return render(request, self.template_name, {'form': self.form(instance=obj)})
-            return redirect(self.get_redirect_url(request, *args, **kwargs))
+        if not self.model.objects.filter(pk=pk, **kwargs).exists():
+            raise ObjectDoesNotExist()
         if not self.check_permission(request, pk, *args, **kwargs):
             raise PermissionDenied()
-        raise ObjectDoesNotExist()
+        obj = self.model.objects.get(pk=pk, **kwargs)
+        if self.template_name and self.form:
+            return render(request, self.template_name, {'form': self.form(instance=obj)})
+        return redirect(self.get_redirect_url(request, *args, **kwargs))
 
     def post(self, request, pk, *args, **kwargs):
-        if self.model.objects.filter(pk=pk, **kwargs).exists():
-            redirect_url = self.get_redirect_url(request, pk, *args, **kwargs)
-            obj = self.model.objects.get(pk=pk, **kwargs)
-            form = self.form(request.POST, instance=obj)
-            if form.is_valid():
-                form.save()
-            else:
-                self.form_unvalid(request, form, *args, **kwargs)
-            return redirect(redirect_url)
+        if not self.model.objects.filter(pk=pk, **kwargs).exists():
+            raise ObjectDoesNotExist()
         if not self.check_permission(request, pk, *args, **kwargs):
             raise PermissionDenied()
-        raise ObjectDoesNotExist()
+        redirect_url = self.get_redirect_url(request, pk, *args, **kwargs)
+        obj = self.model.objects.get(pk=pk, **kwargs)
+        form = self.form(request.POST, instance=obj)
+        if form.is_valid():
+            form.save()
+        else:
+            self.form_unvalid(request, form, *args, **kwargs)
+        return redirect(redirect_url)
+
 
 class DeleteObject(ObjectView):
-    def check_permission(self, request, pk, *args, **kwargs):
-        return True
-
-    def get_redirect_url(self, request, pk, *args, **kwargs):
-        return reverse(self.redirect_url_name, args=self.redirect_url_args) + self.redirect_url_params
-
     def get(self, request, pk, *args, **kwargs):
         raise BadRequest()
 
     def post(self, request, pk, *args, **kwargs):
-        if self.model.objects.filter(pk=pk, **kwargs).exists():
-            redirect_url = self.get_redirect_url(request, pk, *args, **kwargs)
-            self.model.objects.get(pk=pk, **kwargs).delete()
-            return redirect(redirect_url)
+        if not self.model.objects.filter(pk=pk, **kwargs).exists():
+            raise ObjectDoesNotExist()
         if not self.check_permission(request, pk, *args, **kwargs):
             raise PermissionDenied()
-        raise ObjectDoesNotExist()
+        redirect_url = self.get_redirect_url(request, pk, *args, **kwargs)
+        self.model.objects.get(pk=pk, **kwargs).delete()
+        return redirect(redirect_url)
+
 
 @method_decorator(login_required, name="dispatch")
 class AddUserKeyObject(AddObject):
     def check_permission(self, request, *args, **kwargs):
-        if kwargs['user'] != self.request.user and not request.user.is_superuser:
+        if User.objects.get(pk=kwargs['user']) != request.user and not request.user.is_superuser:
             return False
         return super().check_permission(request, kwargs['user'], *args, **kwargs)
 
-    def get_redirect_url(self, request, *args, **kwargs):
-        return reverse(self.redirect_url_name, args=[kwargs['user'].pk]) + self.redirect_url_params
+    def get_redirect_url_args(self, request, *args, **kwargs):
+        return [kwargs['user']]
 
     def get(self, request, user):
-        user = int(user) if user.isdigit() else request.user.pk
         if not User.objects.filter(pk=user).exists():
             raise ObjectDoesNotExist()
-        return super().get(request, user=User.objects.get(pk=user))
-    
+        return super().get(request, user=user)
+
     def post(self, request, user):
-        user = int(user) if user.isdigit() else request.user.pk
-        return super().post(request, user=User.objects.get(pk=user))
+        if not User.objects.filter(pk=user).exists():
+            raise ObjectDoesNotExist()
+        return super().post(request, user=user)
+
 
 @method_decorator(login_required, name="dispatch")
 class ChangeUserKeyObject(ChangeObject):
     def check_permission(self, request, pk, *args, **kwargs):
-        if self.model.objects.get(pk=pk).user != self.request.user and not request.user.is_superuser:
+        if self.model.objects.get(pk=pk).user != request.user and not request.user.is_superuser:
             return False
         return super().check_permission(request, pk, *args, **kwargs)
 
-    def get_redirect_url(self, request, pk, *args, **kwargs):
-        user = self.model.objects.get(pk=pk).user.pk
-        return reverse(self.redirect_url_name, args=[user]) + self.redirect_url_params
+    def get_redirect_url_args(self, request, pk, *args, **kwargs):
+        return [self.model.objects.get(pk=pk).user.pk]
+
 
 @method_decorator(login_required, name="dispatch")
 class DeleteUserKeyObject(DeleteObject):
     def check_permission(self, request, pk, *args, **kwargs):
-        if self.model.objects.get(pk=pk).user != self.request.user and not request.user.is_superuser:
+        if self.model.objects.get(pk=pk).user != request.user and not request.user.is_superuser:
             return False
         return super().check_permission(request, pk, *args, **kwargs)
 
-    def get_redirect_url(self, request, pk, *args, **kwargs):
-        user = self.model.objects.get(pk=pk).user.pk
-        return reverse(self.redirect_url_name, args=[user]) + self.redirect_url_params
+    def get_redirect_url_args(self, request, pk, *args, **kwargs):
+        return [self.model.objects.get(pk=pk).user.pk]

@@ -134,7 +134,7 @@ class StudentProfile(models.Model):
                     self.pass_out_year = datetime.now().year
                 else:
                     self.pass_out_year = None
-        if not self.pk and not hasattr(self, 'user'):
+        if not self.pk and self.user == None:
             self.user = User.objects.create(role='student')
         if self.pk:
             while self.semester_report_cards.count() < self.semester:

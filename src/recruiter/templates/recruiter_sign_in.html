@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Recruiter Log in | TPC | CSE | AUS{% endblock %}
+
+{% block content %}
+<div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
+    <div id="student-signin-form" class="col my-3 p-lg-4">
+        <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Recruiter Login</h1>
+        <form action="#student-signin-form" method="POST" class="py-3">
+            {% csrf_token %}
+            <div class="form-floating mb-3">
+                {{ form.primary_email }}
+                {{ form.primary_email.label_tag }}
+            </div>
+            <div class="form-floating mb-3">
+                {{ form.password }}
+                {{ form.password.label_tag }}
+            </div>
+            <p class="form-text ms-2 mb-1">Don't have an Account? <a href="{% url 'recruiter_sign_up' %}">Sign Up</a></p>
+            <p class="form-text ms-2">Not a Recruiter member? <a href="{% url 'sign_in' %}">Click here</a></p>
+            <input type="submit" class="btn btn-primary btn-lg mb-3 w-100" value="Submit">
+            {% if success %}
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-check-circle"></i>
+                <span>{{ success }}</span>
+            </div>
+            {% endif %}
+            {% if error %}
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+            {% if warning %}
+            <div class="alert alert-warning" role="alert">
+                <i class="bi bi-exclamation-circle"></i>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,9 +1,14 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import permission_required
 from staff.models import StaffProfile
 from settings.models import Setting
 from user.models import User
-from .forms import ContactUsForm, NoticeForm
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from views import AddUserKeyObject, ChangeUserKeyObject, AddObject
+from django.views.generic.base import TemplateView
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, BadRequest
+from .forms import *
 from .models import Notice, Quote
 
 # Create your views here.
@@ -11,7 +16,7 @@ from .models import Notice, Quote
 
 def index(request):
     home_heading, created = Setting.objects.get_or_create(key='home_heading')
-    
+
     random_quote = Quote.objects.order_by('?').first()
 
     if home_heading.value == None:
@@ -71,6 +76,7 @@ def notices(request):
     notices = Notice.objects.all()
     return render(request, 'notices.html', {'notices': notices})
 
+
 @permission_required('cell.add_notice')
 def add_notice(request):
     if request.method == 'POSt':
@@ -81,3 +87,139 @@ def add_notice(request):
         else:
             return render(request, 'add_notice.html', {'form': NoticeForm, 'error': 'Could not add notice. Please try again.'})
     return render(request, 'add_notice.html', {'form': NoticeForm, })
+
+
+@method_decorator(login_required, name="dispatch")
+class ListRecruitmentPost(TemplateView):
+    template_name = 'recruitment_posts.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['posts'] = RecruitmentPost.objects.filter(user=kwargs['user'])
+        return context
+
+
+@method_decorator(login_required, name="dispatch")
+class AddRecruitmentPost(AddUserKeyObject):
+    model = RecruitmentPost
+    form = AddRecruitmentPostForm
+    template_name = 'add_recruitment_post.html'
+    redirect_url_name = 'recruitment_posts'
+
+    def check_permission(self, request, *args, **kwargs):
+        if User.objects.get(pk=kwargs['user']).role != 'recruiter':
+            return False
+        return super().check_permission(request, kwargs['user'], *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        if not User.objects.filter(pk=kwargs['user']).exists():
+            raise ObjectDoesNotExist()
+        if not self.check_permission(request, *args, **kwargs):
+            raise PermissionDenied()
+        if self.template_name and self.form:
+            return render(request, self.template_name, {'form': self.form({'company': kwargs['user'].recruiter_profile.company_name})})
+        return redirect(self.get_redirect_url(request, *args, **kwargs))
+
+
+@method_decorator(login_required, name="dispatch")
+class ViewRecruitmentPost(TemplateView):
+    template_name = 'recruitment_post.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['post'] = RecruitmentPost.objects.get(pk=kwargs['pk'])
+        return context
+
+    def get(self, request, pk):
+        if not RecruitmentPost.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        return super().get(request, pk=pk)
+
+
+@method_decorator(login_required, name="dispatch")
+class ChangeRecruitmentPost(ChangeUserKeyObject):
+    model = RecruitmentPost
+    form = ChangeRecruitmentPostForm
+    template_name = 'change_recruitment_post.html'
+    redirect_url_name = 'view_recruitment_post'
+
+    def get_redirect_url_args(self, request, pk, *args, **kwargs):
+        return [pk]
+
+
+@method_decorator(login_required, name="dispatch")
+class ActivateRecruitmentPost(ChangeRecruitmentPost):
+    def get(self, request, pk):
+        raise BadRequest()
+
+    def post(self, request, pk):
+        if not RecruitmentPost.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        if not self.check_permission(request, pk):
+            raise PermissionDenied()
+        post = RecruitmentPost.objects.get(pk=pk)
+        post.is_active = True
+        post.save()
+        return redirect(self.get_redirect_url(request, pk=pk))
+
+
+@method_decorator(login_required, name="dispatch")
+class DeactivateRecruitmentPost(ChangeRecruitmentPost):
+    def get(self, request, pk):
+        raise BadRequest()
+
+    def post(self, request, pk):
+        if not RecruitmentPost.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        if not self.check_permission(request, pk):
+            raise PermissionDenied()
+        post = RecruitmentPost.objects.get(pk=pk)
+        post.is_active = False
+        post.save()
+        return redirect(self.get_redirect_url(request, pk=pk))
+
+
+@method_decorator(login_required, name="dispatch")
+class AddRecruitmentPostUpdate(AddObject):
+    model = RecruitmentPostUpdate
+    form = RecruitmentPostUpdateForm
+    template_name = 'recruitment_post_update.html'
+    redirect_url_name = 'recruitment_post_updates'
+
+    def check_permission(self, request, *args, **kwargs):
+        if kwargs['post'].user != request.user and not request.user.is_superuser:
+            return False
+        return super().check_permission(request, *args, **kwargs)
+
+    def get(self, request, post):
+        if not RecruitmentPost.objects.filter(pk=post).exists():
+            raise ObjectDoesNotExist()
+        return super().get(request, post=RecruitmentPost.objects.get(pk=post))
+
+    def post(self, request, post):
+        if not RecruitmentPost.objects.filter(pk=post).exists():
+            raise ObjectDoesNotExist()
+        return super().post(request, post=RecruitmentPost.objects.get(pk=post))
+
+
+@method_decorator(login_required, name="dispatch")
+class AddRecruitmentApplication(AddObject):
+    model = RecruitmentApplication
+    form = RecruitmentApplicationForm
+    template_name = 'recruitment_application.html'
+    redirect_url_name = 'recruitment_application'
+
+    def check_permission(self, request, *args, **kwargs):
+        if not kwargs['post'].is_active:
+            return False
+        return super().check_permission(request, *args, **kwargs)
+
+    def get(self, request, post):
+        if not RecruitmentPost.objects.filter(pk=post).exists():
+            raise ObjectDoesNotExist()
+        return super().get(request, post=RecruitmentPost.objects.get(pk=post))
+
+    def post(self, request, post):
+        if not RecruitmentPost.objects.filter(pk=post).exists():
+            raise ObjectDoesNotExist()
+        return super().post(request, post=RecruitmentPost.objects.get(pk=post), user=request.user)

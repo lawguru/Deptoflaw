@@ -62,13 +62,12 @@ class StaffSignUp(TemplateView):
     def post(self, request):
         form = StaffSignUpForm(request.POST)
         if form.is_valid():
-            staff = StaffProfile.objects.create(id_number=form.cleaned_data['id_number'], qualification=form.cleaned_data['qualification'], designation=form.cleaned_data['designation'])
+            email = Email.objects.create(email=form.cleaned_data['email'])
+            staff = StaffProfile.objects.create(id_number=form.cleaned_data['id_number'], qualification=form.cleaned_data['qualification'], designation=form.cleaned_data['designation'], primary_email=email)
             staff.user.first_name = form.cleaned_data['first_name']
             staff.user.last_name = form.cleaned_data['last_name']
             staff.user.set_password(form.cleaned_data['password'])
             staff.user.save()
-            email = Email.objects.create(
-                user=staff.user, email=form.cleaned_data['email'], is_primary=True)
             email.save()
             return redirect('staff_sign_in')
         return render(request, self.template_name, {'form': form})
@@ -111,9 +110,9 @@ class StaffProfileDetail(TemplateView):
         if not StaffProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         staff_profile = StaffProfile.objects.get(pk=pk)
-        if staff_profile.user != self.request.user and not request.user.is_superuser and not request.user.is_coordinator():
+        if staff_profile.user != request.user and not request.user.is_superuser and not request.user.is_coordinator():
             raise PermissionDenied()
-        if staff_profile.user == self.request.user and not staff_profile.user.is_approved:
+        if staff_profile.user == request.user and not staff_profile.user.is_approved:
             return redirect('build_profile')
         return super().get(request, pk)
 
@@ -125,7 +124,7 @@ class UpdateStaffInfo(TemplateView):
     def get(self, request, pk):
         if not StaffProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
-        elif StaffProfile.objects.get(pk=pk).user != self.request.user and not request.user.is_superuser:
+        elif StaffProfile.objects.get(pk=pk).user != request.user and not request.user.is_superuser:
             raise PermissionDenied()
         return super().get(request, pk)
 
@@ -142,4 +141,7 @@ class ChangeStaffProfile(ChangeUserKeyObject):
     model = StaffProfile
     form = StaffProfileForm
     template_name = 'staff_profile.html'
-    redirect_url_name = 'staff-profile'
+    redirect_url_name = 'staff_profile'
+
+    def get_redirect_url_args(self, request, pk):
+        return [pk]

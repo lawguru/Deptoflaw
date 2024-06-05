@@ -8,7 +8,7 @@
     <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Student Sign Up</h2>
     <form action="#add-notie-form" method="POST" class="py-3">
         {% csrf_token %}
-        <div class="row">
+        <div class="row g-0 gap-3">
             <div class="col-12 col-sm">
                 <div class="form-floating mb-3">
                     {{ form.first_name }}
@@ -26,7 +26,7 @@
             {{ form.email }}
             {{ form.email.label_tag }}
         </div>
-        <div class="row">
+        <div class="row g-0 gap-3">
             <div class="col-12 col-sm">
                 <div class="form-floating mb-3">
                     {{ form.password }}
@@ -44,7 +44,7 @@
             {{ form.course }}
             {{ form.course.label_tag }}
         </div>
-        <div class="row">
+        <div class="row g-0 gap-3">
             <div class="col-12 col-md">
                 <div class="form-floating mb-3">
                     {{ form.registration_number }}
@@ -74,7 +74,7 @@
                 </div>
             </div>
         </div>
-        <input type="submit" class="btn btn-primary btn-lg w-100 my-3" value="Submit">
+        <input type="submit" class="btn btn-primary btn-lg w-100 mb-3" value="Submit">
         {% if success %}
         <div class="alert alert-success" role="alert">
             <i class="bi bi-check-circle"></i>

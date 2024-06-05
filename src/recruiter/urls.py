@@ -4,7 +4,7 @@ from .views import *
 
 urlpatterns = [
     path('', RecruiterListView.as_view() , name='recruiters_list'),
-    path('<int:pk>/', RecruiterProfileDetail.as_view(), name='recruiter_profile'), 
+    path('<int:pk>/', RecruiterProfileDetail.as_view(), name='recruiter_detail'), 
     path('<int:pk>/change/', ChangeRecruiterProfile.as_view(), name='change_recruiter_profile'),
     path('signup/', RecruiterSignUp.as_view(), name='recruiter_sign_up'),
     path('signin/', RecruiterSignIn.as_view(), name='recruiter_sign_in'),

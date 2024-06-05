@@ -17,12 +17,12 @@ class UpdateEducationInfo(TemplateView):
 
     def get(self, request, user):
         if not user.isdigit():
-            return redirect('update_education_info', self.request.user.id)
+            return redirect('update_education_info', request.user.id)
         else:
             user=int(user)
             if not User.objects.filter(pk=user).exists():
                 raise ObjectDoesNotExist()
-            elif User.objects.get(pk=user) != self.request.user and not request.user.is_superuser:
+            elif User.objects.get(pk=user) != request.user and not request.user.is_superuser:
                 raise PermissionDenied()
         return super().get(request, user)
 
@@ -126,12 +126,12 @@ class UpdateExperienceInfo(TemplateView):
 
     def get(self, request, user):
         if not user.isdigit():
-            return redirect('update_experience_info', self.request.user.id)
+            return redirect('update_experience_info', request.user.id)
         else:
             user=int(user)
             if not User.objects.filter(pk=user).exists():
                 raise ObjectDoesNotExist()
-            elif User.objects.get(pk=user) != self.request.user and not request.user.is_superuser:
+            elif User.objects.get(pk=user) != request.user and not request.user.is_superuser:
                 raise PermissionDenied()
         return super().get(request, user)
 
@@ -195,12 +195,12 @@ class UpdateIPInfo(TemplateView):
 
     def get(self, request, user):
         if not user.isdigit():
-            return redirect('update_ip_info', self.request.user.id)
+            return redirect('update_ip_info', request.user.id)
         else:
             user=int(user)
             if not User.objects.filter(pk=user).exists():
                 raise ObjectDoesNotExist()
-            elif User.objects.get(pk=user) != self.request.user and not request.user.is_superuser:
+            elif User.objects.get(pk=user) != request.user and not request.user.is_superuser:
                 raise PermissionDenied()
         return super().get(request, user)
 
@@ -264,12 +264,12 @@ class UpdateOtherInfo(TemplateView):
 
     def get(self, request, user):
         if not user.isdigit():
-            return redirect('update_other_info', self.request.user.id)
+            return redirect('update_other_info', request.user.id)
         else:
             user=int(user)
             if not User.objects.filter(pk=user).exists():
                 raise ObjectDoesNotExist()
-            elif User.objects.get(pk=user) != self.request.user and not request.user.is_superuser:
+            elif User.objects.get(pk=user) != request.user and not request.user.is_superuser:
                 raise PermissionDenied()
         return super().get(request, user)
 

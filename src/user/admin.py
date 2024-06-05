@@ -48,7 +48,7 @@ class UserAdmin(admin.ModelAdmin):
         (
             'Personal Information',
             {
-                'fields': [('first_name', 'last_name'), ('date_of_birth', 'last_login', 'date_joined'), 'bio'],
+                'fields': [('first_name', 'last_name'), ('last_login', 'date_joined'), 'bio'],
             }
         ),
         (

@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Staff Sign Up | TPC | CSE | AUS{% endblock %}
+{% block title %}Recruiter Sign Up | TPC | CSE | AUS{% endblock %}
 
 {% load template_filters %}
 {% block content %}
 <div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
-    <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Staff Sign Up</h2>
+    <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Recruiter Sign Up</h2>
     <form action="#add-notie-form" method="POST" class="py-3">
         {% csrf_token %}
         <div class="row g-0 gap-3">
@@ -43,20 +43,16 @@
         <div class="row g-0 gap-3">
             <div class="col-12 col-sm">
                 <div class="form-floating mb-3">
-                    {{ form.id_number }}
-                    {{ form.id_number.label_tag }}
-                </div>
-            </div>
-            <div class="col-12 col-sm">
-                <div class="form-floating mb-3">
                     {{ form.designation }}
                     {{ form.designation.label_tag }}
                 </div>
             </div>
-        </div>
-        <div class="form-floating mb-3">
-            {{ form.qualification }}
-            {{ form.qualification.label_tag }}
+            <div class="col-12 col-sm">
+                <div class="form-floating mb-3">
+                    {{ form.company_name }}
+                    {{ form.company_name.label_tag }}
+                </div>
+            </div>
         </div>
         <input type="submit" class="btn btn-primary btn-lg w-100 mb-3" value="Submit">
         {% if success %}

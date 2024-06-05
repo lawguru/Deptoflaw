@@ -4,11 +4,10 @@ from .models import User, PhoneNumber, Email, Address, Link
 class UserForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'date_of_birth', 'bio']
+        fields = ['first_name', 'last_name', 'bio']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name', 'required': True}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name', 'required': True}),
-            'date_of_birth': forms.DateInput(attrs={'class': 'form-control', 'placeholder': 'Date of Birth', 'type': 'date', 'required': True}),  
             'bio': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Tell us about Yourself', 'style': 'height: 16rem;'}),    
         }
 
@@ -20,7 +19,7 @@ class UserForm(forms.ModelForm):
 class PhoneNumberForm(forms.ModelForm):
     class Meta:
         model = PhoneNumber
-        fields = ['user', 'country_code', 'phone_number', 'is_primary']
+        fields = ['user', 'country_code', 'phone_number']
         widgets = {
             'country_code': forms.TextInput(attrs={'class': 'form-control h-100 rounded-start rounded-end-0 border border-0 z-1', 'placeholder': 'Country Code'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control h-100', 'placeholder': 'Phone Number'}),
@@ -34,7 +33,7 @@ class PhoneNumberForm(forms.ModelForm):
 class EmailForm(forms.ModelForm):
     class Meta:
         model = Email
-        fields = ['user', 'email', 'is_primary']
+        fields = ['user', 'email']
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
         }
