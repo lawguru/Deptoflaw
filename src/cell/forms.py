@@ -50,9 +50,10 @@ class NoticeForm(forms.ModelForm):
 class RecruitmentPostForm(forms.ModelForm):
     class Meta:
         model = RecruitmentPost
-        fields = '__all__'
-        exclude = ['user', 'is_active', 'pending_application_instructions', 'rejected_application_instructions',
-                   'selected_application_instructions', 'interview_application_instructions']
+        exclude = [
+            'user',
+            'is_active',
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -66,20 +67,55 @@ class RecruitmentPostForm(forms.ModelForm):
 
 class AddRecruitmentPostForm(RecruitmentPostForm):
     class Meta(RecruitmentPostForm.Meta):
-        exclude = ['user', 'is_active']
+        fields = [
+            'title',
+            'company',
+            'job_type',
+            'workplace_type',
+            'sallary_type',
+            'sallary_currency',
+            'sallary',
+            'fee_currency',
+            'fee',
+            'experience_duration',
+            'start_date_type',
+            'start_date',
+            'description',
+        ]
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 
 class ChangeRecruitmentPostForm(RecruitmentPostForm):
     class Meta(RecruitmentPostForm.Meta):
-        fields = ['sallary_currency', 'sallary', 'fee_currency', 'fee', 'description', 'pending_application_instructions',
-                  'rejected_application_instructions', 'selected_application_instructions', 'shortlisted_application_instructions']
-        exclude = []
+        exclude = [
+            'user',
+            'is_active',
+        ]
+    title = forms.CharField(disabled=True)
+    company = forms.CharField(disabled=True)
+    job_type = forms.ChoiceField(
+        disabled=True, choices=RecruitmentPostForm.Meta.model.job_type_choices)
+    workplace_type = forms.ChoiceField(
+        disabled=True, choices=RecruitmentPostForm.Meta.model.workplace_type_choices)
+    sallary_type = forms.ChoiceField(
+        disabled=True, choices=RecruitmentPostForm.Meta.model.sallary_type_choices)
+    sallary_currency = forms.ChoiceField(
+        disabled=True, choices=RecruitmentPostForm.Meta.model.currency_choices)
+    sallary = forms.CharField(disabled=True)
+    fee_currency = forms.ChoiceField(
+        disabled=True, choices=RecruitmentPostForm.Meta.model.currency_choices)
+    fee = forms.CharField(disabled=True)
+    experience_duration = forms.IntegerField(disabled=True)
+    start_date_type = forms.ChoiceField(
+        disabled=True, choices=RecruitmentPostForm.Meta.model.start_date_type_choices)
+    start_date = forms.DateField(disabled=True)
 
 
 class RecruitmentPostUpdateForm(forms.ModelForm):
     class Meta:
         model = RecruitmentPostUpdate
-        fields = '__all__'
         exclude = ['user', 'recruitment_post']
 
     def __init__(self, *args, **kwargs):
@@ -95,7 +131,6 @@ class RecruitmentPostUpdateForm(forms.ModelForm):
 class RecruitmentApplicationForm(forms.ModelForm):
     class Meta:
         model = RecruitmentApplication
-        fields = '__all__'
         exclude = ['user', 'recruitment_post', 'status']
 
     def __init__(self, *args, **kwargs):

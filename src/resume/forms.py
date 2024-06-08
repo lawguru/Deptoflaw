@@ -39,34 +39,20 @@ class CertificationForm(forms.ModelForm):
                 visible.field.widget.attrs['style'] = 'height: 8rem'
 
 
-class SkillForm(forms.ModelForm):
-    class Meta:
-        model = Skill
-        exclude = []
+class SkillForm(forms.Form):
+    name = forms.CharField(max_length=150, label='Skill', widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Skill', 'id': 'id-skill-name', 'list': 'skill-data-list', 'autocomplete': 'off'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_suffix = ''
-        for visible in self.visible_fields():
-            visible.field.widget.attrs['class'] = 'form-control'
-            visible.field.widget.attrs['placeholder'] = visible.field.label
-            if isinstance(visible.field.widget, forms.Textarea):
-                visible.field.widget.attrs['style'] = 'height: 8rem'
 
 
-class LanguageForm(forms.ModelForm):
-    class Meta:
-        model = Language
-        exclude = []
+class LanguageForm(forms.Form):
+    name = forms.CharField(max_length=150, label='Language', widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Language', 'id': 'id-language-name', 'list': 'language-data-list', 'autocomplete': 'off'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_suffix = ''
-        for visible in self.visible_fields():
-            visible.field.widget.attrs['class'] = 'form-control'
-            visible.field.widget.attrs['placeholder'] = visible.field.label
-            if isinstance(visible.field.widget, forms.Textarea):
-                visible.field.widget.attrs['style'] = 'height: 8rem'
 
 
 class WorkExperienceForm(forms.ModelForm):

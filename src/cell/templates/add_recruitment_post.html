@@ -13,13 +13,13 @@
                 {{ form.title.label_tag }}
             </div>
             <div class="row g-0 gap-3 mb-3">
+                <div class="col-12 col-sm-5 form-floating">
+                    {{ form.company }}
+                    {{ form.company.label_tag }}
+                </div>
                 <div class="col-12 col-sm form-floating">
                     {{ form.job_type }}
                     {{ form.job_type.label_tag }}
-                </div>
-                <div class="col-12 col-sm form-floating">
-                    {{ form.company }}
-                    {{ form.company.label_tag }}
                 </div>
                 <div class="col-12 col-sm form-floating">
                     {{ form.workplace_type }}
@@ -27,7 +27,13 @@
                 </div>
             </div>
             <div class="row g-0 gap-3 mb-3">
-                <div class="col-12 col-md">
+                <div class="col-12 col-sm-5">
+                    <div class="form-floating">
+                        {{ form.sallary_type }}
+                        {{ form.sallary_type.label_tag }}
+                    </div>
+                </div>
+                <div class="col-12 col-sm">
                     <div class="input-group">
                         <div style="width: 13ch">
                             <div class="form-floating">
@@ -46,7 +52,20 @@
                     </div>
                     {% endif %}
                 </div>
-                <div class="col-12 col-md">
+            </div>
+            <div class="row g-0 gap-3 mb-3">
+                <div class="col-12 col-sm-5">
+                    <div class="input-group">
+                        <div class="form-floating">
+                            {{ form.experience_duration }}
+                            {{ form.experience_duration.label_tag }}
+                        </div>
+                        <div class="input-group-text bg-transparent">
+                            Years
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm">
                     <div class="input-group">
                         <div style="width: 13ch">
                             <div class="form-floating">
@@ -64,6 +83,20 @@
                         {{ form.fee.help_text }}
                     </div>
                     {% endif %}
+                </div>
+            </div>
+            <div class="row g-0 gap-3 mb-3">
+                <div class="col-12 col-sm-5">
+                    <div class="form-floating">
+                        {{ form.start_date_type }}
+                        {{ form.start_date_type.label_tag }}
+                    </div>
+                </div>
+                <div class="col-12 col-sm">
+                    <div class="form-floating">
+                        {{ form.start_date }}
+                        {{ form.start_date.label_tag }}
+                    </div>
                 </div>
             </div>
             <div class="form-floating mb-3">

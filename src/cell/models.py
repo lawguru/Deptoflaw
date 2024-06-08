@@ -113,6 +113,16 @@ class RecruitmentPost(models.Model):
         ('OMR', '(OMR) ر.ع.'),
         ('LKR', '(LKR) Rs'),
     ]
+    start_date_type_choices = [
+        ('I', 'Immediately'),
+        ('S', 'Specify'),
+    ]
+    sallary_type_choices = [
+        ('S', 'Specified'),
+        ('B', 'Specified and Bonus'),
+        ('P', 'Performance Based'),
+        ('N', 'Negotiable'),
+    ]
     user = models.ForeignKey(
         User, null=True, on_delete=models.SET_NULL, related_name='recruitment_posts')
     title = models.CharField('Job Title / Designation', max_length=150)
@@ -121,14 +131,31 @@ class RecruitmentPost(models.Model):
                                 max_length=2, choices=job_type_choices, default='FT')
     workplace_type = models.CharField('Workplace',
                                       max_length=1, choices=workplace_type_choices, default='S')
+    sallary_type = models.CharField('Sallary / Stipend type',
+        max_length=1, choices=sallary_type_choices, default='S')
     sallary_currency = models.CharField(
         max_length=3, choices=currency_choices, default='INR')
-    sallary = models.CharField(max_length=50, default='Negotiable', help_text='Example: 40 KPM, 4-6 LPA etc.')
+    sallary = models.CharField('Sallary / Stipend',
+        max_length=50, default='0', help_text='Example: 40 KPM, 4-6 LPA etc.')
     fee_currency = models.CharField(
         max_length=3, choices=currency_choices, default='INR')
-    fee = models.FloatField(validators=[MinValueValidator(0)], default=0, help_text='Any fee to be paid by the applicant.')
+    fee = models.FloatField(validators=[MinValueValidator(
+        0)], default=0, help_text='Any fee to be paid by the applicant.')
+    experience_duration = models.SmallIntegerField('Experience',
+        validators=[MinValueValidator(0)], default=0)
+    start_date_type = models.CharField(
+        max_length=1, choices=start_date_type_choices, default='I')
+    start_date = models.DateField(blank=True, null=True)
     description = models.TextField('Job Description')
-    is_active = models.BooleanField(default=True, help_text='Uncheck to stop receiving applications.')
+    skills = models.ManyToManyField('resume.Skill', related_name='jobs')
+    requirements = models.TextField(
+        blank=True, help_text='List of requirements for the job other than skills, qualifications, experience etc.')
+    required_documents = models.TextField(
+        blank=True, help_text='List of documents required from the applicants.')
+    questionaires = models.TextField(
+        blank=True, help_text='If any information is required from the applicants, list a set of questions or instructions.')
+    is_active = models.BooleanField(
+        default=True, help_text='Uncheck to stop receiving applications.')
     posted_on = models.DateTimeField(auto_now_add=True, editable=False)
     pending_application_instructions = models.TextField(blank=True)
     rejected_application_instructions = models.TextField(blank=True)
@@ -158,6 +185,7 @@ class RecruitmentApplication(models.Model):
     recruitment_post = models.ForeignKey(
         RecruitmentPost, on_delete=models.RESTRICT, related_name='applications')
     cover_letter = models.TextField()
+    answers = models.TextField(blank=True)
     applied_on = models.DateTimeField(auto_now_add=True, editable=False)
     status = models.CharField(
         max_length=1, choices=status_choices, default='P')

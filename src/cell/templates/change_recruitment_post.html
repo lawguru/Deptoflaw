@@ -5,9 +5,27 @@
 {% block content %}
 <div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
     <div id="recruitment-post-form" class="col my-3 p-lg-4">
-        <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Tell Us about Your Job Offer</h1>
+        <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Edit Job Offer</h1>
         <form action="#recruitment-post-form" method="POST" class="py-3">
             {% csrf_token %}
+            <div class="form-floating mb-3">
+                {{ form.title }}
+                {{ form.title.label_tag }}
+            </div>
+            <div class="row g-0 gap-3 mb-3">
+                <div class="col-12 col-sm form-floating">
+                    {{ form.job_type }}
+                    {{ form.job_type.label_tag }}
+                </div>
+                <div class="col-12 col-sm form-floating">
+                    {{ form.company }}
+                    {{ form.company.label_tag }}
+                </div>
+                <div class="col-12 col-sm form-floating">
+                    {{ form.workplace_type }}
+                    {{ form.workplace_type.label_tag }}
+                </div>
+            </div>
             <div class="row g-0 gap-3 mb-3">
                 <div class="col-12 col-md">
                     <div class="input-group">
@@ -51,6 +69,27 @@
             <div class="form-floating mb-3">
                 {{ form.description }}
                 {{ form.description.label_tag }}
+            </div>
+            <div class="form-floating">
+                {{ form.requirements }}
+                {{ form.requirements.label_tag }}
+            </div>
+            <div class="form-text ms-3 mb-3">
+                {{ form.requirements.help_text }}
+            </div>
+            <div class="form-floating">
+                {{ form.required_documents }}
+                {{ form.required_documents.label_tag }}
+            </div>
+            <div class="form-text ms-3 mb-3">
+                {{ form.required_documents.help_text }}
+            </div>
+            <div class="form-floating">
+                {{ form.questionaires }}
+                {{ form.questionaires.label_tag }}
+            </div>
+            <div class="form-text ms-3 mb-3">
+                {{ form.questionaires.help_text }}
             </div>
             <div class="form-floating mb-3">
                 {{ form.pending_application_instructions }}

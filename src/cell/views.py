@@ -117,7 +117,8 @@ class AddRecruitmentPost(AddUserKeyObject):
         if not self.check_permission(request, *args, **kwargs):
             raise PermissionDenied()
         if self.template_name and self.form:
-            return render(request, self.template_name, {'form': self.form({'company': kwargs['user'].recruiter_profile.company_name})})
+            user = User.objects.get(pk=kwargs['user'])
+            return render(request, self.template_name, {'form': self.form(initial = {'company': user.recruiter_profile.company_name})})
         return redirect(self.get_redirect_url(request, *args, **kwargs))
 
 
@@ -128,6 +129,7 @@ class ViewRecruitmentPost(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['post'] = RecruitmentPost.objects.get(pk=kwargs['pk'])
+        context['update_form'] = RecruitmentPostUpdateForm()
         return context
 
     def get(self, request, pk):
@@ -194,12 +196,12 @@ class AddRecruitmentPostUpdate(AddObject):
     def get(self, request, post):
         if not RecruitmentPost.objects.filter(pk=post).exists():
             raise ObjectDoesNotExist()
-        return super().get(request, post=RecruitmentPost.objects.get(pk=post))
+        return super().get(request, post=RecruitmentPost.objects.get(pk=post), user=request.user)
 
     def post(self, request, post):
         if not RecruitmentPost.objects.filter(pk=post).exists():
             raise ObjectDoesNotExist()
-        return super().post(request, post=RecruitmentPost.objects.get(pk=post))
+        return super().post(request, post=RecruitmentPost.objects.get(pk=post), user=request.user)
 
 
 @method_decorator(login_required, name="dispatch")

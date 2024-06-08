@@ -87,20 +87,17 @@
         <h2 class="fw-bold text-body-emphasis lh-1 my-4">Your expertise</h2>
         <div class="d-flex flex-wrap align-items-center gap-2 my-3">
             {% for skill in skills %}
-            <div class="badge d-flex align-items-center rounded-pill text-bg-accent gap-2">
-                <form action="{% url 'delete_skill' skill.pk %}" method="POST">
+            <div class="badge d-flex align-items-center rounded-pill text-bg-accent gap-1">
+                <h6 class="replace-abbreviation text-start fw-bold mb-0 lh-1">
+                    {{ skill.name }}
+                </h6>
+                <form action="{% url 'delete_skill' user.pk skill.pk %}" method="POST">
                     {% csrf_token %}
-                    <button type="submit" class="btn border border-0 m-0 mx-1 p-0" data-bs-toggle="tooltip"
+                    <button type="submit" class="btn border border-0 m-0 p-0" data-bs-toggle="tooltip"
                         data-bs-title="Remove">
-                        <i class="bi bi-x-circle fs-4"></i>
+                        <i class="bi bi-x-circle fs-6"></i>
                     </button>
                 </form>
-                <div class="me-3">
-                    <h6 class="replace-abbreviation text-start fw-bold mb-0 ">
-                        {{ skill.name }}
-                    </h6>
-                    <p class="text-body-secondary text-start fs-7 mb-0">{{ skill.get_proficiency_display }}</p>
-                </div>
             </div>
             {% endfor %}
         </div>
@@ -109,21 +106,32 @@
             <div class="d-none">
                 {{ skill_form.user }}
             </div>
-            <div class="input-group mb-3">    
+            <div class="input-group mb-3">
                 <div class="form-floating">
                     {{ skill_form.name }}
                     {{ skill_form.name.label_tag }}
-                </div>
-                <div class="form-floating">
-                    {{ skill_form.proficiency }}
-                    {{ skill_form.proficiency.label_tag }}
                 </div>
                 <button class="btn border m-0" data-bs-toggle="tooltip" data-bs-title="Add">
                     <i class="bi bi-plus-circle"></i>
                 </button>
             </div>
-            <div class="form-text ms-3">
-                Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup Language)
+            <datalist id="skill-data-list">
+                <!-- {% for skill in skill_options %}
+                <option value="{{ skill.name }}">
+                {% endfor %} -->
+            </datalist>
+            <div class="form-text ms-2">
+                <strong>Guidelines:</strong>
+                <ul>
+                    <li>
+                        Follow appropriate naming convention and capitalization. Eg. Python, C++, JavaScript,
+                        TypeScript, etc.
+                    </li>
+                    <li>
+                        Put full form of abbreviations in brackets. Eg. CSS (Cascading Style Sheets), MS (Microsoft)
+                        Excel, etc.
+                    </li>
+                </ul>
             </div>
         </form>
     </div>
@@ -131,20 +139,17 @@
         <h2 class="fw-bold text-body-emphasis lh-1 my-4">What do you speak?</h2>
         <div class="d-flex flex-wrap align-items-center gap-2 my-3">
             {% for language in languages %}
-            <div class="badge d-flex align-items-center rounded-pill text-bg-accent gap-2">
-                <form action="{% url 'delete_language' language.pk %}" method="POST">
+            <div class="badge d-flex align-items-center rounded-pill text-bg-accent gap-1">
+                <h6 class="text-start fw-bold mb-0 lh-1">
+                    {{ language.name }}
+                </h6>
+                <form action="{% url 'delete_language' user.pk language.pk %}" method="POST">
                     {% csrf_token %}
-                    <button type="submit" class="btn border border-0 m-0 mx-1 p-0" data-bs-toggle="tooltip"
+                    <button type="submit" class="btn border border-0 m-0 p-0" data-bs-toggle="tooltip"
                         data-bs-title="Remove">
-                        <i class="bi bi-x-circle fs-4"></i>
+                        <i class="bi bi-x-circle fs-6"></i>
                     </button>
                 </form>
-                <div class="me-3">
-                    <h6 class="text-start fw-bold mb-0 ">
-                        {{ language.name }}
-                    </h6>
-                    <p class="text-body-secondary text-start fs-7 mb-0">{{ language.get_proficiency_display }}</p>
-                </div>
             </div>
             {% endfor %}
         </div>
@@ -158,22 +163,53 @@
                     {{ language_form.name }}
                     {{ language_form.name.label_tag }}
                 </div>
-                <div class="form-floating">
-                    {{ language_form.proficiency }}
-                    {{ language_form.proficiency.label_tag }}
-                </div>
                 <button class="btn border m-0" data-bs-toggle="tooltip" data-bs-title="Add">
                     <i class="bi bi-plus-circle"></i>
                 </button>
             </div>
+            <datalist id="language-data-list">
+            </datalist>
         </form>
     </div>
-    <a class="btn btn-primary btn-lg w-100 my-3"
-        href="{% url 'build_profile' %}">Done</a>
+    <a class="btn btn-primary btn-lg w-100 my-3" href="{% url 'build_profile' %}">Done</a>
 </div>
 <script>
     document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {
         element.innerHTML = replaceAbbreviations(element.innerHTML);
+    });
+    skill_name = document.getElementById('id-skill-name')
+    skill_options = document.getElementById('skill-data-list')
+    skill_name.addEventListener('keyup', function () {
+        if (skill_name.value != '')
+            fetch(`{% url "skill_autocomplete" %}?q=${skill_name.value}&u={{user.pk}}`)
+            .then(response => response.json())
+            .then(data => {
+                skill_options.innerHTML = ''
+                data.forEach(option => {
+                    newoption = document.createElement('option')
+                    newoption.value = option
+                    skill_options.appendChild(newoption)
+                });
+            });
+        else
+            skill_options.innerHTML = ''
+    });
+    language_name = document.getElementById('id-language-name')
+    language_options = document.getElementById('language-data-list')
+    language_name.addEventListener('keyup', function () {
+        if (language_name.value != '')
+            fetch(`{% url "language_autocomplete" %}?q=${language_name.value}&u={{user.pk}}`)
+            .then(response => response.json())
+            .then(data => {
+                language_options.innerHTML = ''
+                data.forEach(option => {
+                    newoption = document.createElement('option')
+                    newoption.value = option
+                    language_options.appendChild(newoption)
+                });
+            });
+        else
+            language_options.innerHTML = ''
     });
 </script>
 {% endblock %}

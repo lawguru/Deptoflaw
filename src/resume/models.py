@@ -165,16 +165,8 @@ class Certification(models.Model):
 
 
 class Skill(models.Model):
-    proficiency_choices = [
-        ('Beg', 'Beginner'),
-        ('Int', 'Intermediate'),
-        ('Adv', 'Advanced'),
-        ('Exp', 'Expert'),
-    ]
-
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    users = models.ManyToManyField('user.User')
     name = models.CharField('I am skilled in', max_length=100)
-    proficiency = models.CharField(choices=proficiency_choices, max_length=3, default='Beg')
 
     def __str__(self):
         return self.name
@@ -182,21 +174,13 @@ class Skill(models.Model):
     class Meta:
         ordering = ['name']
         constraints = [
-            models.UniqueConstraint(Lower('name'), 'user', name='unique_skill'),
+            models.UniqueConstraint(Lower('name'), name='unique_skill'),
         ]
 
 
 class Language(models.Model):
-    proficiency_choices = [
-        ('Beg', 'Beginner'),
-        ('Pro', 'Professional'),
-        ('Nat', 'Native'),
-        ('Exp', 'Expert'),
-    ]
-
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    users = models.ManyToManyField('user.User')
     name = models.CharField('I can speak', max_length=100)
-    proficiency = models.CharField(choices=proficiency_choices, max_length=3, default='Beg')
 
     def __str__(self):
         return self.name
@@ -204,7 +188,7 @@ class Language(models.Model):
     class Meta:
         ordering = ['name']
         constraints = [
-            models.UniqueConstraint(Lower('name'), 'user', name='unique_language'),
+            models.UniqueConstraint(Lower('name'), name='unique_language'),
         ]
 
 
