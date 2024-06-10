@@ -1,44 +1,491 @@
 {% extends "base.html" %}
 
-{% block title %}What else? | TPC | CSE | AUS{% endblock %}
+{% block title %}Your IP | TPC | CSE | AUS{% endblock %}
 
+{% load template_filters %}
 {% block content %}
 <div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
-    <div id="other-info-form" class="col my-3 p-lg-4">
-        <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Anything else that You want to mention?</h1>
-        <form action="#other-info-form" method="POST" class="py-3">
-            {% csrf_token %}
-            <div class="form-floating mb-3">
-                {{ form.title }}
-                {{ form.title.label_tag }}
-            </div>
-            <div class="form-floating">
-                {{ form.description }}
-                {{ form.description.label_tag }}
-            </div>
-            <div class="form-text m-3 mb-0">
-                Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup Language)
-            </div>
-            <input type="submit" class="btn btn-primary btn-lg w-100 my-3" value="Submit">
-            {% if success %}
-            <div class="alert alert-success" role="alert">
-                <i class="bi bi-check-circle"></i>
-                <span>{{ success }}</span>
+    <h1 class="fw-bold display-5 text-body-emphasis lh-1 mb-5">What else did you achieve?</h1>
+    {% if achievements|length or write_permission %}
+    <div id="achievements" class="my-5">
+        <div class="d-flex align-items-center justify-content-between">
+            <h2 class="fw-bold text-body-emphasis lh-1 my-4">Achievements</h2>
+            {% if write_permission %}
+            <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-achievement-modal">
+                <i class="bi bi-plus-circle"></i>
+            </a>
+            <div class="modal fade" id="add-achievement-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div
+                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                Add Achievement
+                            </strong>
+                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="add-achievement-form" action="{% url 'add_achievement' %}" method="POST">
+                                {% csrf_token %}
+                                <div class="d-none">
+                                    {{ achievement_form.user }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ achievement_form.title }}
+                                    {{ achievement_form.title.label_tag }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ achievement_form.date }}
+                                    {{ achievement_form.date.label_tag }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ achievement_form.description }}
+                                    {{ achievement_form.description.label_tag }}
+                                </div>
+                                <div class="form-text">
+                                    Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup Language)
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" form="add-achievement-form" class="btn btn-primary btn-lg w-100"
+                                value="Add"
+                                onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                        </div>
+                    </div>
+                </div>
             </div>
             {% endif %}
-            {% if error %}
-            <div class="alert alert-danger" role="alert">
-                <i class="bi bi-exclamation-triangle"></i>
-                <span>{{ error }}</span>
-            </div>
-            {% endif %}
-            {% if warning %}
-            <div class="alert alert-warning" role="alert">
-                <i class="bi bi-exclamation-circle"></i>
-                <span>{{ error }}</span>
-            </div>
-            {% endif %}
-        </form>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for achievement in achievements %}
+            <li class="list-group-item">
+                <div>
+                    <h4 class="replace-abbreviation fw-bold text-body-emphasis lh-4 mb-0">
+                        {{ achievement.0.title }}
+                    </h4>
+                    <p>
+                        <small class="text-body-secondary">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>{{ achievement.0.date }}</span>
+                        </small>
+                    </p>
+                </div>
+                <p class="replace-abbreviation">{{ achievement.0.description }}</p>
+                {% if write_permission %}
+                <span class="d-flex gap-3">
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#change-achievement-{{ achievement.0.pk }}-modal">
+                        <i class="bi bi-pen"></i>
+                    </a>
+                    <div class="modal fade" id="change-achievement-{{ achievement.0.pk }}-modal"
+                        data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Edit Achievement
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="change-achievement-{{ achievement.0.pk }}-form"
+                                        action="{% url 'change_achievement' achievement.0.pk %}" method="POST">
+                                        {% csrf_token %}
+                                        <div class="d-none">
+                                            {{ achievement.1.user }}
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ achievement.1.title }}
+                                            {{ achievement.1.title.label_tag }}
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ achievement.1.date }}
+                                            {{ achievement.1.date.label_tag }}
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ achievement.1.description }}
+                                            {{ achievement.1.description.label_tag }}
+                                        </div>
+                                        <div class="form-text">
+                                            Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup
+                                            Language)
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <input type="submit" form="change-achievement-{{ achievement.0.pk }}-form" class="btn btn-primary btn-lg w-100" value="Save"
+                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#delete-achievement-{{ achievement.0.pk }}-modal">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                    <div class="modal fade" id="delete-achievement-{{ achievement.0.pk }}-modal"
+                        data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Confirmation
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="lead replace-abbreviation mb-0">{{achievement.0.title}}</p>
+                                    <p class="mb-0">
+                                        Delete this achievement?
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <form class="m-0 w-100" action="{% url 'delete_achievement' achievement.0.pk %}"
+                                        method="POST">
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-danger btn-lg border border-0 w-100 m-0"
+                                            value="Delete">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
     </div>
+    {% endif %}
+    {% if presentations|length or write_permission %}
+    <div id="presentations" class="my-5">
+        <div class="d-flex align-items-center justify-content-between">
+            <h2 class="fw-bold text-body-emphasis lh-1 my-4">Conferences/Events You Conducted or Presented at</h2>
+            {% if write_permission %}
+            <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-presentation-modal">
+                <i class="bi bi-plus-circle"></i>
+            </a>
+            <div class="modal fade" id="add-presentation-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div
+                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                Add Presentation
+                            </strong>
+                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="add-presentation-form" action="{% url 'add_presentation' %}" method="POST">
+                                {% csrf_token %}
+                                <div class="d-none">
+                                    {{ presentation_form.user }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ presentation_form.title }}
+                                    {{ presentation_form.title.label_tag }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ presentation_form.location }}
+                                    {{ presentation_form.location.label_tag }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ presentation_form.date }}
+                                    {{ presentation_form.date.label_tag }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ presentation_form.description }}
+                                    {{ presentation_form.description.label_tag }}
+                                </div>
+                                <div class="form-text">
+                                    Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup Language)
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" form="add-presentation-form" class="btn btn-primary btn-lg w-100" value="Add"
+                                onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for presentation in presentations %}
+            <li class="list-group-item">
+                <div>
+                    <h4 class="replace-abbreviation fw-bold text-body-emphasis lh-4 mb-0">
+                        {{ presentation.0.title }}
+                    </h4>
+                    <p class="mb-0">
+                        <small class="text-body-secondary">
+                            <i class="bi bi-map"></i>
+                            <span class="replace-abbreviation">{{ presentation.0.location }}</span>
+                        </small>
+                    </p>
+                    <p>
+                        <small class="text-body-secondary">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>{{ presentation.0.date }}</span>
+                        </small>
+                    </p>
+                </div>
+                <p class="replace-abbreviation">{{ presentation.0.description }}</p>
+                {% if write_permission %}
+                <span class="d-flex gap-3">
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#change-presentation-{{ presentation.0.pk }}-modal">
+                        <i class="bi bi-pen"></i>
+                    </a>
+                    <div class="modal fade" id="change-presentation-{{ presentation.0.pk }}-modal"
+                        data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Edit Presentation
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="change-presentation-{{ presentation.0.pk }}-form"
+                                        action="{% url 'change_presentation' presentation.0.pk %}" method="POST">
+                                        {% csrf_token %}
+                                        <div class="d-none">
+                                            {{ presentation.1.user }}
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ presentation.1.title }}
+                                            {{ presentation.1.title.label_tag }}
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ presentation.1.location }}
+                                            {{ presentation.1.location.label_tag }}
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ presentation.1.date }}
+                                            {{ presentation.1.date.label_tag }}
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ presentation.1.description }}
+                                            {{ presentation.1.description.label_tag }}
+                                        </div>
+                                        <div class="form-text">
+                                            Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup
+                                            Language)
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <input type="submit" form="change-presentation-{{ presentation.0.pk }}-form" class="btn btn-primary btn-lg w-100" value="Save"
+                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#delete-presentation-{{ presentation.0.pk }}-modal">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                    <div class="modal fade" id="delete-presentation-{{ presentation.0.pk }}-modal"
+                        data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Confirmation
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+
+                                    <p class="lead replace-abbreviation mb-0">{{presentation.0.title}} at
+                                        {{presentation.0.location}}</p>
+                                    <p class="mb-0">
+                                        Delete this presentation?
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <form class="m-0 w-100" action="{% url 'delete_presentation' presentation.0.pk %}"
+                                        method="POST">
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-danger btn-lg border border-0 w-100 m-0"
+                                            value="Delete">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% if other_infos|length or write_permission %}
+    <div id="other-infos" class="my-5">
+        <div class="d-flex align-items-center justify-content-between">
+            <h2 class="fw-bold text-body-emphasis lh-1 my-4">Anything Else you want to mention?</h2>
+            {% if write_permission %}
+            <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-other-info-modal">
+                <i class="bi bi-plus-circle"></i>
+            </a>
+            <div class="modal fade" id="add-other-info-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div
+                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                Add an Information
+                            </strong>
+                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="add-other-info-form" action="{% url 'add_other_info' %}" method="POST">
+                                {% csrf_token %}
+                                <div class="d-none">
+                                    {{ other_info_form.user }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ other_info_form.title }}
+                                    {{ other_info_form.title.label_tag }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ other_info_form.description }}
+                                    {{ other_info_form.description.label_tag }}
+                                </div>
+                                <div class="form-text">
+                                    Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup Language)
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" form="add-other-info-form" class="btn btn-primary btn-lg w-100" value="Add"
+                                onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for other_info in other_infos %}
+            <li class="list-group-item">
+                <div>
+                    <h4 class="replace-abbreviation fw-bold text-body-emphasis lh-4 mb-0">
+                        {{ other_info.0.title }}
+                    </h4>
+                </div>
+                <p class="replace-abbreviation">{{ other_info.0.description }}</p>
+                {% if write_permission %}
+                <span class="d-flex gap-3">
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#change-other-info-{{ other_info.0.pk }}-modal">
+                        <i class="bi bi-pen"></i>
+                    </a>
+                    <div class="modal fade" id="change-other-info-{{ other_info.0.pk }}-modal" data-bs-backdrop="static"
+                        data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Edit Information
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="change-other-info-{{ other_info.0.pk }}-form"
+                                        action="{% url 'change_other_info' other_info.0.pk %}" method="POST">
+                                        {% csrf_token %}
+                                        <div class="d-none">
+                                            {{ other_info.1.user }}
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ other_info.1.title }}
+                                            {{ other_info.1.title.label_tag }}
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ other_info.1.description }}
+                                            {{ other_info.1.description.label_tag }}
+                                        </div>
+                                        <div class="form-text">
+                                            Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup
+                                            Language)
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <input type="submit" form="change-other-info-{{ other_info.0.pk }}-form" class="btn btn-primary btn-lg w-100" value="Save"
+                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#delete-other-info-{{ other_info.0.pk }}-modal">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                    <div class="modal fade" id="delete-other-info-{{ other_info.0.pk }}-modal" data-bs-backdrop="static"
+                        data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Confirmation
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="replace-abbreviation mb-0">Delete {{other_info.0.title}}?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <form class="m-0 w-100" action="{% url 'delete_other_info' other_info.0.pk %}"
+                                        method="POST">
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-danger btn-lg border border-0 w-100 m-0"
+                                            value="Delete">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    <a class="btn btn-primary btn-lg w-100 my-3" href="{% url 'build_profile' user.pk %}">Done</a>
 </div>
+<script>
+    document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {
+        element.innerHTML = replaceAbbreviations(element.innerHTML);
+    });
+</script>
 {% endblock %}

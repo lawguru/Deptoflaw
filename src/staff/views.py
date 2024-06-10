@@ -1,4 +1,4 @@
-from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, BadRequest
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login
@@ -11,6 +11,7 @@ from django.views.generic import ListView
 from django.views.generic.base import TemplateView
 
 # Create your views here.
+
 
 @method_decorator(login_required, name="dispatch")
 class StaffListView(ListView):
@@ -63,7 +64,8 @@ class StaffSignUp(TemplateView):
         form = StaffSignUpForm(request.POST)
         if form.is_valid():
             email = Email.objects.create(email=form.cleaned_data['email'])
-            staff = StaffProfile.objects.create(id_number=form.cleaned_data['id_number'], qualification=form.cleaned_data['qualification'], designation=form.cleaned_data['designation'], primary_email=email)
+            staff = StaffProfile.objects.create(
+                id_number=form.cleaned_data['id_number'], qualification=form.cleaned_data['qualification'], designation=form.cleaned_data['designation'], primary_email=email)
             staff.user.first_name = form.cleaned_data['first_name']
             staff.user.last_name = form.cleaned_data['last_name']
             staff.user.set_password(form.cleaned_data['password'])
@@ -92,7 +94,7 @@ class StaffSignIn(TemplateView):
                 user = authenticate(username=staff.user.pk, password=password)
                 if user is not None:
                     login(request, user)
-                return redirect('build_profile')
+                return redirect('build_profile', user.pk)
         return render(request, self.template_name, {'form': form})
 
 
@@ -105,7 +107,7 @@ class StaffProfileDetail(TemplateView):
         context['staff'] = StaffProfile.objects.get(
             pk=self.kwargs['pk'])
         return context
-    
+
     def get(self, request, pk):
         if not StaffProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
@@ -113,13 +115,16 @@ class StaffProfileDetail(TemplateView):
         if staff_profile.user != request.user and not request.user.is_superuser and not request.user.is_coordinator():
             raise PermissionDenied()
         if staff_profile.user == request.user and not staff_profile.user.is_approved:
-            return redirect('build_profile')
+            return redirect('build_profile', staff_profile.user.pk)
         return super().get(request, pk)
 
 
 @method_decorator(login_required, name="dispatch")
-class UpdateStaffInfo(TemplateView):
-    template_name = 'update_staff_info.html'
+class StaffInfo(TemplateView):
+    template_name = 'staff_info.html'
+
+    def check_write_permission(self, **kwargs):
+        return True if self.request.user.is_superuser or self.request.user == StaffProfile.objects.get(pk=self.kwargs['pk']).user else False
 
     def get(self, request, pk):
         if not StaffProfile.objects.filter(pk=pk).exists():
@@ -133,6 +138,10 @@ class UpdateStaffInfo(TemplateView):
         context = super().get_context_data(**kwargs)
         context['user'] = profile.user
         context['profile'] = profile
+        if self.check_write_permission(**kwargs):
+            context['write_permission'] = True
+            context['change_profile_form'] = StaffProfileForm(
+                instance=profile)
         return context
 
 
@@ -145,3 +154,6 @@ class ChangeStaffProfile(ChangeUserKeyObject):
 
     def get_redirect_url_args(self, request, pk):
         return [pk]
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()

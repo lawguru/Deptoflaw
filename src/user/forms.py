@@ -46,7 +46,7 @@ class EmailForm(forms.ModelForm):
 class AddressForm(forms.ModelForm):
     class Meta:
         model = Address
-        fields = ['address', 'city', 'state',
+        fields = ['user', 'address', 'city', 'state',
                   'country', 'pincode']
         widgets = {
             'address': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'House number, Building, Locality, Street, Landmark', 'style': 'height: 8rem;'}),

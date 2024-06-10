@@ -85,56 +85,6 @@
                 </a>
             </li>
         </ul>
-        <div class="modal fade" id="share-update-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-            aria-labelledby="staticBackdropLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content p-3">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <strong class="modal-title fs-3 fw-bold text-body-emphasis">
-                            Share an Update
-                        </strong>
-                        <button type="button" class="btn-close m-2" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form action="{% url 'add_recruitment_post_update' post.pk %}" method="POST">
-                        {% csrf_token %}
-                        <div class="form-floating mb-3">
-                            {{ update_form.title }}
-                            {{ update_form.title.label_tag }}
-                        </div>
-                        <div class="form-floating mb-3">
-                            {{ update_form.description }}
-                            {{ update_form.description.label_tag }}
-                        </div>
-                        <input type="submit" class="btn btn-primary btn-lg w-100" value="Submit">
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="modal fade" id="apply-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-            aria-labelledby="staticBackdropLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content p-3">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <strong class="modal-title fs-3 fw-bold text-body-emphasis">
-                            Share an Update
-                        </strong>
-                        <button type="button" class="btn-close m-2" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form action="{% url 'add_recruitment_post_update' post.pk %}" method="POST">
-                        {% csrf_token %}
-                        <div class="form-floating mb-3">
-                            {{ apply_form.title }}
-                            {{ apply_form.title.label_tag }}
-                        </div>
-                        <div class="form-floating mb-3">
-                            {{ apply_form.description }}
-                            {{ apply_form.description.label_tag }}
-                        </div>
-                        <input type="submit" class="btn btn-primary btn-lg w-100" value="Submit">
-                    </form>
-                </div>
-            </div>
-        </div>
         {% endif %}
         <ul class="list-group list-group-flush my-4">
             <li class="list-group-item d-flex align-items-center gap-3 p-2">
@@ -217,6 +167,56 @@
             </div>
             {% endif %}
         </ul>
+    </div>
+</div>
+<div class="modal fade" id="share-update-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+        <div class="modal-content p-3">
+            <div class="modal-header m-0 mb-3">
+                <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                    Share an Update
+                </strong>
+                <button type="button" class="btn-close m-2" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'add_recruitment_post_update' post.pk %}" method="POST">
+                {% csrf_token %}
+                <div class="form-floating mb-3">
+                    {{ update_form.title }}
+                    {{ update_form.title.label_tag }}
+                </div>
+                <div class="form-floating mb-3">
+                    {{ update_form.description }}
+                    {{ update_form.description.label_tag }}
+                </div>
+                <input type="submit" class="btn btn-primary btn-lg w-100" value="Submit">
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="apply-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+        <div class="modal-content p-3">
+            <div class="modal-header m-0 mb-3">
+                <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                    Share an Update
+                </strong>
+                <button type="button" class="btn-close m-2" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'add_recruitment_post_update' post.pk %}" method="POST">
+                {% csrf_token %}
+                <div class="form-floating mb-3">
+                    {{ apply_form.title }}
+                    {{ apply_form.title.label_tag }}
+                </div>
+                <div class="form-floating mb-3">
+                    {{ apply_form.description }}
+                    {{ apply_form.description.label_tag }}
+                </div>
+                <input type="submit" class="btn btn-primary btn-lg w-100" value="Submit">
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

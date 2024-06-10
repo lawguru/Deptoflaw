@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}Your IP | TPC | CSE | AUS{% endblock %}
+
+{% load template_filters %}
+{% block content %}
+<div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
+    <h1 class="fw-bold display-5 text-body-emphasis lh-1 mb-5">Your Intellectual Properties</h1>
+    {% if patents|length or write_permission %}
+    <div id="patents" class="my-5">
+        <div class="d-flex align-items-center justify-content-between">
+            <h2 class="fw-bold text-body-emphasis lh-1 my-4">Patents</h2>
+            {% if write_permission %}
+            <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-patent-modal">
+                <i class="bi bi-plus-circle"></i>
+            </a>
+            <div class="modal fade" id="add-patent-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div
+                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                Add Patent
+                            </strong>
+                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="add-patent-form" action="{% url 'add_patent' %}" method="POST">
+                                {% csrf_token %}
+                                <div class="form-floating mb-3">
+                                    {{ patent_form.title }}
+                                    {{ patent_form.title.label_tag }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ patent_form.patent_office }}
+                                    {{ patent_form.patent_office.label_tag }}
+                                </div>
+                                <div class="row gap-3 g-0">
+                                    <div class="col-12 col-sm form-floating mb-3">
+                                        {{ patent_form.patent_number }}
+                                        {{ patent_form.patent_number.label_tag }}
+                                    </div>
+                                    <div class="col-12 col-sm form-floating mb-3">
+                                        {{ patent_form.issue_date }}
+                                        {{ patent_form.issue_date.label_tag }}
+                                    </div>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ patent_form.description }}
+                                    {{ patent_form.description.label_tag }}
+                                </div>
+                                <div class="form-text">
+                                    Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup Language)
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" form="add-patent-form" class="btn btn-primary btn-lg w-100" value="Add"
+                                onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for patent in patents %}
+            <li class="list-group-item">
+                <div>
+                    <h4 class="replace-abbreviation fw-bold text-body-emphasis lh-4 mb-0">
+                        {{ patent.0.title }}
+                    </h4>
+                    <p class="mb-0">
+                        <small class="text-body-secondary">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>{{ patent.0.issue_date }}</span>
+                        </small>
+                    </p>
+                    <p>
+                        <small class="text-body-secondary">
+                            <i class="bi bi-buildings"></i>
+                            <span class="replace-abbreviation">{{ patent.0.patent_office }}</span>
+                            <i class="ms-2 bi bi-ticket-detailed"></i>
+                            <span class="replace-abbreviation">{{ patent.0.patent_number }}</span>
+                        </small>
+                    </p>
+                </div>
+                <p class="replace-abbreviation">{{ patent.0.description }}</p>
+                {% if write_permission %}
+                <span class="d-flex gap-3">
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#change-patent-{{ patent.0.pk }}-modal">
+                        <i class="bi bi-pen"></i>
+                    </a>
+                    <div class="modal fade" id="change-patent-{{ patent.0.pk }}-modal" data-bs-backdrop="static"
+                        data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Edit Patent
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="change-patent-{{ patent.0.pk }}-form"
+                                        action="{% url 'change_patent' patent.0.pk %}" method="POST">
+                                        {% csrf_token %}
+                                        <div class="form-floating mb-3">
+                                            {{ patent.1.title }}
+                                            {{ patent.1.title.label_tag }}
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ patent.1.patent_office }}
+                                            {{ patent.1.patent_office.label_tag }}
+                                        </div>
+                                        <div class="row gap-3 g-0">
+                                            <div class="col-12 col-sm form-floating mb-3">
+                                                {{ patent.1.patent_number }}
+                                                {{ patent.1.patent_number.label_tag }}
+                                            </div>
+                                            <div class="col-12 col-sm form-floating mb-3">
+                                                {{ patent.1.issue_date }}
+                                                {{ patent.1.issue_date.label_tag }}
+                                            </div>
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ patent.1.description }}
+                                            {{ patent.1.description.label_tag }}
+                                        </div>
+                                        <div class="form-text">
+                                            Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup
+                                            Language)
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <input type="submit" form="change-patent-{{ patent.0.pk }}-form"
+                                        class="btn btn-primary btn-lg w-100" value="Save"
+                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#delete-patent-{{ patent.0.pk }}-modal">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                    <div class="modal fade" id="delete-patent-{{ patent.0.pk }}-modal" data-bs-backdrop="static"
+                        data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Confirmation
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="replace-abbreviation mb-0">Delete {{patent.0.title}} from
+                                        {{patent.0.patent_office}}?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <form class="m-0 w-100" action="{% url 'delete_patent' patent.0.pk %}"
+                                        method="POST">
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-danger btn-lg border border-0 w-100 m-0"
+                                            value="Delete">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% if publications|length or write_permission %}
+    <div id="publications" class="my-5">
+        <div class="d-flex align-items-center justify-content-between">
+            <h2 class="fw-bold text-body-emphasis lh-1 my-4">Research Papers and Publications</h2>
+            {% if write_permission %}
+            <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-publication-modal">
+                <i class="bi bi-plus-circle"></i>
+            </a>
+            <div class="modal fade" id="add-publication-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div
+                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                Add an Information
+                            </strong>
+                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="add-publication-form" action="{% url 'add_publication' %}" method="POST">
+                                {% csrf_token %}
+                                <div class="form-floating mb-3">
+                                    {{ publication_form.title }}
+                                    {{ publication_form.title.label_tag }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ publication_form.publisher }}
+                                    {{ publication_form.publisher.label_tag }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ publication_form.publication_date }}
+                                    {{ publication_form.publication.label_tag }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ publication_form.description }}
+                                    {{ publication_form.description.label_tag }}
+                                </div>
+                                <div class="form-text">
+                                    Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup Language)
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" form="add-publication-form" class="btn btn-primary btn-lg w-100"
+                                value="Add" onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for publication in publications %}
+            <li class="list-group-item">
+                <div>
+                    <h4 class="replace-abbreviation fw-bold text-body-emphasis lh-4 mb-0">
+                        {{ publication.0.title }}
+                    </h4>
+                    <p class="mb-0">
+                        <small class="text-body-secondary">
+                            <i class="bi bi-journal-bookmark"></i>
+                            <span>{{ publication.0.publisher }}</span>
+                        </small>
+                    </p>
+                    <p>
+                        <small class="text-body-secondary">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>{{ publication.0.publication_date }}</span>
+                        </small>
+                    </p>
+                </div>
+                <p class="replace-abbreviation">{{ publication.0.description }}</p>
+                {% if write_permission %}
+                <span class="d-flex gap-3">
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#change-publication-{{ publication.0.pk }}-modal">
+                        <i class="bi bi-pen"></i>
+                    </a>
+                    <div class="modal fade" id="change-publication-{{ publication.0.pk }}-modal"
+                        data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Edit Information
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="change-publication-{{ publication.0.pk }}-form"
+                                        action="{% url 'change_publication' publication.0.pk %}" method="POST">
+                                        {% csrf_token %}
+                                        <div class="form-floating mb-3">
+                                            {{ publication.1.title }}
+                                            {{ publication.1.title.label_tag }}
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ publication.1.publisher }}
+                                            {{ publication.1.publisher.label_tag }}
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ publication.1.publication_date }}
+                                            {{ publication.1.publication.label_tag }}
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            {{ publication.1.description }}
+                                            {{ publication.1.description.label_tag }}
+                                        </div>
+                                        <div class="form-text">
+                                            Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup
+                                            Language)
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <input type="submit" form="change-publication-{{ publication.0.pk }}-form"
+                                        class="btn btn-primary btn-lg w-100" value="Save"
+                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#delete-publication-{{ publication.0.pk }}-modal">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                    <div class="modal fade" id="delete-publication-{{ publication.0.pk }}-modal"
+                        data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Confirmation
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="replace-abbreviation mb-0">Delete {{publication.0.title}} from
+                                        {{publication.0.publisher}}</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <form class="m-0 w-100" action="{% url 'delete_publication' publication.0.pk %}"
+                                        method="POST">
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-danger btn-lg border border-0 w-100 m-0"
+                                            value="Delete">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    <a class="btn btn-primary btn-lg w-100 my-3" href="{% url 'build_profile' user.pk %}">Done</a>
+</div>
+<script>
+    document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {
+        element.innerHTML = replaceAbbreviations(element.innerHTML);
+    });
+</script>
+{% endblock %}

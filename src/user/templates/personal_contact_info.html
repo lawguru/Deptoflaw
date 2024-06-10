@@ -1,0 +1,530 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Info | TPC | CSE | AUS{% endblock %}
+
+{% block content %}
+<div class="container-md col-lg-8 p-3 p-sm-4 p-md-5">
+    <div id="personal-info">
+        <div class="d-flex align-items-center gap-3 pe-0 my-5">
+            <i class="bi bi-person-circle display-3 fw-bold text-body-emphasis lh-1"></i>
+            <div class="flex-fill">
+                <strong class="display-5 fw-bold text-body-emphasis lh-1">{{ user.full_name }}</strong>
+                <p class="fs-5 text-body-secondary mb-0">{{ user.subtext }}</p>
+            </div>
+            {% if write_permission %}
+            <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                data-bs-target="#edit-personal-info-modal">
+                <i class="bi bi-pen"></i>
+            </a>
+            <div class="modal fade" id="edit-personal-info-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div
+                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                Personal Info
+                            </strong>
+                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="edit-personal-info-form" action="{% url 'change_user' user.pk %}" method="POST">
+                                {% csrf_token %}
+                                <div class="row gap-3 g-0 mb-3">
+                                    <div class="col-12 col-sm">
+                                        <div class="form-floating">
+                                            {{ change_user_form.first_name }}
+                                            {{ change_user_form.first_name.label_tag }}
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-sm">
+                                        <div class="form-floating">
+                                            {{ change_user_form.last_name }}
+                                            {{ change_user_form.last_name.label_tag }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ change_user_form.date_of_birth }}
+                                    {{ change_user_form.date_of_birth.label_tag }}
+                                </div>
+                                <div class="form-floating">
+                                    {{ change_user_form.bio }}
+                                    {{ change_user_form.bio.label_tag }}
+                                    <div class="form-text ms-3">
+                                        Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup Language)
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" form="edit-personal-info-form" class="btn btn-primary btn-lg w-100 m-0"
+                                value="Save"
+                                onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% if user.bio %}
+        <div class="mx-3 my-4">
+            <strong class="fw-bold text-body-emphasis lh-1 fs-5">About</strong>
+            <p class="replace-abbreviation">{{ user.bio }}</p>
+        </div>
+        {% endif %}
+    </div>
+    {% if phone_numbers|length or write_permission %}
+    <div id="phone-numbers" class="my-5">
+        <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Phone Numbers</h2>
+        <ul class="list-group list-group-flush">
+            {% for phone_number in phone_numbers %}
+            <li class="list-group-item d-flex align-items-center justify-content-between pe-0">
+                <span>{{ phone_number }}</span>
+                {% if phone_number.user.primary_phone_number == phone_number %}
+                <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Primary"></i>
+                {% else %}
+                {% if write_permission %}
+                <span class="d-flex">
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#delete-phone-number-{{ phone_number.pk }}-modal">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                    <div class="modal fade" id="delete-phone-number-{{ phone_number.pk }}-modal"
+                        data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Confirmation
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="mb-0">
+                                        Delete {{ phone_number }}?
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <form class="w-100 m-0" action="{% url 'delete_phone_number' phone_number.pk %}"
+                                        method="POST">
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-danger btn-lg border border-0 w-100 m-0"
+                                            value="Delete">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <form action="{% url 'set_primary_phone_number' phone_number.user.pk phone_number.pk %}"
+                        method="POST">
+                        {% csrf_token %}
+                        <input class="d-none" type="checkbox" name="is_primary" checked>
+                        <button type="submit" class="btn border border-0 m-0" data-bs-toggle="tooltip"
+                            data-bs-title="Set as Primary">
+                            <i class="bi bi-star"></i>
+                        </button>
+                    </form>
+                </span>
+                {% endif %}
+                {% endif %}
+            </li>
+            {% endfor %}
+            {% if write_permission %}
+            <form action="{% url 'add_phone_number' %}" method="POST" class="py-3">
+                {% csrf_token %}
+                <div class="d-none">
+                    {{ phone_number_form.user }}
+                </div>
+                <div class="input-group">
+                    <div class="input-group-text bg-transparent p-0 z-1">
+                        <div class="form-floating" style="width: 14ch">
+                            {{ phone_number_form.country_code }}
+                            {{ phone_number_form.country_code.label_tag }}
+                        </div>
+                    </div>
+                    <div class="form-floating">
+                        {{ phone_number_form.phone_number }}
+                        {{ phone_number_form.phone_number.label_tag }}
+                    </div>
+                    <button class="btn border m-0" type="submit" data-bs-toggle="tooltip" data-bs-title="Add">
+                        <bi class="bi-plus-circle"></bi>
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+    {% if emails|length or write_permission %}
+    <div id="emails" class="my-5">
+        <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Emails</h2>
+        <ul class="list-group list-group-flush">
+            {% for email in emails %}
+            <li class="list-group-item d-flex align-items-center justify-content-between pe-0">
+                <span>{{ email }}</span>
+                {% if email.user.primary_email == email %}
+                <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Primary"></i>
+                {% else %}
+                {% if write_permission %}
+                <span class="d-flex">
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#delete-email-{{ email.pk }}-modal">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                    <div class="modal fade" id="delete-email-{{ email.pk }}-modal" data-bs-backdrop="static"
+                        data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Confirmation
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="mb-0">
+                                        Delete {{ email }}?
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <form class="w-100 m-0" action="{% url 'delete_email' email.pk %}" method="POST">
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-danger btn-lg border border-0 w-100 m-0"
+                                            value="Delete">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <form action="{% url 'set_primary_email' email.user.pk email.pk %}" method="POST">
+                        {% csrf_token %}
+                        <input class="d-none" type="checkbox" name="is_primary" checked>
+                        <button type="submit" class="btn border border-0 m-0" data-bs-toggle="tooltip"
+                            data-bs-title="Set as Primary">
+                            <i class="bi bi-star"></i>
+                        </button>
+                    </form>
+                </span>
+                {% endif %}
+                {% endif %}
+            </li>
+            {% endfor %}
+            {% if write_permission %}
+            <form action="{% url 'add_email' %}" method="POST" class="py-3">
+                {% csrf_token %}
+                <div class="d-none">
+                    {{ email_form.user }}
+                </div>
+                <div class="input-group">
+                    <div class="form-floating">
+                        {{ email_form.email }}
+                        {{ email_form.email.label_tag }}
+                    </div>
+                    <button class="btn border m-0" type="submit" data-bs-toggle="tooltip" data-bs-title="Add">
+                        <bi class="bi-plus-circle"></bi>
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+    {% if addresses|length or write_permission %}
+    <div id="addresses" class="my-5">
+        <div class="d-flex align-items-center justify-content-between">
+            <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Addresses</h2>
+            {% if write_permission %}
+            <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-address-modal">
+                <i class="bi bi-plus-circle"></i>
+            </a>
+            <div class="modal fade" id="add-address-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div
+                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                Add Address
+                            </strong>
+                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="add-address-form" action="{% url 'add_address' %}" method="POST">
+                                {% csrf_token %}
+                                <div class="d-none">
+                                    {{ address_form.user }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ address_form.address }}
+                                    {{ address_form.address.label_tag }}
+                                </div>
+                                <div class="row g-0 gap-3 mb-3">
+                                    <div class="form-floating col-12 col-sm">
+                                        {{ address_form.city }}
+                                        {{ address_form.city.label_tag }}
+                                    </div>
+                                    <div class="form-floating col-12 col-sm">
+                                        {{ address_form.state }}
+                                        {{ address_form.state.label_tag }}
+                                    </div>
+                                </div>
+                                <div class="row g-0 gap-3">
+                                    <div class="form-floating col-12 col-sm">
+                                        {{ address_form.country }}
+                                        {{ address_form.country.label_tag }}
+                                    </div>
+                                    <div class="form-floating col-12 col-sm">
+                                        {{ address_form.pincode }}
+                                        {{ address_form.pincode.label_tag }}
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" form="add-address-form" class="btn btn-primary btn-lg w-100 m-0"
+                                value="Add" onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for address in addresses %}
+            <li class="list-group-item pe-0">
+                <p class="lead mb-0">{{address.0.address}}</p>
+                <p class="mb-0">
+                    {{address.0.city}},
+                    {{address.0.state}},
+                    {{address.0.country}}
+                </p>
+                <p>PIN/ZIP: {{address.0.pincode}}</p>
+                <span class="d-flex">
+                    {% if write_permission %}
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#change-address-{{ address.0.pk }}-modal">
+                        <i class="bi bi-pen"></i>
+                    </a>
+                    <div class="modal fade" id="change-address-{{ address.0.pk }}-modal" data-bs-backdrop="static"
+                        data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Edit Address
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="change-address-{{ address.0.pk }}-form"
+                                        action="{% url 'change_address' address.0.pk %}" method="POST">
+                                        {% csrf_token %}
+                                        <div class="form-floating mb-3">
+                                            {{ address.1.address }}
+                                            {{ address.1.address.label_tag }}
+                                        </div>
+                                        <div class="row g-0 gap-3 mb-3">
+                                            <div class="form-floating col-12 col-sm">
+                                                {{ address.1.city }}
+                                                {{ address.1.city.label_tag }}
+                                            </div>
+                                            <div class="form-floating col-12 col-sm">
+                                                {{ address.1.state }}
+                                                {{ address.1.state.label_tag }}
+                                            </div>
+                                        </div>
+                                        <div class="row g-0 gap-3">
+                                            <div class="form-floating col-12 col-sm">
+                                                {{ address.1.country }}
+                                                {{ address.1.country.label_tag }}
+                                            </div>
+                                            <div class="form-floating col-12 col-sm">
+                                                {{ address.1.pincode }}
+                                                {{ address.1.pincode.label_tag }}
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <input type="submit" form="change-address-{{ address.0.pk }}-form"
+                                        class="btn btn-primary btn-lg w-100 m-0" value="Save"
+                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if address.0.user.primary_address == address.0 %}
+                    <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip"
+                        data-bs-title="Primary"></i>
+                    {% else %}
+                    {% if write_permission %}
+                    <form action="{% url 'set_primary_address' address.0.user.pk address.0.pk %}" method="POST">
+                        {% csrf_token %}
+                        <input class="d-none" type="checkbox" name="is_primary" checked>
+                        <button type="submit" class="btn border border-0 m-0" data-bs-toggle="tooltip"
+                            data-bs-title="Set as Primary">
+                            <i class="bi bi-star"></i>
+                        </button>
+                    </form>
+                    <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                        data-bs-target="#delete-address-{{ address.0.pk }}-modal">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                    <div class="modal fade" id="delete-address-{{ address.0.pk }}-modal" data-bs-backdrop="static"
+                        data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div
+                            class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                        Confirmation
+                                    </strong>
+                                    <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="lead mb-0">{{address.0.address}}</p>
+                                    <p class="mb-0">
+                                        {{address.0.city}},
+                                        {{address.0.state}},
+                                        {{address.0.country}}
+                                    </p>
+                                    <p>PIN/ZIP: {{address.0.pincode}}</p>
+                                    <p class="mb-0">
+                                        Delete this address?
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <form class="w-100 m-0" action="{% url 'delete_address' address.0.pk %}"
+                                        method="POST">
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn btn-danger btn-lg border border-0 w-100 m-0"
+                                            value="Delete">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% if links|length or write_permission %}
+    <div id="links" class="my-5">
+        <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Links</h2>
+        <ul class="list-group list-group-flush">
+            {% for link in links %}
+            <li class="list-group-item d-flex align-items-center justify-content-between pe-0">
+                <a href="{{ link.url }}">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="{{ link.icon }} fs-4"></i>
+                        <div>
+                            <p class="mb-0"><strong>{{ link.title }}</strong></p>
+                            <p class="mb-0"><small>{{ link.url }}</small></p>
+                        </div>
+                    </div>
+                </a>
+                {% if write_permission %}
+                <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                    data-bs-target="#delete-link-{{ link.pk }}-modal">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+                <div class="modal fade" id="delete-link-{{ link.pk }}-modal" data-bs-backdrop="static"
+                    data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                    Confirmation
+                                </strong>
+                                <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="mb-0">
+                                    Delete <strong>{{ link.title }}</strong> Link?
+                                </p>
+                                <p class="mb-0">
+                                    <a href="{{ link.url }}">{{ link.url }}</a>
+                                </p>
+                            </div>
+                            <div class="modal-footer">
+                                <form class="w-100 m-0" action="{% url 'delete_link' link.pk %}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="submit" class="btn btn-danger btn-lg border border-0 w-100 m-0"
+                                        value="Delete">
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </li>
+            {% endfor %}
+            {% if write_permission %}
+            <form action="{% url 'add_link' %}" method="POST" class="py-3">
+                {% csrf_token %}
+                <div class="d-none">
+                    {{ link_form.user }}
+                </div>
+                <div class="input-group">
+                    <div class="form-floating">
+                        {{ link_form.title }}
+                        {{ link_form.title.label_tag }}
+                    </div>
+                    <div class="form-floating">
+                        {{ link_form.url }}
+                        {{ link_form.url.label_tag }}
+                    </div>
+                    <button class="btn border m-0" type="submit" data-bs-toggle="tooltip" data-bs-title="Add">
+                        <bi class="bi-plus-circle"></bi>
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+    <a class="btn btn-primary btn-lg w-100 m-0" href="{% url 'build_profile' user.pk %}">
+        Proceed
+    </a>
+    {% if success %}
+    <div class="alert alert-success" role="alert">
+        <i class="bi bi-check-circle"></i>
+        <span>{{ success }}</span>
+    </div>
+    {% endif %}
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+    {% if warning %}
+    <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-circle"></i>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+</div>
+<script>
+    document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {
+        element.innerHTML = replaceAbbreviations(element.innerHTML);
+    });
+</script>
+{% endblock %}

@@ -11,10 +11,52 @@
                 <strong class="display-5 fw-bold text-body-emphasis lh-1">{{ user.full_name }}</strong>
                 <p class="fs-5 text-body-secondary mb-0">{{ user.subtext }}</p>
             </div>
-            <a class="btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Edit"
-                href="{% url 'change_staff_profile' profile.pk %}">
+            {% if write_permission %}
+            <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#edit-staff-info-modal">
                 <i class="bi bi-pen"></i>
             </a>
+            <div class="modal fade" id="edit-staff-info-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div
+                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                Staff Details
+                            </strong>
+                            <button type="button" class="btn-close m-2" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="edit-staff-info-form" action="{% url 'change_staff_profile' profile.pk %}" method="POST">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-12 col-md">
+                                        <div class="form-floating mb-3">
+                                            {{ change_profile_form.id_number }}
+                                            {{ change_profile_form.id_number.label_tag }}
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-sm">
+                                        <div class="form-floating mb-3">
+                                            {{ change_profile_form.designation }}
+                                            {{ change_profile_form.designation.label_tag }}
+                                        </div>
+                                    </div>
+                                    <div class="form-floating mb-3">
+                                        {{ change_profile_form.qualification }}
+                                        {{ change_profile_form.qualification.label_tag }}
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" form="edit-staff-info-form" class="btn btn-primary btn-lg w-100 m-0" value="Save" onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
         <ul class="list-group list-group-flush">
             <li class="list-group-item d-flex align-items-center gap-3">
@@ -30,10 +72,10 @@
                     <strong class="fw-bold text-body-emphasis lh-1 fs-5">
                         {{ profile.designation }}
                         {% if profile.is_hod %}
-                            | HOD
+                        | HOD
                         {% endif %}
                         {% if profile.is_tpc_head %}
-                            | TPC Head
+                        | TPC Head
                         {% endif %}
                     </strong>
                     <small class="d-block text-body-secondary">Designation</small>
@@ -50,7 +92,7 @@
             </li>
         </ul>
     </div>
-    <a class="btn btn-primary btn-lg w-100 m-0" href="{% url 'build_profile' %}">
+    <a class="btn btn-primary btn-lg w-100 m-0" href="{% url 'build_profile' user.pk %}">
         Proceed
     </a>
     {% if success %}

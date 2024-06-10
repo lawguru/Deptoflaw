@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+
+{% block title %}Academic Info | TPC | CSE | AUS{% endblock %}
+
+{% block content %}
+<div class="container-md col-xxl-8 p-3 p-sm-4 p-md-5">
+    <div id="academic-info">
+        <div class="d-flex align-items-center gap-3 pe-0 my-5">
+            <i class="bi bi-person-circle display-3 fw-bold text-body-emphasis lh-1"></i>
+            <div class="flex-fill">
+                <strong class="display-5 fw-bold text-body-emphasis lh-1">{{ user.full_name }}</strong>
+                <p class="fs-5 text-body-secondary mb-0">{{ user.subtext }}</p>
+            </div>
+            {% if write_permission %}
+            <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                data-bs-target="#edit-student-info-modal">
+                <i class="bi bi-pen"></i>
+            </a>
+            <div class="modal fade" id="edit-student-info-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div
+                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                Student Details
+                            </strong>
+                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="edit-student-info-form" action="{% url 'change_student_profile' profile.pk %}"
+                                method="POST">
+                                {% csrf_token %}
+                                <div class="form-floating mb-3">
+                                    {{ change_profile_form.course }}
+                                    {{ change_profile_form.course.label_tag }}
+                                </div>
+                                <div class="row g-0 gap-3">
+                                    <div class="col-12 col-md">
+                                        <div class="form-floating">
+                                            {{ change_profile_form.registration_number }}
+                                            {{ change_profile_form.registration_number.label_tag }}
+                                            <div class="form-text ms-3">
+                                                {{ change_profile_form.registration_number.help_text }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-sm">
+                                        <div class="input-group">
+                                            <div id="id_id_number_prefix" class="input-group-text bg-body">
+                                            </div>
+                                            <div class="form-floating">
+                                                {{ change_profile_form.id_number }}
+                                                {{ change_profile_form.id_number.label_tag }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-lg">
+                                        <div class="">
+                                            <div id="id_roll" class="input-group-text bg-body d-none">
+                                            </div>
+                                            <div class="form-floating">
+                                                {{ change_profile_form.number }}
+                                                {{ change_profile_form.number.label_tag }}
+                                            </div>
+                                        </div>
+                                        <div class="form-text ms-3">
+                                            {{ change_profile_form.number.help_text }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" form="edit-student-info-form" class="btn btn-primary w-100 m-0"
+                                value="Save" onclick="this.disabled=true;this.value='Saving...';this.form.submit();">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                course = document.getElementById("id_course");
+                registration_number = document.getElementById("id_registration_number");
+                id_number_prefix = document.getElementById("id_id_number_prefix");
+                id_roll = document.getElementById("id_roll");
+                registration_year = `${registration_number.value}`.slice(0, 4);
+                course.addEventListener("change", () => {
+                    update_id_number_prefix();
+                });
+                registration_number.addEventListener("input", () => {
+                    registration_year = `${registration_number.value}`.slice(0, 4);
+                    update_id_number_prefix();
+                    update_id_roll();
+                });
+                function update_id_number_prefix() {
+                    registration_year_2 = registration_year.slice(2, 4)
+                    id_number_prefix.innerHTML = `${registration_year_2}CSE${course.value.toUpperCase() == 'B.TECH' ? 'BTC' : course.value.toUpperCase() == 'M.TECH' ? 'MTC' : 'PHD'}`;
+                }
+                function update_id_roll() {
+                    current_year = new Date().getFullYear();
+                    sem = new Date().getFullYear() - parseInt(registration_year)
+                    sem = String(sem).padStart(2, '0');
+                    registration_year_2 = registration_year.slice(2, 4)
+                    current_year = String(current_year).slice(2, 4)
+                    id_roll.innerHTML = `${sem}${current_year}${registration_year_2}`
+                }
+                update_id_number_prefix();
+                document.getElementById("id_id_number").value = String(document.getElementById("id_id_number").value).padStart(3, '0');
+                update_id_roll();
+            </script>
+            {% endif %}
+        </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex align-items-center gap-3">
+                <i class="bi bi-person-vcard fs-1"></i>
+                <div>
+                    <strong class="fw-bold text-body-emphasis lh-1 fs-5">{{ profile.id_card }}</strong>
+                    <small class="d-block text-body-secondary">Library ID</small>
+                </div>
+            </li>
+            <li class="list-group-item d-flex align-items-center gap-3">
+                <i class="bi bi-file-text fs-1"></i>
+                <div>
+                    <strong class="fw-bold text-body-emphasis lh-1 fs-5">{{ profile.roll }}-{{ profile.number}}</strong>
+                    <small class="d-block text-body-secondary">Roll Number</small>
+                </div>
+            </li>
+            <li class="list-group-item d-flex align-items-center gap-3">
+                <i class="bi bi-ticket-detailed fs-1"></i>
+                <div>
+                    <strong class="fw-bold text-body-emphasis lh-1 fs-5">{{ profile.registration_number }} of
+                        {{ profile.registration_year }} to {{ profile.registration_year|add:"1" }}</strong>
+                    <small class="d-block text-body-secondary">Registration Number</small>
+                </div>
+            </li>
+        </ul>
+    </div>
+    {% if semester_report_cards|length or write_permission %}
+
+    <div id="subject-input-group" class="d-none">
+        <div class="row align-items-center g-0 gap-2 gap-sm-3">
+            <div class="col-4 col-sm-3 form-floating">
+                <input type="text" class="form-control" name="subject_codes" value="subject_code_value"
+                    placeholder="Paper Code" required><label for="subject_codes">Paper Code</label>
+            </div>
+            <div class="col d-flex align-items-center gap-2 gap-sm-3">
+                <div class="form-floating flex-fill">
+                    <input type="text" class="form-control" name="subjects" value="subject_value"
+                        placeholder="Paper Name" required><label for="subjects">Paper Name</label>
+                </div>
+                <button type="button" data-bs-toggle="tooltip" data-bs-title="Remove this Subject"
+                    class="btn btn-danger btn-lg rounded-2 h-100 p-3 m-0 lh-1" onclick="removeRow(this)">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+        </div>
+        <div class="row align-items-center g-0 gap-2 gap-sm-3">
+            <div class="col-4 col-sm-3 form-floating">
+                <input type="number" step=".1" class="form-control" name="subject_credits" value="subject_credit_value"
+                    min="0" max="10" placeholder="Credit" required><label for="subject_credits">Credit</label>
+            </div>
+            <div class="col input-group">
+                <div class="form-floating">
+                    <input type="number" step=".1" class="form-control" name="subject_passing_grade_points"
+                        value="subject_passing_grade_point_value" min="0" max="10" placeholder="Passing Points"
+                        required><label for="subject_passing_grade_points">Passing
+                        Points</label>
+                </div>
+                <div class="input-group-text bg-body">
+                    out of 10
+                </div>
+            </div>
+            <div class="col-12 col-lg-5 row g-0 gap-2 gap-sm-3 flex-lg-row-reverse">
+                <div class="col-4 col-sm-3 form-floating">
+                    <select class="form-control" name="subject_letter_grades" placeholder="Grade">
+                        <option value="O" subject_letter_grade_value_o>O</option>
+                        <option value="A+" subject_letter_grade_value_ap>A+</option>
+                        <option value="A" subject_letter_grade_value_a>A</option>
+                        <option value="B+" subject_letter_grade_value_bp>B+</option>
+                        <option value="B" subject_letter_grade_value_b>B</option>
+                        <option value="C" subject_letter_grade_value_c>C</option>
+                        <option value="F" subject_letter_grade_value_f>F</option>
+                    </select>
+                    <label for="subject_letter_grades">Grade</label>
+                </div>
+                <div class="col input-group">
+                    <div class="form-floating">
+                        <input type="number" step=".1" class="form-control" name="subject_grade_points"
+                            value="subject_grade_point_value" min="0" max="10" placeholder="Scored Points" required>
+                        <label for="subject_grade_points">Scored Points</label>
+                    </div>
+                    <div class="input-group-text bg-body">
+                        out of 10
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form action="" class="d-none" id="semester-report-card-form" method="POST">
+        {% csrf_token %}
+        {{ form }}
+    </form>
+
+    <div class="modal fade" id="edit-semester-report-card-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+        tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <strong class="modal-title fs-4 fw-bold text-body-emphasis">
+                        Semester <span class="modal-semester-number"></span> Report card
+                    </strong>
+                    <span class="d-flex align-items-center gap-2">
+                        <button class="btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Add Subject"
+                            onclick="addRow()">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                        <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </span>
+                </div>
+                <div class="modal-body">
+                    <form id="semester-report-card-dynamic-form" method="POST">
+                        <table class="table table-primary table-striped m-0 rounded-3 overflow-hidden">
+                            <tbody id="semester-report-card-dynamic-form-fields">
+                            </tbody>
+                        </table>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <input form="semester-report-card-dynamic-form" class="btn btn-primary w-100 m-0" value="Save"
+                        onclick="this.disabled=true;this.value='Saving...';submitSemesterReportCardForm();">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="semester-report-cards" class="my-5">
+        <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Report Cards</h2>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 align-items-center g-0">
+            {% for semester_report_card in semester_report_cards %}
+            <div class="col-12 col-sm-6 col-md-4 p-2">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center gap-3">
+                        <span class="fw-bold text-body-emphasis fs-3">
+                            {{ forloop.counter }}
+                        </span>
+                        <div class="flex-fill">
+                            <strong class="fw-bold text-body-emphasis fs-5 lh-1">
+                                {% if forloop.counter|slugify == '1' %}
+                                First
+                                {% endif %}
+                                {% if forloop.counter|slugify == '2' %}
+                                Second
+                                {% endif %}
+                                {% if forloop.counter|slugify == '3' %}
+                                Third
+                                {% endif %}
+                                {% if forloop.counter|slugify == '4' %}
+                                Fourth
+                                {% endif %}
+                                {% if forloop.counter|slugify == '5' %}
+                                Fifth
+                                {% endif %}
+                                {% if forloop.counter|slugify == '6' %}
+                                Sixth
+                                {% endif %}
+                                {% if forloop.counter|slugify == '7' %}
+                                Seventh
+                                {% endif %}
+                                {% if forloop.counter|slugify == '8' %}
+                                Eight
+                                {% endif %}
+                            </strong>
+                            <small class="d-block text-body-secondary lh-1">Semester</small>
+                        </div>
+                        {% if write_permission %}
+                        <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                            data-bs-target="#edit-semester-report-card-modal"
+                            onclick="populateDynamicForm('semester-report-card-{{ forloop.counter }}-form', '{{ forloop.counter }}')">
+                            <i class="bi bi-pen"></i>
+                        </a>
+                        <form action="{% url 'change_semester_report_card' semester_report_card.0.pk %}" method="POST"
+                            id="semester-report-card-{{ forloop.counter }}-form" class="d-none">
+                            {{semester_report_card.1}}
+                        </form>
+                        {% endif %}
+                    </div>
+                    <ul class="list-group list-group-flush p-0">
+                        <li class="list-group-item d-flex align-items-center gap-3">
+                            <i class="bi bi-receipt fs-4"></i>
+                            <div>
+                                <strong
+                                    class="fw-bold text-body-emphasis">{{semester_report_card.0.sgpa|floatformat:2}}</strong>
+                                <small class="d-block text-body-secondary">SGPA out of 10</small>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center gap-3">
+                            <i class="bi bi-star fs-4"></i>
+                            <div>
+                                <strong
+                                    class="fw-bold text-body-emphasis">{{semester_report_card.0.earned_credits|floatformat:2}}</strong>
+                                <small class="d-block text-body-secondary">
+                                    Credits out of {{semester_report_card.0.total_credits|floatformat:1}}
+                                </small>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center gap-3">
+                            {% if semester_report_card.0.passed %}
+                            <i class="bi bi-check-circle fs-4"></i>
+                            {% else %}
+                            <i class="bi bi-x-circle fs-4"></i>
+                            {% endif %}
+                            <div>
+                                <strong class="fw-bold text-body-emphasis">{{ semester_report_card.0.backlogs }}
+                                    backlogs</strong>
+                                <small class="d-block text-body-secondary">
+                                    {% if semester_report_card.0.passed %}
+                                    Pass
+                                    {% else %}
+                                    Fail
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function addRow(subject_code_value = "\"\"", subject_value = "\"\"", subject_credit_value = "\"3\"", subject_passing_grade_point_value = "\"5\"", subject_grade_point_value = "\"0\"", subject_letter_grade_value = "F") {
+            const dynamicFields = document.getElementById('semester-report-card-dynamic-form-fields');
+            const subjectinputgroup = document.getElementById('subject-input-group')
+            const newel = document.createElement('tr');
+            field_group_HTML = subjectinputgroup.innerHTML
+            field_group_HTML = field_group_HTML.replace(/"subject_code_value"/g, subject_code_value);
+            field_group_HTML = field_group_HTML.replace(/"subject_value"/g, subject_value);
+            field_group_HTML = field_group_HTML.replace(/"subject_credit_value"/g, subject_credit_value);
+            field_group_HTML = field_group_HTML.replace(/"subject_passing_grade_point_value"/g, subject_passing_grade_point_value);
+            field_group_HTML = field_group_HTML.replace(/"subject_grade_point_value"/g, subject_grade_point_value);
+            console.log(subject_letter_grade_value)
+            if (subject_letter_grade_value == "O")
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_o/g, "selected");
+            else if (subject_letter_grade_value == "A+")
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_ap/g, "selected");
+            else if (subject_letter_grade_value == "A")
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_a/g, "selected");
+            else if (subject_letter_grade_value == "B+")
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_bp/g, "selected");
+            else if (subject_letter_grade_value == "B")
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_b/g, "selected");
+            else if (subject_letter_grade_value == "C")
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_c/g, "selected");
+            else
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_f/g, "selected");
+            newel.innerHTML = field_group_HTML;
+            dynamicFields.appendChild(newel);
+        }
+
+        function removeRow(button) {
+            button.parentElement.parentElement.parentElement.remove();
+        }
+
+        function populateDynamicForm(id, semester_number) {
+            document.getElementById('semester-report-card-dynamic-form-fields').innerHTML = '';
+            document.querySelector('.modal-semester-number').innerHTML = semester_number;
+            form = document.getElementById(id)
+            document.getElementById('semester-report-card-dynamic-form').action = form.action
+            const formData = new FormData(form);
+            const jsonData = {};
+            for (const [key, value] of formData.entries()) {
+                if (!jsonData[key]) {
+                    try {
+                        jsonData[key] = JSON.parse(value);
+                    }
+                    catch {
+                        jsonData[key] = value;
+                    }
+                }
+            }
+            for (let i = 0; i < jsonData.subject_codes.length; i++) {
+                addRow(jsonData.subject_codes[i], jsonData.subjects[i], jsonData.subject_credits[i], jsonData.subject_passing_grade_points[i], jsonData.subject_grade_points[i], jsonData.subject_letter_grades[i])
+            }
+        }
+
+        function submitSemesterReportCardForm() {
+            form = document.getElementById("semester-report-card-dynamic-form");
+            submitform = document.getElementById("semester-report-card-form")
+            const formData = new FormData(form);
+            const jsonData = {};
+            for (const [key, value] of formData.entries()) {
+                if (!jsonData[key]) {
+                    jsonData[key] = [];
+                }
+                jsonData[key].push(value);
+            }
+            for (const [key, value] of Object.entries(jsonData)) {
+                input = document.createElement('input');
+                input.name = key;
+                input.value = JSON.stringify(value);
+                submitform.appendChild(input);
+            }
+            submitform.action = form.action
+            submitform.submit();
+        }
+    </script>
+
+    {% endif %}
+    <a class="btn btn-primary btn-lg w-100 m-0" href="{% url 'build_profile' user.pk %}">
+        Proceed
+    </a>
+    {% if success %}
+    <div class="alert alert-success" role="alert">
+        <i class="bi bi-check-circle"></i>
+        <span>{{ success }}</span>
+    </div>
+    {% endif %}
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+    {% if warning %}
+    <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-circle"></i>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+</div>
+<script>
+    document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {
+        element.innerHTML = replaceAbbreviations(element.innerHTML);
+    });
+</script>
+{% endblock %}

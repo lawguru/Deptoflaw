@@ -46,14 +46,24 @@ class SignIn(TemplateView):
 class BuildProfile(TemplateView):
     template_name = 'build_profile.html'
 
+    def get(self, request, pk):
+        if not User.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        elif request.user.pk != pk and not request.user.is_superuser:
+            raise PermissionDenied()
+        return super().get(request, pk)
+
     def get_context_data(self, **kwargs):
+        user = User.objects.get(pk=self.kwargs['pk'])
+
         context = super().get_context_data(**kwargs)
-        if hasattr(self.request.user, 'student_profile'):
-            context['profile'] = self.request.user.student_profile
-        elif hasattr(self.request.user, 'staff_profile'):
-            context['profile'] = self.request.user.staff_profile
-        elif hasattr(self.request.user, 'recruiter_profile'):
-            context['profile'] = self.request.user.recruiter_profile
+        context['user'] = user
+        if hasattr(user, 'student_profile'):
+            context['profile'] = user.student_profile
+        elif hasattr(user, 'staff_profile'):
+            context['profile'] = user.staff_profile
+        elif hasattr(user, 'recruiter_profile'):
+            context['profile'] = user.recruiter_profile
         else:
             raise PermissionDenied()
         return context
@@ -62,17 +72,20 @@ class BuildProfile(TemplateView):
 @method_decorator(login_required, name="dispatch")
 class SelfUser(View):
     def get(self, request):
-        return redirect(reverse('update_personal_contact_info', request.user.pk))
+        return redirect(reverse('personal_contact_info', request.user.pk))
 
 
 @method_decorator(login_required, name="dispatch")
-class UpdatePersonalContactInfo(TemplateView):
-    template_name = 'update_personal_contact_info.html'
+class PersonalContactInfo(TemplateView):
+    template_name = 'personal_contact_info.html'
+
+    def check_write_permission(self, **kwargs):
+        return True if self.request.user.is_superuser or self.request.user.pk == self.kwargs['pk'] else False
 
     def get(self, request, pk):
         if not User.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
-        elif User.objects.get(pk=pk) != request.user and not request.user.is_superuser:
+        elif request.user.pk != pk and not request.user.is_superuser and not request.user.is_coordinator:
             raise PermissionDenied()
         return super().get(request, pk)
 
@@ -83,11 +96,17 @@ class UpdatePersonalContactInfo(TemplateView):
         context['user'] = user
         context['phone_numbers'] = PhoneNumber.objects.filter(user=user)
         context['emails'] = Email.objects.filter(user=user)
-        context['addresses'] = Address.objects.filter(user=user)
+        context['addresses'] = [(address, AddressForm(instance=address))
+                                for address in Address.objects.filter(user=user)]
         context['links'] = Link.objects.filter(user=user)
-        context['phone_number_form'] = PhoneNumberForm({'user': user.pk})
-        context['email_form'] = EmailForm({'user': user.pk})
-        context['link_form'] = LinkForm({'user': user.pk})
+
+        if self.check_write_permission(**kwargs):
+            context['write_permission'] = True
+            context['phone_number_form'] = PhoneNumberForm(initial={'user': user.pk})
+            context['email_form'] = EmailForm(initial={'user': user.pk})
+            context['address_form'] = AddressForm(initial={'user': user.pk})
+            context['link_form'] = LinkForm(initial={'user': user.pk})
+            context['change_user_form'] = UserForm(instance=user)
         return context
 
 
@@ -95,8 +114,7 @@ class UpdatePersonalContactInfo(TemplateView):
 class ChangeUser(ChangeObject):
     model = User
     form = UserForm
-    template_name = 'user.html'
-    redirect_url_name = 'update_personal_contact_info'
+    redirect_url_name = 'personal_contact_info'
     redirect_url_params = '#personal-info'
 
     def get_redirect_url_args(self, request, pk, *args, **kwargs):
@@ -106,6 +124,9 @@ class ChangeUser(ChangeObject):
         if self.model.objects.get(pk=pk) != request.user and not request.user.is_superuser:
             return False
         return super().check_permission(request, pk, *args, **kwargs)
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
@@ -199,16 +220,20 @@ class DeleteEmail(DeleteUserKeyObject):
 class AddAddress(AddUserKeyObject):
     model = Address
     form = AddressForm
-    template_name = 'address.html'
     redirect_url_name = 'addresses'
+
+    def get(self, request, user):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
 class ChangeAddress(ChangeUserKeyObject):
     model = Address
     form = AddressForm
-    template_name = 'address.html'
     redirect_url_name = 'addresses'
+
+    def get(self, request, user):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")

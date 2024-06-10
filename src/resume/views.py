@@ -2,21 +2,23 @@ from django.shortcuts import render, redirect, reverse
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from views import AddUserKeyObject, ChangeUserKeyObject, DeleteUserKeyObject
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, BadRequest
 from django.http import JsonResponse
 from django.views import View
 from django.views.generic.base import TemplateView
-from dal import autocomplete
 from user.models import User
 from .forms import *
+from .models import *
+
 
 # Create your views here.
 
-
-# Education
-
 @method_decorator(login_required, name="dispatch")
-class UpdateEducationInfo(TemplateView):
-    template_name = 'update_education_info.html'
+class EducationInfo(TemplateView):
+    template_name = 'education_info.html'
+
+    def check_write_permission(self, **kwargs):
+        return True if self.request.user.is_superuser or self.request.user.pk == self.kwargs['user'] else False
 
     def get(self, request, user):
         if not User.objects.filter(pk=user).exists():
@@ -30,31 +32,125 @@ class UpdateEducationInfo(TemplateView):
 
         context = super().get_context_data(**kwargs)
         context['user'] = user
-        context['othereducations'] = OtherEducation.objects.filter(user=user)
-        context['certifications'] = Certification.objects.filter(user=user)
+        context['othereducations'] = [(other_education, OtherEducationForm(instance=other_education)) for other_education in OtherEducation.objects.filter(user=user)]
+        context['certifications'] = [(certification, CertificationForm(instance=certification)) for certification in Certification.objects.filter(user=user)]
         context['skills'] = Skill.objects.filter(users__pk=user.pk)
         context['languages'] = Language.objects.filter(users__pk=user.pk)
-        context['skill_form'] = SkillForm()
-        context['language_form'] = LanguageForm()
+        if self.check_write_permission(**kwargs):
+            context['write_permission'] = True
+            context['skill_form'] = SkillForm()
+            context['language_form'] = LanguageForm()
+            context['other_education_form'] = OtherEducationForm(initial={'user': user.pk})
+            context['certification_form'] = CertificationForm(initial={'user': user.pk})
         return context
 
-# Other Education
 
+@method_decorator(login_required, name="dispatch")
+class ExperienceInfo(TemplateView):
+    template_name = 'experience_info.html'
+
+    def check_write_permission(self, **kwargs):
+        return True if self.request.user.is_superuser or self.request.user.pk == self.kwargs['user'] else False
+
+    def get(self, request, user):
+        if not User.objects.filter(pk=user).exists():
+            raise ObjectDoesNotExist()
+        elif User.objects.get(pk=user) != request.user and not request.user.is_superuser:
+            raise PermissionDenied()
+        return super().get(request, user)
+
+    def get_context_data(self, **kwargs):
+        user = User.objects.get(pk=self.kwargs['user'])
+
+        context = super().get_context_data(**kwargs)
+        context['user'] = user
+        context['work_experiences'] = [(work_experiences, WorkExperienceForm(instance=work_experiences)) for work_experiences in WorkExperience.objects.filter(user=user)]
+        context['projects'] = [(project, ProjectForm(instance=project)) for project in Project.objects.filter(user=user)]
+        if self.check_write_permission(**kwargs):
+            context['write_permission'] = True
+            context['work_experience_form'] = WorkExperienceForm(initial={'user': user.pk})
+            context['project_form'] = ProjectForm(initial={'user': user.pk})
+        return context
+
+
+@method_decorator(login_required, name="dispatch")
+class IPInfo(TemplateView):
+    template_name = 'ip_info.html'
+
+    def check_write_permission(self, **kwargs):
+        return True if self.request.user.is_superuser or self.request.user.pk == self.kwargs['user'] else False
+
+    def get(self, request, user):
+        if not User.objects.filter(pk=user).exists():
+            raise ObjectDoesNotExist()
+        elif User.objects.get(pk=user) != request.user and not request.user.is_superuser:
+            raise PermissionDenied()
+        return super().get(request, user)
+
+    def get_context_data(self, **kwargs):
+        user = User.objects.get(pk=self.kwargs['user'])
+
+        context = super().get_context_data(**kwargs)
+        context['user'] = user
+        context['patents'] = [(patent, PatentForm(instance=patent)) for patent in Patent.objects.filter(user=user)]
+        context['publications'] = [(publication, PublicationForm(instance=publication)) for publication in Publication.objects.filter(user=user)]
+        if self.check_write_permission(**kwargs):
+            context['write_permission'] = True
+            context['patent_form'] = PatentForm(initial={'user': user.pk})
+            context['publication_form'] = PublicationForm(initial={'user': user.pk})
+        return context
+
+
+@method_decorator(login_required, name="dispatch")
+class OtherInfos(TemplateView):
+    template_name = 'other_info.html'
+
+    def check_write_permission(self, **kwargs):
+        return True if self.request.user.is_superuser or self.request.user.pk == self.kwargs['user'] else False
+
+    def get(self, request, user):
+        if not User.objects.filter(pk=user).exists():
+            raise ObjectDoesNotExist()
+        elif User.objects.get(pk=user) != request.user and not request.user.is_superuser:
+            raise PermissionDenied()
+        return super().get(request, user)
+
+    def get_context_data(self, **kwargs):
+        user = User.objects.get(pk=self.kwargs['user'])
+
+        context = super().get_context_data(**kwargs)
+        context['user'] = user
+        context['achievements'] = [(achievement, AchievementForm(instance=achievement)) for achievement in Achievement.objects.filter(user=user)]
+        context['presentations'] = [(presentation, PresentationForm(instance=presentation)) for presentation in Presentation.objects.filter(user=user)]
+        context['other_infos'] = [(other_info, OtherInfoForm(instance=other_info)) for other_info in OtherInfo.objects.filter(user=user)]
+        if self.check_write_permission(**kwargs):
+            context['write_permission'] = True
+            context['achievement_form'] = AchievementForm(initial={'user': user.pk})
+            context['presentation_form'] = PresentationForm(initial={'user': user.pk})
+            context['other_info_form'] = OtherInfoForm(initial={'user': user.pk})
+        return context
+
+
+# Other Education
 
 @method_decorator(login_required, name="dispatch")
 class AddOtherEducation(AddUserKeyObject):
     model = OtherEducation
     form = OtherEducationForm
-    template_name = 'other_education.html'
     redirect_url_name = 'other_educations'
+
+    def get(self, request, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
 class ChangeOtherEducation(ChangeUserKeyObject):
     model = OtherEducation
     form = OtherEducationForm
-    template_name = 'other_education.html'
     redirect_url_name = 'other_educations'
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
@@ -62,23 +158,27 @@ class DeleteOtherEducation(DeleteUserKeyObject):
     model = OtherEducation
     redirect_url_name = 'other_educations'
 
-# Certification
 
+# Certification
 
 @method_decorator(login_required, name="dispatch")
 class AddCertification(AddUserKeyObject):
     model = Certification
     form = CertificationForm
-    template_name = 'certification.html'
     redirect_url_name = 'certifications'
+
+    def get(self, request, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
 class ChangeCertification(ChangeUserKeyObject):
     model = Certification
     form = CertificationForm
-    template_name = 'certification.html'
     redirect_url_name = 'certifications'
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
@@ -86,8 +186,8 @@ class DeleteCertification(DeleteUserKeyObject):
     model = Certification
     redirect_url_name = 'certifications'
 
-# Skill
 
+# Skill
 
 @method_decorator(login_required, name="dispatch")
 class AddSkill(View):
@@ -136,8 +236,8 @@ class DeleteSkill(View):
         skill.save()
         return redirect(reverse(self.redirect_url_name, args=[user.pk]))
 
-# Language
 
+# Language
 
 @method_decorator(login_required, name="dispatch")
 class AddLanguage(View):
@@ -185,46 +285,27 @@ class DeleteLanguage(View):
         language.users.remove(user)
         return redirect(reverse(self.redirect_url_name, args=[user.pk]))
 
-# Experience
-
-
-@method_decorator(login_required, name="dispatch")
-class UpdateExperienceInfo(TemplateView):
-    template_name = 'update_experience_info.html'
-
-    def get(self, request, user):
-        if not User.objects.filter(pk=user).exists():
-            raise ObjectDoesNotExist()
-        elif User.objects.get(pk=user) != request.user and not request.user.is_superuser:
-            raise PermissionDenied()
-        return super().get(request, user)
-
-    def get_context_data(self, **kwargs):
-        user = User.objects.get(pk=self.kwargs['user'])
-
-        context = super().get_context_data(**kwargs)
-        context['user'] = user
-        context['work_experiences'] = WorkExperience.objects.filter(user=user)
-        context['projects'] = Project.objects.filter(user=user)
-        return context
 
 # Work Experience
-
 
 @method_decorator(login_required, name="dispatch")
 class AddWorkExperience(AddUserKeyObject):
     model = WorkExperience
     form = WorkExperienceForm
-    template_name = 'work_experience.html'
     redirect_url_name = 'work_experiences'
+
+    def get(self, request, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
 class ChangeWorkExperience(ChangeUserKeyObject):
     model = WorkExperience
     form = WorkExperienceForm
-    template_name = 'work_experience.html'
     redirect_url_name = 'work_experiences'
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
@@ -232,23 +313,27 @@ class DeleteWorkExperience(DeleteUserKeyObject):
     model = WorkExperience
     redirect_url_name = 'work_experiences'
 
-# Project
 
+# Project
 
 @method_decorator(login_required, name="dispatch")
 class AddProject(AddUserKeyObject):
     model = Project
     form = ProjectForm
-    template_name = 'project.html'
     redirect_url_name = 'projects'
+
+    def get(self, request, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
 class ChangeProject(ChangeUserKeyObject):
     model = Project
     form = ProjectForm
-    template_name = 'project.html'
     redirect_url_name = 'projects'
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
@@ -257,45 +342,26 @@ class DeleteProject(DeleteUserKeyObject):
     redirect_url_name = 'projects'
 
 
-# IP
-
-@method_decorator(login_required, name="dispatch")
-class UpdateIPInfo(TemplateView):
-    template_name = 'update_ip_info.html'
-
-    def get(self, request, user):
-        if not User.objects.filter(pk=user).exists():
-            raise ObjectDoesNotExist()
-        elif User.objects.get(pk=user) != request.user and not request.user.is_superuser:
-            raise PermissionDenied()
-        return super().get(request, user)
-
-    def get_context_data(self, **kwargs):
-        user = User.objects.get(pk=self.kwargs['user'])
-
-        context = super().get_context_data(**kwargs)
-        context['user'] = user
-        context['patents'] = Patent.objects.filter(user=user)
-        context['publications'] = Publication.objects.filter(user=user)
-        return context
-
 # Patent
-
 
 @method_decorator(login_required, name="dispatch")
 class AddPatent(AddUserKeyObject):
     model = Patent
     form = PatentForm
-    template_name = 'patent.html'
     redirect_url_name = 'patents'
+
+    def get(self, request, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
 class ChangePatent(ChangeUserKeyObject):
     model = Patent
     form = PatentForm
-    template_name = 'patent.html'
     redirect_url_name = 'patents'
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
@@ -303,23 +369,27 @@ class DeletePatent(DeleteUserKeyObject):
     model = Patent
     redirect_url_name = 'patents'
 
-# Publication
 
+# Publication
 
 @method_decorator(login_required, name="dispatch")
 class AddPublication(AddUserKeyObject):
     model = Publication
     form = PublicationForm
-    template_name = 'publication.html'
     redirect_url_name = 'publications'
+
+    def get(self, request, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
 class ChangePublication(ChangeUserKeyObject):
     model = Publication
     form = PublicationForm
-    template_name = 'publication.html'
     redirect_url_name = 'publications'
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
@@ -328,46 +398,26 @@ class DeletePublication(DeleteUserKeyObject):
     redirect_url_name = 'publications'
 
 
-# Other
-
-@method_decorator(login_required, name="dispatch")
-class UpdateOtherInfo(TemplateView):
-    template_name = 'update_other_info.html'
-
-    def get(self, request, user):
-        if not User.objects.filter(pk=user).exists():
-            raise ObjectDoesNotExist()
-        elif User.objects.get(pk=user) != request.user and not request.user.is_superuser:
-            raise PermissionDenied()
-        return super().get(request, user)
-
-    def get_context_data(self, **kwargs):
-        user = User.objects.get(pk=self.kwargs['user'])
-
-        context = super().get_context_data(**kwargs)
-        context['user'] = user
-        context['achievements'] = Achievement.objects.filter(user=user)
-        context['presentations'] = Presentation.objects.filter(user=user)
-        context['other_infos'] = OtherInfo.objects.filter(user=user)
-        return context
-
 # Achievement
-
 
 @method_decorator(login_required, name="dispatch")
 class AddAchievement(AddUserKeyObject):
     model = Achievement
     form = AchievementForm
-    template_name = 'achievement.html'
     redirect_url_name = 'achievements'
+
+    def get(self, request, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
 class ChangeAchievement(ChangeUserKeyObject):
     model = Achievement
     form = AchievementForm
-    template_name = 'achievement.html'
     redirect_url_name = 'achievements'
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
@@ -375,23 +425,27 @@ class DeleteAchievement(DeleteUserKeyObject):
     model = Achievement
     redirect_url_name = 'achievements'
 
-# Presentation
 
+# Presentation
 
 @method_decorator(login_required, name="dispatch")
 class AddPresentation(AddUserKeyObject):
     model = Presentation
     form = PresentationForm
-    template_name = 'presentation.html'
     redirect_url_name = 'presentations'
+
+    def get(self, request, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
 class ChangePresentation(ChangeUserKeyObject):
     model = Presentation
     form = PresentationForm
-    template_name = 'presentation.html'
     redirect_url_name = 'presentations'
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
@@ -399,23 +453,27 @@ class DeletePresentation(DeleteUserKeyObject):
     model = Presentation
     redirect_url_name = 'presentations'
 
-# Other Info
 
+# Other Info
 
 @method_decorator(login_required, name="dispatch")
 class AddOtherInfo(AddUserKeyObject):
     model = OtherInfo
     form = OtherInfoForm
-    template_name = 'other_info.html'
     redirect_url_name = 'other_infos'
+
+    def get(self, request, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
 class ChangeOtherInfo(ChangeUserKeyObject):
     model = OtherInfo
     form = OtherInfoForm
-    template_name = 'other_info.html'
     redirect_url_name = 'other_infos'
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
@@ -428,7 +486,8 @@ class SkillAutocomplete(View):
     def get(self, request, *args, **kwargs):
         query = request.GET.get('q')
         user = request.GET.get('u')
-        li = [obj.name for obj in Skill.objects.exclude(users__id=user).filter(name__icontains=query)]
+        li = [obj.name for obj in Skill.objects.exclude(
+            users__id=user).filter(name__icontains=query)]
         return JsonResponse(li, safe=False)
 
 
@@ -436,5 +495,6 @@ class LanguageAutocomplete(View):
     def get(self, request, *args, **kwargs):
         query = request.GET.get('q')
         user = request.GET.get('u')
-        li = [obj.name for obj in Language.objects.exclude(users__id=user).filter(name__icontains=query)]
+        li = [obj.name for obj in Language.objects.exclude(
+            users__id=user).filter(name__icontains=query)]
         return JsonResponse(li, safe=False)

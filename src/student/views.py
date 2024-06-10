@@ -12,6 +12,7 @@ from django.views.generic.base import TemplateView
 
 # Create your views here.
 
+
 @method_decorator(login_required, name="dispatch")
 class StudentListView(ListView):
     model = StudentProfile
@@ -97,10 +98,11 @@ class StudentSignIn(TemplateView):
             if StudentProfile.objects.filter(registration_number=int(registration_number)).exists():
                 student = StudentProfile.objects.get(
                     registration_number=int(registration_number))
-                user = authenticate(username=student.user.pk, password=password)
+                user = authenticate(
+                    username=student.user.pk, password=password)
                 if user is not None:
                     login(request, user)
-                    return redirect('build_profile')
+                    return redirect('build_profile', user.pk)
                 else:
                     return render(request, self.template_name, {'form': form, 'error': 'Wrong Password'})
             else:
@@ -119,7 +121,7 @@ class StudentProfileDetail(TemplateView):
         context['student'] = StudentProfile.objects.get(
             pk=self.kwargs['pk'])
         return context
-    
+
     def get(self, request, pk):
         if not StudentProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
@@ -127,13 +129,16 @@ class StudentProfileDetail(TemplateView):
         if student_profile.user != request.user and not request.user.is_superuser and not request.user.is_coordinator():
             raise PermissionDenied()
         if student_profile.user == request.user and not student_profile.user.is_approved:
-            return redirect('build_profile')
+            return redirect('build_profile', student_profile.user.pk)
         return super().get(request, pk)
 
 
 @method_decorator(login_required, name="dispatch")
-class UpdateAcademicInfo(TemplateView):
-    template_name = 'update_academic_info.html'
+class AcademicInfo(TemplateView):
+    template_name = 'academic_info.html'
+
+    def check_write_permission(self, **kwargs):
+        return True if self.request.user.is_superuser or self.request.user == StudentProfile.objects.get(pk=self.kwargs['pk']).user else False
 
     def get(self, request, pk):
         if not StudentProfile.objects.filter(pk=pk).exists():
@@ -147,8 +152,12 @@ class UpdateAcademicInfo(TemplateView):
         context = super().get_context_data(**kwargs)
         context['user'] = profile.user
         context['profile'] = profile
-        context['semester_report_cards'] = SemesterReportCard.objects.filter(
-            student_profile=profile)[0:profile.semester]
+        context['semester_report_cards'] = [(semester_report_card, SemesterReportCardForm(instance=semester_report_card)) for semester_report_card in SemesterReportCard.objects.filter(
+            student_profile=profile)[0:profile.semester]]
+        if self.check_write_permission(**kwargs):
+            context['write_permission'] = True
+            context['change_profile_form'] = StudentProfileForm(
+                instance=profile)
         return context
 
 
@@ -156,11 +165,13 @@ class UpdateAcademicInfo(TemplateView):
 class ChangeStudentProfile(ChangeUserKeyObject):
     model = StudentProfile
     form = StudentProfileForm
-    template_name = 'student_profile.html'
     redirect_url_name = 'student_profile'
 
     def get_redirect_url_args(self, request, pk):
         return [pk]
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
@@ -168,7 +179,7 @@ class ChangeSemesterReportCard(ChangeObject):
     model = SemesterReportCard
     form = SemesterReportCardForm
     template_name = 'semester_report_card.html'
-    redirect_url_name = 'update_academic_info'
+    redirect_url_name = 'academic_info'
     redirect_url_params = '#semester-report-cards'
 
     def check_permission(self, request, pk, *args, **kwargs):
@@ -180,16 +191,5 @@ class ChangeSemesterReportCard(ChangeObject):
         profile = self.model.objects.get(pk=pk).student_profile.pk
         return reverse(self.redirect_url_name, args=[profile]) + self.redirect_url_params
 
-    def get(self, request, profile, sem):
-        if not self.model.objects.filter(student_profile=profile).exists():
-            raise ObjectDoesNotExist()
-        obj = [obj for obj in self.model.objects.filter(
-            student_profile=profile)][sem-1]
-        return super().get(request, obj.pk)
-
-    def post(self, request, profile, sem):
-        if not self.model.objects.filter(student_profile=profile).exists():
-            raise ObjectDoesNotExist()
-        obj = [obj for obj in self.model.objects.filter(
-            student_profile=profile)][sem-1]
-        return super().post(request, obj.pk)
+    def get(self, request, pk):
+        raise BadRequest()

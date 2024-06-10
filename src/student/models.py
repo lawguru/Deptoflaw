@@ -38,7 +38,7 @@ class StudentProfile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
     registration_number = models.PositiveBigIntegerField(
-        unique=True, help_text='20YYXXXXXXX')
+        unique=True, help_text='YYYYXXXXXXX')
     course = models.CharField(max_length=6, choices=course_choices)
     number = models.PositiveBigIntegerField(
         help_text='10 digit number from Exam Roll no.', default=0)

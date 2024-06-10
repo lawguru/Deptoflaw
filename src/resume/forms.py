@@ -5,7 +5,7 @@ from .models import *
 class OtherEducationForm(forms.ModelForm):
     class Meta:
         model = OtherEducation
-        fields = ['user', 'education', 'specialization',
+        fields = ['education', 'specialization',
                   'institution', 'grade_point', 'year', 'duration']
         widgets = {
             'education': forms.Select(choices=model.education_choices, attrs={'class': 'form-select', 'placeholder': 'Education'}),
@@ -24,7 +24,7 @@ class OtherEducationForm(forms.ModelForm):
 class CertificationForm(forms.ModelForm):
     class Meta:
         model = Certification
-        exclude = ['user']
+        exclude = []
         widgets = {
             'issue_date': forms.DateInput(attrs={'type': 'date'}),
         }
@@ -58,7 +58,7 @@ class LanguageForm(forms.Form):
 class WorkExperienceForm(forms.ModelForm):
     class Meta:
         model = WorkExperience
-        exclude = ['user']
+        exclude = []
         widgets= {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),
@@ -77,7 +77,7 @@ class WorkExperienceForm(forms.ModelForm):
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        exclude = ['user']
+        exclude = []
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),
@@ -96,7 +96,7 @@ class ProjectForm(forms.ModelForm):
 class PublicationForm(forms.ModelForm):
     class Meta:
         model = Publication
-        exclude = ['user']
+        exclude = []
         widgets = {
             'publication_date':  forms.DateInput(attrs={'type': 'date'})
         }
@@ -114,7 +114,7 @@ class PublicationForm(forms.ModelForm):
 class PatentForm(forms.ModelForm):
     class Meta:
         model = Patent
-        exclude = ['user']
+        exclude = []
         widgets = {
             'issue_date': forms.DateInput(attrs={'type': 'date'}),
         }
@@ -132,7 +132,7 @@ class PatentForm(forms.ModelForm):
 class AchievementForm(forms.ModelForm):
     class Meta:
         model = Achievement
-        exclude = ['user']
+        exclude = []
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
         }
@@ -150,7 +150,7 @@ class AchievementForm(forms.ModelForm):
 class PresentationForm(forms.ModelForm):
     class Meta:
         model = Presentation
-        exclude = ['user']
+        exclude = []
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
         }
@@ -168,7 +168,7 @@ class PresentationForm(forms.ModelForm):
 class OtherInfoForm(forms.ModelForm):
     class Meta:
         model = OtherInfo
-        exclude = ['user']
+        exclude = []
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

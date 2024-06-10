@@ -55,6 +55,7 @@ class ChangeObject(ObjectView):
     template_name = None
 
     def form_unvalid(self, request, form, *args, **kwargs):
+        print(form.errors)
         raise BadRequest()
 
     def get(self, request, pk, *args, **kwargs):
@@ -65,7 +66,7 @@ class ChangeObject(ObjectView):
         obj = self.model.objects.get(pk=pk, **kwargs)
         if self.template_name and self.form:
             return render(request, self.template_name, {'form': self.form(instance=obj)})
-        return redirect(self.get_redirect_url(request, *args, **kwargs))
+        return redirect(self.get_redirect_url(request, *args, pk, **kwargs))
 
     def post(self, request, pk, *args, **kwargs):
         if not self.model.objects.filter(pk=pk, **kwargs).exists():
@@ -106,15 +107,15 @@ class AddUserKeyObject(AddObject):
     def get_redirect_url_args(self, request, *args, **kwargs):
         return [kwargs['user']]
 
-    def get(self, request, user):
-        if not User.objects.filter(pk=user).exists():
+    def get(self, request):
+        if not User.objects.filter(pk=request.GET.get('user')).exists():
             raise ObjectDoesNotExist()
-        return super().get(request, user=user)
+        return super().get(request, user=request.GET.get('user'))
 
-    def post(self, request, user):
-        if not User.objects.filter(pk=user).exists():
+    def post(self, request):
+        if not User.objects.filter(pk=request.POST.get('user')).exists():
             raise ObjectDoesNotExist()
-        return super().post(request, user=user)
+        return super().post(request, user=request.POST.get('user'))
 
 
 @method_decorator(login_required, name="dispatch")

@@ -76,8 +76,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             subtext = self.student_profile.course + ' ' + \
                 self.student_profile.semester_name + ' Semester'
         if self.role == 'staff':
-            subtext = self.staff_profile.designation + ' and ' + \
-                ('HOD' if self.staff_profile.is_hod else 'TPC Head' if self.staff_profile.is_tpc_head else '')
+            subtext = self.staff_profile.designation + \
+                (', TPC Head and HOD' if self.staff_profile.is_hod and self.staff_profile.is_tpc_head else '') + \
+                (' and HOD' if self.staff_profile.is_hod else '') + \
+                (' and TPC Head' if self.staff_profile.is_tpc_head else '')
         if self.role == 'recruiter':
             subtext = self.recruiter_profile.designation + \
                 ' at ' + self.recruiter_profile.company_name

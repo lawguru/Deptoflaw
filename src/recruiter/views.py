@@ -1,4 +1,4 @@
-from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, BadRequest
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login
@@ -11,6 +11,7 @@ from django.views.generic import ListView
 from django.views.generic.base import TemplateView, RedirectView
 
 # Create your views here.
+
 
 @method_decorator(login_required, name="dispatch")
 class RecruiterListView(ListView):
@@ -63,7 +64,8 @@ class RecruiterSignUp(TemplateView):
         form = RecruiterSignUpForm(request.POST)
         if form.is_valid():
             email = Email.objects.create(email=form.cleaned_data['email'])
-            recruiter = RecruiterProfile.objects.create(company_name=form.cleaned_data['company_name'], designation=form.cleaned_data['designation'], primary_email=email)
+            recruiter = RecruiterProfile.objects.create(
+                company_name=form.cleaned_data['company_name'], designation=form.cleaned_data['designation'], primary_email=email)
             recruiter.user.first_name = form.cleaned_data['first_name']
             recruiter.user.last_name = form.cleaned_data['last_name']
             recruiter.user.set_password(form.cleaned_data['password'])
@@ -89,37 +91,20 @@ class RecruiterSignIn(TemplateView):
             if RecruiterProfile.objects.filter(user__primary_email__email=primary_email).exists():
                 recruiter = RecruiterProfile.objects.get(
                     user__primary_email__email=primary_email)
-                user = authenticate(username=recruiter.user.pk, password=password)
+                user = authenticate(
+                    username=recruiter.user.pk, password=password)
                 if user is not None:
                     login(request, user)
-                return redirect('build_profile')
+                return redirect('build_profile', user.pk)
         return render(request, self.template_name, {'form': form})
 
 
 @method_decorator(login_required, name="dispatch")
-class RecruiterProfileDetail(TemplateView):
-    template_name = 'recruiter_profile_detail.html'
+class RecruiterInfo(TemplateView):
+    template_name = 'recruiter_info.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['recruiter'] = RecruiterProfile.objects.get(
-            pk=self.kwargs['pk'])
-        return context
-    
-    def get(self, request, pk):
-        if not RecruiterProfile.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        recruiter_profile = RecruiterProfile.objects.get(pk=pk)
-        if recruiter_profile.user != request.user and not request.user.is_superuser and not request.user.is_coordinator():
-            raise PermissionDenied()
-        if recruiter_profile.user == request.user and not recruiter_profile.user.is_approved:
-            return redirect('build_profile')
-        return super().get(request, pk)
-
-
-@method_decorator(login_required, name="dispatch")
-class UpdateRecruiterInfo(TemplateView):
-    template_name = 'update_recruiter_info.html'
+    def check_write_permission(self, **kwargs):
+        return True if self.request.user.is_superuser or self.request.user == RecruiterProfile.objects.get(pk=self.kwargs['pk']).user else False
 
     def get(self, request, pk):
         if not RecruiterProfile.objects.filter(pk=pk).exists():
@@ -133,6 +118,10 @@ class UpdateRecruiterInfo(TemplateView):
         context = super().get_context_data(**kwargs)
         context['user'] = profile.user
         context['profile'] = profile
+        if self.check_write_permission(**kwargs):
+            context['write_permission'] = True
+            context['change_profile_form'] = RecruiterProfileForm(
+                instance=profile)
         return context
 
 
@@ -145,3 +134,6 @@ class ChangeRecruiterProfile(ChangeUserKeyObject):
 
     def get_redirect_url_args(self, request, pk):
         return [pk]
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()

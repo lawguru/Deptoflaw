@@ -4,10 +4,16 @@
 
 {% block content %}
 <div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
+    <h3 class="lh-1">Hey {{request.user.short_name}}</h3>
+    {% if request.user == profile.user %}
     <h1 class="display-5 fw-bold text-body-emphasis lh-1">Let's Build Your Profile</h1>
+    {% else %}
+    <h1 class="display-5 fw-bold text-body-emphasis lh-1">Let's Build {{profile.user.short_name}}'s Profile</h1>
+    <p class="text-danger-emphasis">Be sure to take permission before editing someone else's profile, and be cautious.</p>
+    {% endif %}
     <ul class="list-group list-group-flush my-5">
         <li class="list-group-item list-group-item-action list-group-item-accent">
-            <a href="{% url 'update_personal_contact_info' profile.user.pk %}"
+            <a href="{% url 'personal_contact_info' profile.user.pk %}"
                 class="d-flex align-items-center justify-content-between m-0 p-4 icon-link icon-link-hover no-shadow">
                 <div class="d-flex align-items-center gap-4">
                     <i class="bi  bi-person-vcard display-5"></i>
@@ -19,9 +25,9 @@
                 <i class="bi bi-chevron-right h3"></i>
             </a>
         </li>
-        {% if request.user.role == 'student' %}
+        {% if profile.user.role == 'student' %}
         <li class="list-group-item list-group-item-action list-group-item-accent">
-            <a href="{% url 'update_academic_info' profile.pk %}"
+            <a href="{% url 'academic_info' profile.pk %}"
                 class="d-flex align-items-center justify-content-between m-0 p-4 icon-link icon-link-hover no-shadow">
                 <div class="d-flex align-items-center gap-4">
                     <i class="bi  bi-receipt display-5"></i>
@@ -34,9 +40,9 @@
             </a>
         </li>
         {% endif %}
-        {% if request.user.role == 'staff' %}
+        {% if profile.user.role == 'staff' %}
         <li class="list-group-item list-group-item-action list-group-item-accent">
-            <a href="{% url 'update_staff_info' profile.pk %}"
+            <a href="{% url 'staff_info' profile.pk %}"
                 class="d-flex align-items-center justify-content-between m-0 p-4 icon-link icon-link-hover no-shadow">
                 <div class="d-flex align-items-center gap-4">
                     <i class="bi bi-receipt display-5"></i>
@@ -49,9 +55,9 @@
             </a>
         </li>
         {% endif %}
-        {% if request.user.role == 'recruiter' %}
+        {% if profile.user.role == 'recruiter' %}
         <li class="list-group-item list-group-item-action list-group-item-accent">
-            <a href="{% url 'update_recruiter_info' profile.pk %}"
+            <a href="{% url 'recruiter_info' profile.pk %}"
                 class="d-flex align-items-center justify-content-between m-0 p-4 icon-link icon-link-hover no-shadow">
                 <div class="d-flex align-items-center gap-4">
                     <i class="bi bi-receipt display-5"></i>
@@ -65,7 +71,7 @@
         </li>
         {% else %}
         <li class="list-group-item list-group-item-action list-group-item-accent">
-            <a href="{% url 'update_education_info' profile.user.pk %}"
+            <a href="{% url 'education_info' profile.user.pk %}"
                 class="d-flex align-items-center justify-content-between m-0 p-4 icon-link icon-link-hover no-shadow">
                 <div class="d-flex align-items-center gap-4">
                     <i class="bi bi-bookmark-star display-5"></i>
@@ -78,7 +84,7 @@
             </a>
         </li>
         <li class="list-group-item list-group-item-action list-group-item-accent">
-            <a href="{% url 'update_experience_info' profile.user.pk %}"
+            <a href="{% url 'experience_info' profile.user.pk %}"
                 class="d-flex align-items-center justify-content-between m-0 p-4 icon-link icon-link-hover no-shadow">
                 <div class="d-flex align-items-center gap-4">
                     <i class="bi bi-briefcase display-5"></i>
@@ -91,7 +97,7 @@
             </a>
         </li>
         <li class="list-group-item list-group-item-action list-group-item-accent">
-            <a href="{% url 'update_ip_info' profile.user.pk %}"
+            <a href="{% url 'ip_info' profile.user.pk %}"
                 class="d-flex align-items-center justify-content-between m-0 p-4 icon-link icon-link-hover no-shadow">
                 <div class="d-flex align-items-center gap-4">
                     <i class="bi bi-journals display-5"></i>
@@ -104,7 +110,7 @@
             </a>
         </li>
         <li class="list-group-item list-group-item-action list-group-item-accent">
-            <a href="{% url 'update_other_info' profile.user.pk %}"
+            <a href="{% url 'other_info' profile.user.pk %}"
                 class="d-flex align-items-center justify-content-between m-0 p-4 icon-link icon-link-hover no-shadow">
                 <div class="d-flex align-items-center gap-4">
                     <i class="bi bi-info-square display-5"></i>
