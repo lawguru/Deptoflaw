@@ -52,6 +52,7 @@ class RecruitmentPostForm(forms.ModelForm):
         model = RecruitmentPost
         exclude = [
             'user',
+            'skills',
             'is_active',
         ]
 
@@ -72,6 +73,7 @@ class AddRecruitmentPostForm(RecruitmentPostForm):
             'company',
             'job_type',
             'workplace_type',
+            'location',
             'sallary_type',
             'sallary_currency',
             'sallary',
@@ -80,37 +82,50 @@ class AddRecruitmentPostForm(RecruitmentPostForm):
             'experience_duration',
             'start_date_type',
             'start_date',
+            'apply_by',
             'description',
+            'requirements',
+            'required_documents',
+            'questionaires',
         ]
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'apply_by': forms.DateInput(attrs={'type': 'date'}),
         }
 
 
-class ChangeRecruitmentPostForm(RecruitmentPostForm):
+class RecruiterChangeRecruitmentPostForm(RecruitmentPostForm):
     class Meta(RecruitmentPostForm.Meta):
-        exclude = [
-            'user',
-            'is_active',
-        ]
-    title = forms.CharField(disabled=True)
-    company = forms.CharField(disabled=True)
-    job_type = forms.ChoiceField(
-        disabled=True, choices=RecruitmentPostForm.Meta.model.job_type_choices)
-    workplace_type = forms.ChoiceField(
-        disabled=True, choices=RecruitmentPostForm.Meta.model.workplace_type_choices)
-    sallary_type = forms.ChoiceField(
-        disabled=True, choices=RecruitmentPostForm.Meta.model.sallary_type_choices)
-    sallary_currency = forms.ChoiceField(
-        disabled=True, choices=RecruitmentPostForm.Meta.model.currency_choices)
-    sallary = forms.CharField(disabled=True)
-    fee_currency = forms.ChoiceField(
-        disabled=True, choices=RecruitmentPostForm.Meta.model.currency_choices)
-    fee = forms.CharField(disabled=True)
-    experience_duration = forms.IntegerField(disabled=True)
-    start_date_type = forms.ChoiceField(
-        disabled=True, choices=RecruitmentPostForm.Meta.model.start_date_type_choices)
-    start_date = forms.DateField(disabled=True)
+        readonly_widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'company': forms.TextInput(attrs={'class': 'form-control'}),
+            'job_type': forms.Select(attrs={'class': 'form-control'}, choices=RecruitmentPostForm.Meta.model.job_type_choices),
+            'workplace_type': forms.Select(attrs={'class': 'form-control'}, choices=RecruitmentPostForm.Meta.model.workplace_type_choices),
+            'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'sallary_type': forms.Select(attrs={'class': 'form-control'}, choices=RecruitmentPostForm.Meta.model.sallary_type_choices),
+            'sallary_currency': forms.Select(attrs={'class': 'form-control'}, choices=RecruitmentPostForm.Meta.model.currency_choices),
+            'sallary': forms.TextInput(attrs={'class': 'form-control'}),
+            'fee_currency': forms.Select(attrs={'class': 'form-control'}, choices=RecruitmentPostForm.Meta.model.currency_choices),
+            'fee': forms.TextInput(attrs={'class': 'form-control'}),
+            'experience_duration': forms.NumberInput(attrs={'class': 'form-control'}),
+            'start_date_type': forms.Select(attrs={'class': 'form-control'}, choices=RecruitmentPostForm.Meta.model.start_date_type_choices),
+            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.Meta.readonly_widgets:
+            self.fields[field].widget = self.Meta.readonly_widgets[field]
+            self.fields[field].disabled = True
+
+
+class TPCChangeRecruitmentPostForm(RecruitmentPostForm):
+    class Meta(RecruitmentPostForm.Meta):
+        fields = '__all__'
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'apply_by': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 
 class RecruitmentPostUpdateForm(forms.ModelForm):

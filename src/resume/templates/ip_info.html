@@ -58,7 +58,7 @@
                         </div>
                         <div class="modal-footer">
                             <input type="submit" form="add-patent-form" class="btn btn-primary btn-lg w-100" value="Add"
-                                onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Adding...'; this.form.submit();">
                         </div>
                     </div>
                 </div>
@@ -141,7 +141,7 @@
                                 <div class="modal-footer">
                                     <input type="submit" form="change-patent-{{ patent.0.pk }}-form"
                                         class="btn btn-primary btn-lg w-100" value="Save"
-                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                        onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
                                 </div>
                             </div>
                         </div>
@@ -230,7 +230,7 @@
                         </div>
                         <div class="modal-footer">
                             <input type="submit" form="add-publication-form" class="btn btn-primary btn-lg w-100"
-                                value="Add" onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                                value="Add" onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Adding...'; this.form.submit();">
                         </div>
                     </div>
                 </div>
@@ -306,7 +306,7 @@
                                 <div class="modal-footer">
                                     <input type="submit" form="change-publication-{{ publication.0.pk }}-form"
                                         class="btn btn-primary btn-lg w-100" value="Save"
-                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                        onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
                                 </div>
                             </div>
                         </div>

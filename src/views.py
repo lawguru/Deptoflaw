@@ -9,7 +9,9 @@ from user.models import User
 class ObjectView(View):
     model = None
     redirect_url_name = None
-    redirect_url_params = ''
+
+    def get_redirect_url_params(self, request, *args, **kwargs):
+        return ''
 
     def get_redirect_url_args(self, request, *args, **kwargs):
         return []
@@ -18,7 +20,7 @@ class ObjectView(View):
         return True
 
     def get_redirect_url(self, request, *args, **kwargs):
-        return reverse(self.redirect_url_name, args=self.get_redirect_url_args(request, *args, **kwargs)) + self.redirect_url_params
+        return reverse(self.redirect_url_name, args=self.get_redirect_url_args(request, *args, **kwargs)) + self.get_redirect_url_params(request, *args, **kwargs)
 
 
 class AddObject(ObjectView):

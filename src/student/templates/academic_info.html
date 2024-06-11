@@ -74,7 +74,7 @@
                         </div>
                         <div class="modal-footer">
                             <input type="submit" form="edit-student-info-form" class="btn btn-primary w-100 m-0"
-                                value="Save" onclick="this.disabled=true;this.value='Saving...';this.form.submit();">
+                                value="Save" onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true;this.value='Saving...';this.form.submit();">
                         </div>
                     </div>
                 </div>
@@ -174,7 +174,8 @@
             </div>
             <div class="col-12 col-lg-5 row g-0 gap-2 gap-sm-3 flex-lg-row-reverse">
                 <div class="col-4 col-sm-3 form-floating">
-                    <select class="form-control" name="subject_letter_grades" placeholder="Grade">
+                    <select class="form-control" name="subject_letter_grades" placeholder="Grade" required>
+                        <option value="" disabled subject_letter_grade_value_select>Select</option>
                         <option value="O" subject_letter_grade_value_o>O</option>
                         <option value="A+" subject_letter_grade_value_ap>A+</option>
                         <option value="A" subject_letter_grade_value_a>A</option>
@@ -201,12 +202,12 @@
 
     <form action="" class="d-none" id="semester-report-card-form" method="POST">
         {% csrf_token %}
-        {{ form }}
+        {{ semester_report_card_empty_form }}
     </form>
 
     <div class="modal fade" id="edit-semester-report-card-modal" data-bs-backdrop="static" data-bs-keyboard="false"
         tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
                     <strong class="modal-title fs-4 fw-bold text-body-emphasis">
@@ -229,8 +230,8 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <input form="semester-report-card-dynamic-form" class="btn btn-primary w-100 m-0" value="Save"
-                        onclick="this.disabled=true;this.value='Saving...';submitSemesterReportCardForm();">
+                    <input type="submit" form="semester-report-card-dynamic-form" class="btn btn-primary w-100 m-0" value="Save"
+                        onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true;this.value='Saving...';submitSemesterReportCardForm();">
                 </div>
             </div>
         </div>
@@ -332,17 +333,16 @@
     </div>
 
     <script>
-        function addRow(subject_code_value = "\"\"", subject_value = "\"\"", subject_credit_value = "\"3\"", subject_passing_grade_point_value = "\"5\"", subject_grade_point_value = "\"0\"", subject_letter_grade_value = "F") {
+        function addRow(subject_code_value = "\"\"", subject_value = "\"\"", subject_credit_value = "\"3\"", subject_passing_grade_point_value = "\"5\"", subject_grade_point_value = "\"0\"", subject_letter_grade_value = "S") {
             const dynamicFields = document.getElementById('semester-report-card-dynamic-form-fields');
             const subjectinputgroup = document.getElementById('subject-input-group')
             const newel = document.createElement('tr');
             field_group_HTML = subjectinputgroup.innerHTML
-            field_group_HTML = field_group_HTML.replace(/"subject_code_value"/g, subject_code_value);
-            field_group_HTML = field_group_HTML.replace(/"subject_value"/g, subject_value);
-            field_group_HTML = field_group_HTML.replace(/"subject_credit_value"/g, subject_credit_value);
-            field_group_HTML = field_group_HTML.replace(/"subject_passing_grade_point_value"/g, subject_passing_grade_point_value);
-            field_group_HTML = field_group_HTML.replace(/"subject_grade_point_value"/g, subject_grade_point_value);
-            console.log(subject_letter_grade_value)
+            field_group_HTML = field_group_HTML.replace(/subject_code_value/g, subject_code_value);
+            field_group_HTML = field_group_HTML.replace(/subject_value/g, subject_value);
+            field_group_HTML = field_group_HTML.replace(/subject_credit_value/g, subject_credit_value);
+            field_group_HTML = field_group_HTML.replace(/subject_passing_grade_point_value/g, subject_passing_grade_point_value);
+            field_group_HTML = field_group_HTML.replace(/subject_grade_point_value/g, subject_grade_point_value);
             if (subject_letter_grade_value == "O")
                 field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_o/g, "selected");
             else if (subject_letter_grade_value == "A+")
@@ -355,8 +355,10 @@
                 field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_b/g, "selected");
             else if (subject_letter_grade_value == "C")
                 field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_c/g, "selected");
-            else
+            else if (subject_letter_grade_value == "F")
                 field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_f/g, "selected");
+            else
+                field_group_HTML = field_group_HTML.replace(/subject_letter_grade_value_select/g, "selected");
             newel.innerHTML = field_group_HTML;
             dynamicFields.appendChild(newel);
         }

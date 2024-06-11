@@ -61,7 +61,7 @@
                         <div class="modal-footer">
                             <input type="submit" form="edit-personal-info-form" class="btn btn-primary btn-lg w-100 m-0"
                                 value="Save"
-                                onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
                         </div>
                     </div>
                 </div>
@@ -290,7 +290,7 @@
                         </div>
                         <div class="modal-footer">
                             <input type="submit" form="add-address-form" class="btn btn-primary btn-lg w-100 m-0"
-                                value="Add" onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                                value="Add" onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Adding...'; this.form.submit();">
                         </div>
                     </div>
                 </div>
@@ -358,7 +358,7 @@
                                 <div class="modal-footer">
                                     <input type="submit" form="change-address-{{ address.0.pk }}-form"
                                         class="btn btn-primary btn-lg w-100 m-0" value="Save"
-                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                        onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
                                 </div>
                             </div>
                         </div>

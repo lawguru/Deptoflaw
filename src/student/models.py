@@ -196,12 +196,45 @@ class SemesterReportCard(models.Model):
             else:
                 sgpa = sgpa + float(self.subject_credits[i]) * float(self.subject_grade_points[i])
         return (sgpa / self.total_credits) if self.total_credits > 0 else 0
+
+    def semester(self):
+        try:
+            return list(self.student_profile.semester_report_cards.all()).index(self) + 1
+        except:
+            return self.student_profile.semester_report_cards.count() + 1
     
     def save(self, *args, **kwargs):
-        self.backlogs = self.subject_letter_grades.count('F')
-        self.passed = True if 'F' not in self.subject_letter_grades else False
+        if self.pk:
+            self.backlogs = self.subject_letter_grades.count('F')
+            self.passed = True if 'F' not in self.subject_letter_grades else False
+            self.earned_credits = round(sum([(float(tuple[0]) * float(tuple[1]) / 10) for tuple in list(zip(self.subject_credits, self.subject_grade_points))]), 2)
+        elif SemesterReportCardTemplate.objects.filter(course=self.student_profile.course, semester=self.semester()).exists():
+            template = SemesterReportCardTemplate.objects.get(course=self.student_profile.course, semester=self.semester())
+            self.subjects = template.subjects
+            self.subject_codes = template.subject_codes
+            self.subject_credits = template.subject_credits
+            self.subject_passing_grade_points = template.subject_passing_grade_points
+            self.subject_letter_grades = ['S' for _ in template.subjects]
+            self.subject_grade_points = [0 for _ in template.subjects]
+
         self.total_credits = round(sum([float(subject_credit) for subject_credit in self.subject_credits]), 1)
-        self.earned_credits = round(sum([(float(tuple[0]) * float(tuple[1]) / 10) for tuple in list(zip(self.subject_credits, self.subject_grade_points))]), 2)
-        self.sgpa = round(self.get_sgpa(), 2)
-        self.student_profile.save()
+        
+        if self.pk:
+            self.sgpa = round(self.get_sgpa(), 2)
+        
         super().save(*args, **kwargs)
+        
+        if self.pk:
+            self.student_profile.save()
+
+
+class SemesterReportCardTemplate(models.Model):
+    course = models.CharField(max_length=6, choices=StudentProfile.course_choices)
+    semester = models.PositiveSmallIntegerField()
+    subjects = models.JSONField(default=list, blank=True, null=True)
+    subject_codes = models.JSONField(default=list, blank=True, null=True)
+    subject_credits = models.JSONField(default=list, blank=True, null=True)
+    subject_passing_grade_points = models.JSONField(default=list, blank=True, null=True)
+
+    class Meta:
+        unique_together = [['course', 'semester']]

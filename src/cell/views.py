@@ -5,8 +5,8 @@ from settings.models import Setting
 from user.models import User
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from views import AddUserKeyObject, ChangeUserKeyObject, AddObject
-from django.views.generic.base import TemplateView
+from views import AddUserKeyObject, ChangeUserKeyObject, AddObject, DeleteUserKeyObject
+from django.views.generic.base import TemplateView, RedirectView
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, BadRequest
 from .forms import *
 from .models import Notice, Quote
@@ -118,7 +118,7 @@ class AddRecruitmentPost(AddUserKeyObject):
             raise PermissionDenied()
         if self.template_name and self.form:
             user = User.objects.get(pk=kwargs['user'])
-            return render(request, self.template_name, {'form': self.form(initial = {'company': user.recruiter_profile.company_name})})
+            return render(request, self.template_name, {'form': self.form(initial={'company': user.recruiter_profile.company_name})})
         return redirect(self.get_redirect_url(request, *args, **kwargs))
 
 
@@ -129,7 +129,20 @@ class ViewRecruitmentPost(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['post'] = RecruitmentPost.objects.get(pk=kwargs['pk'])
-        context['update_form'] = RecruitmentPostUpdateForm()
+        context['updates'] = [(update, RecruitmentPostUpdateForm(instance=update)) for update in context['post'].updates.all()]
+        if context['post'].user == self.request.user or self.request.user.is_superuser or self.request.user.is_coordinator:
+            context['update_form'] = RecruitmentPostUpdateForm()
+        if self.request.user == context['post'].user:
+            context['edit_form'] = RecruiterChangeRecruitmentPostForm(
+                instance=context['post'])
+        if self.request.user.is_superuser or self.request.user.is_coordinator:
+            context['edit_form'] = TPCChangeRecruitmentPostForm(
+                instance=context['post'])
+        if self.request.user.role == 'student':
+            if context['post'].applications.filter(user=self.request.user).exists():
+                context['application'] = context['post'].applications.get(user=self.request.user)
+            if context['post'].is_active:
+                context['apply_form'] = RecruitmentApplicationForm()
         return context
 
     def get(self, request, pk):
@@ -139,89 +152,123 @@ class ViewRecruitmentPost(TemplateView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeRecruitmentPost(ChangeUserKeyObject):
+class RecruiterChangeRecruitmentPost(ChangeUserKeyObject):
     model = RecruitmentPost
-    form = ChangeRecruitmentPostForm
-    template_name = 'change_recruitment_post.html'
+    form = RecruiterChangeRecruitmentPostForm
     redirect_url_name = 'view_recruitment_post'
 
     def get_redirect_url_args(self, request, pk, *args, **kwargs):
         return [pk]
 
-
-@method_decorator(login_required, name="dispatch")
-class ActivateRecruitmentPost(ChangeRecruitmentPost):
     def get(self, request, pk):
         raise BadRequest()
 
-    def post(self, request, pk):
-        if not RecruitmentPost.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        if not self.check_permission(request, pk):
-            raise PermissionDenied()
-        post = RecruitmentPost.objects.get(pk=pk)
-        post.is_active = True
-        post.save()
-        return redirect(self.get_redirect_url(request, pk=pk))
+
+@method_decorator(login_required, name="dispatch")
+class TPCChangeRecruitmentPost(RecruiterChangeRecruitmentPost):
+    form = TPCChangeRecruitmentPostForm
+
+    def check_permission(self, request, pk, *args, **kwargs):
+        if request.user.is_superuser or request.user.is_coordinator:
+            return True
+        return RecruiterChangeRecruitmentPost.check_permission(self, request, pk, *args, **kwargs)
 
 
 @method_decorator(login_required, name="dispatch")
-class DeactivateRecruitmentPost(ChangeRecruitmentPost):
-    def get(self, request, pk):
-        raise BadRequest()
-
-    def post(self, request, pk):
-        if not RecruitmentPost.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        if not self.check_permission(request, pk):
-            raise PermissionDenied()
-        post = RecruitmentPost.objects.get(pk=pk)
-        post.is_active = False
-        post.save()
-        return redirect(self.get_redirect_url(request, pk=pk))
+class ChangeRecruitmentPost(TPCChangeRecruitmentPost):
+    def post(self, request, pk, *args, **kwargs):
+        if request.user.is_superuser or request.user.is_coordinator:
+            self.form = TPCChangeRecruitmentPost.form
+            return TPCChangeRecruitmentPost.post(self, request, pk, *args, **kwargs)
+        self.form = RecruiterChangeRecruitmentPost.form
+        return RecruiterChangeRecruitmentPost.post(self, request, pk, *args, **kwargs)
 
 
 @method_decorator(login_required, name="dispatch")
 class AddRecruitmentPostUpdate(AddObject):
     model = RecruitmentPostUpdate
     form = RecruitmentPostUpdateForm
-    template_name = 'recruitment_post_update.html'
-    redirect_url_name = 'recruitment_post_updates'
+    redirect_url_name = 'view_recruitment_post'
 
     def check_permission(self, request, *args, **kwargs):
-        if kwargs['post'].user != request.user and not request.user.is_superuser:
-            return False
+        if kwargs['recruitment_post'].user == request.user or request.user.is_superuser or request.user.is_coordinator:
+            return True
         return super().check_permission(request, *args, **kwargs)
 
-    def get(self, request, post):
-        if not RecruitmentPost.objects.filter(pk=post).exists():
-            raise ObjectDoesNotExist()
-        return super().get(request, post=RecruitmentPost.objects.get(pk=post), user=request.user)
+    def get_redirect_url_params(self, request, *args, **kwargs):
+        return f'#updates-last'
 
-    def post(self, request, post):
-        if not RecruitmentPost.objects.filter(pk=post).exists():
+    def get_redirect_url_args(self, request, *args, **kwargs):
+        return [kwargs['recruitment_post'].pk]
+
+    def get(self, request, pk):
+        raise BadRequest()
+
+    def post(self, request, pk):
+        if not RecruitmentPost.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
-        return super().post(request, post=RecruitmentPost.objects.get(pk=post), user=request.user)
+        return super().post(request, recruitment_post=RecruitmentPost.objects.get(pk=pk), user=request.user)
+
+
+@method_decorator(login_required, name="dispatch")
+class ChangeRecruitmentPostUpdate(ChangeUserKeyObject):
+    model = RecruitmentPostUpdate
+    form = RecruitmentPostUpdateForm
+    redirect_url_name = 'view_recruitment_post'
+
+    def check_permission(self, request, pk, *args, **kwargs):
+        obj = self.model.objects.get(pk=pk)
+        if obj.user == request.user or obj.recruitment_post.user == request.user or request.user.is_superuser:
+            return True
+        return super().check_permission(request, *args, **kwargs)
+
+    def get_redirect_url_params(self, request, pk, *args, **kwargs):
+        return f'#update-{pk}'
+
+    def get_redirect_url_args(self, request, pk, *args, **kwargs):
+        return [self.model.objects.get(pk=pk).recruitment_post.pk]
+
+    def get(self, request, pk):
+        raise BadRequest()
+
+
+@method_decorator(login_required, name="dispatch")
+class DeleteRecruitmentPostUpdate(DeleteUserKeyObject):
+    model = RecruitmentPostUpdate
+    redirect_url_name = 'view_recruitment_post'
+
+    def check_permission(self, request, pk, *args, **kwargs):
+        obj = self.model.objects.get(pk=pk)
+        if obj.user == request.user or obj.recruitment_post.user == request.user or request.user.is_superuser:
+            return True
+        return super().check_permission(request, *args, **kwargs)
+
+    def get_redirect_url_params(self, request, pk, *args, **kwargs):
+        return '#updates'
+
+    def get_redirect_url_args(self, request, pk, *args, **kwargs):
+        return [self.model.objects.get(pk=pk).recruitment_post.pk]
+
+    def get(self, request, pk):
+        raise BadRequest()
 
 
 @method_decorator(login_required, name="dispatch")
 class AddRecruitmentApplication(AddObject):
     model = RecruitmentApplication
     form = RecruitmentApplicationForm
-    template_name = 'recruitment_application.html'
     redirect_url_name = 'recruitment_application'
 
     def check_permission(self, request, *args, **kwargs):
-        if not kwargs['post'].is_active:
+        if not kwargs['recruitment_post'].is_active or kwargs['recruitment_post'].applications.filter(user=request.user).exists() or request.user.role != 'student':
             return False
+
         return super().check_permission(request, *args, **kwargs)
 
-    def get(self, request, post):
-        if not RecruitmentPost.objects.filter(pk=post).exists():
-            raise ObjectDoesNotExist()
-        return super().get(request, post=RecruitmentPost.objects.get(pk=post))
+    def get(self, request, pk):
+        raise BadRequest()
 
-    def post(self, request, post):
-        if not RecruitmentPost.objects.filter(pk=post).exists():
+    def post(self, request, pk):
+        if not RecruitmentPost.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
-        return super().post(request, post=RecruitmentPost.objects.get(pk=post), user=request.user)
+        return super().post(request, recruitment_post=RecruitmentPost.objects.get(pk=pk), user=request.user)

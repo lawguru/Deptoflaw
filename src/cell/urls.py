@@ -9,8 +9,9 @@ urlpatterns = [
     path('<int:user>/recruitmentpost/', ListRecruitmentPost.as_view(), name='recruitment_posts'),
     path('<int:user>/recruitmentpost/add/', AddRecruitmentPost.as_view(), name='add_recruitment_post'),
     path('recruitmentpost/<int:pk>/', ViewRecruitmentPost.as_view(), name='view_recruitment_post'),
-    path('recruitmentpost/<int:pk>/shareupdate/', AddRecruitmentPostUpdate.as_view(), name='add_recruitment_post_update'),
     path('recruitmentpost/<int:pk>/change/', ChangeRecruitmentPost.as_view(), name='change_recruitment_post'),
-    path('recruitmentpost/<int:pk>/activate/', ActivateRecruitmentPost.as_view(), name='activate_recruitment_post'),
-    path('recruitmentpost/<int:pk>/deactivate/', DeactivateRecruitmentPost.as_view(), name='deactivate_recruitment_post'),
+    path('recruitmentpost/<int:pk>/apply/', AddRecruitmentApplication.as_view(), name='apply_recruitment_post'),
+    path('recruitmentpost/<int:pk>/shareupdate/', AddRecruitmentPostUpdate.as_view(), name='add_recruitment_post_update'),
+    path('recruitmentpostupdate/<int:pk>/change/', ChangeRecruitmentPostUpdate.as_view(), name='change_recruitment_post_update'),
+    path('recruitmentpostupdate/<int:pk>/delete/', DeleteRecruitmentPostUpdate.as_view(), name='delete_recruitment_post_update'),
 ]

@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, reverse
 from views import ChangeObject, ChangeUserKeyObject
 from user.models import Email
-from .models import StudentProfile, SemesterReportCard
+from .models import *
 from .forms import *
 from django.views.generic import ListView
 from django.views.generic.base import TemplateView
@@ -126,7 +126,7 @@ class StudentProfileDetail(TemplateView):
         if not StudentProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         student_profile = StudentProfile.objects.get(pk=pk)
-        if student_profile.user != request.user and not request.user.is_superuser and not request.user.is_coordinator():
+        if student_profile.user != request.user and not request.user.is_superuser and not request.user.is_coordinator:
             raise PermissionDenied()
         if student_profile.user == request.user and not student_profile.user.is_approved:
             return redirect('build_profile', student_profile.user.pk)
@@ -156,6 +156,7 @@ class AcademicInfo(TemplateView):
             student_profile=profile)[0:profile.semester]]
         if self.check_write_permission(**kwargs):
             context['write_permission'] = True
+            context['semester_report_card_empty_form'] = SemesterReportCardForm()
             context['change_profile_form'] = StudentProfileForm(
                 instance=profile)
         return context
@@ -178,18 +179,65 @@ class ChangeStudentProfile(ChangeUserKeyObject):
 class ChangeSemesterReportCard(ChangeObject):
     model = SemesterReportCard
     form = SemesterReportCardForm
-    template_name = 'semester_report_card.html'
     redirect_url_name = 'academic_info'
     redirect_url_params = '#semester-report-cards'
 
     def check_permission(self, request, pk, *args, **kwargs):
-        if self.model.objects.get(pk=pk).student_profile.user != request.user and not request.user.is_superuser():
+        if self.model.objects.get(pk=pk).student_profile.user != request.user and not request.user.is_superuser:
             return False
         return super().check_permission(request, pk, *args, **kwargs)
 
     def get_redirect_url(self, request, pk, *args, **kwargs):
         profile = self.model.objects.get(pk=pk).student_profile.pk
         return reverse(self.redirect_url_name, args=[profile]) + self.redirect_url_params
+
+    def get(self, request, pk):
+        raise BadRequest()
+
+
+@method_decorator(login_required, name="dispatch")
+class SemesterReportCardTemplateListView(TemplateView):
+    template_name = 'semester_report_card_template.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['empty_form'] = SemesterReportCardTemplateForm()
+        context['semester_report_card_templates'] = [
+            (semester_report_card_template,
+                SemesterReportCardTemplateForm(
+                    instance=semester_report_card_template),
+                {
+                    'course': semester_report_card_template.course,
+                    'semester': semester_report_card_template.semester,
+                    'subjects': [
+                        {
+                            'name': semester_report_card_template.subjects[i],
+                            'code': semester_report_card_template.subject_codes[i],
+                            'credits': semester_report_card_template.subject_credits[i],
+                            'passing_grade_points': semester_report_card_template.subject_passing_grade_points[i]
+                        } for i in range(len(semester_report_card_template.subjects))
+                    ]
+                }
+             ) for semester_report_card_template in SemesterReportCardTemplate.objects.all()
+        ]
+        return context
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_superuser and not request.user.is_coordinator:
+            raise PermissionDenied()
+        return super().get(request, *args, **kwargs)
+
+
+@method_decorator(login_required, name="dispatch")
+class ChangeSemesterReportCardTemplate(ChangeObject):
+    model = SemesterReportCardTemplate
+    form = SemesterReportCardTemplateForm
+    redirect_url_name = 'semester_report_card_template'
+
+    def check_permission(self, request, pk, *args, **kwargs):
+        if not request.user.is_superuser and not request.user.is_coordinator:
+            return False
+        return super().check_permission(request, pk, *args, **kwargs)
 
     def get(self, request, pk):
         raise BadRequest()

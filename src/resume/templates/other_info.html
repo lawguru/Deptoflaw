@@ -52,7 +52,7 @@
                         <div class="modal-footer">
                             <input type="submit" form="add-achievement-form" class="btn btn-primary btn-lg w-100"
                                 value="Add"
-                                onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Adding...'; this.form.submit();">
                         </div>
                     </div>
                 </div>
@@ -119,8 +119,9 @@
                                     </form>
                                 </div>
                                 <div class="modal-footer">
-                                    <input type="submit" form="change-achievement-{{ achievement.0.pk }}-form" class="btn btn-primary btn-lg w-100" value="Save"
-                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                    <input type="submit" form="change-achievement-{{ achievement.0.pk }}-form"
+                                        class="btn btn-primary btn-lg w-100" value="Save"
+                                        onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
                                 </div>
                             </div>
                         </div>
@@ -214,8 +215,9 @@
                             </form>
                         </div>
                         <div class="modal-footer">
-                            <input type="submit" form="add-presentation-form" class="btn btn-primary btn-lg w-100" value="Add"
-                                onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                            <input type="submit" form="add-presentation-form" class="btn btn-primary btn-lg w-100"
+                                value="Add"
+                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Adding...'; this.form.submit();">
                         </div>
                     </div>
                 </div>
@@ -292,8 +294,9 @@
                                     </form>
                                 </div>
                                 <div class="modal-footer">
-                                    <input type="submit" form="change-presentation-{{ presentation.0.pk }}-form" class="btn btn-primary btn-lg w-100" value="Save"
-                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                    <input type="submit" form="change-presentation-{{ presentation.0.pk }}-form"
+                                        class="btn btn-primary btn-lg w-100" value="Save"
+                                        onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
                                 </div>
                             </div>
                         </div>
@@ -381,8 +384,9 @@
                             </form>
                         </div>
                         <div class="modal-footer">
-                            <input type="submit" form="add-other-info-form" class="btn btn-primary btn-lg w-100" value="Add"
-                                onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                            <input type="submit" form="add-other-info-form" class="btn btn-primary btn-lg w-100"
+                                value="Add"
+                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Adding...'; this.form.submit();">
                         </div>
                     </div>
                 </div>
@@ -438,8 +442,9 @@
                                     </form>
                                 </div>
                                 <div class="modal-footer">
-                                    <input type="submit" form="change-other-info-{{ other_info.0.pk }}-form" class="btn btn-primary btn-lg w-100" value="Save"
-                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                    <input type="submit" form="change-other-info-{{ other_info.0.pk }}-form"
+                                        class="btn btn-primary btn-lg w-100" value="Save"
+                                        onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
                                 </div>
                             </div>
                         </div>

@@ -49,7 +49,7 @@
                             </form>
                         </div>
                         <input type="submit" form="edit-recruiter-info-form" class="btn btn-primary btn-lg w-100 m-0"
-                            value="Save" onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                            value="Save" onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
                     </div>
                 </div>
             </div>

@@ -66,7 +66,7 @@
                         <div class="modal-footer">
                             <input type="submit" form="add-work-experience-form" class="btn btn-primary btn-lg w-100"
                                 value="Add"
-                                onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Adding...'; this.form.submit();">
                         </div>
                     </div>
                 </div>
@@ -154,7 +154,7 @@
                                 <div class="modal-footer">
                                     <input type="submit" form="change-work-experience-{{ work_experience.0.pk }}-form"
                                         class="btn btn-primary btn-lg w-100" value="Save"
-                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                        onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
                                 </div>
                             </div>
                         </div>
@@ -254,7 +254,7 @@
                         </div>
                         <div class="modal-footer">
                             <input type="submit" form="add-project-form" class="btn btn-primary btn-lg w-100" value="Add"
-                                onclick="this.disabled = true; this.value = 'Adding...'; this.form.submit();">
+                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Adding...'; this.form.submit();">
                         </div>
                     </div>
                 </div>
@@ -339,7 +339,7 @@
                                 <div class="modal-footer">
                                     <input type="submit" form="change-project-{{ project.0.pk }}-form"
                                         class="btn btn-primary btn-lg w-100" value="Save"
-                                        onclick="this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                        onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
                                 </div>
                             </div>
                         </div>

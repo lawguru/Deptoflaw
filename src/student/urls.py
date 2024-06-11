@@ -10,4 +10,6 @@ urlpatterns = [
     path('<int:pk>/change/', ChangeStudentProfile.as_view(), name='change_student_profile'),
     path('<int:pk>/studentprofile/', RedirectView.as_view(url='../#student-profile'), name='student_profile'),
     path('semesterreportcard/<int:pk>/change/', ChangeSemesterReportCard.as_view(), name='change_semester_report_card'),
+    path('semesterreportcardtemplate/', SemesterReportCardTemplateListView.as_view(), name='semester_report_card_template'),
+    path('semesterreportcardtemplate/<int:pk>/change/', ChangeSemesterReportCardTemplate.as_view(), name='change_semester_report_card_template'),
 ]
