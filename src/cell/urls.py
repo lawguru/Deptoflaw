@@ -9,9 +9,13 @@ urlpatterns = [
     path('<int:user>/recruitmentpost/', ListRecruitmentPost.as_view(), name='recruitment_posts'),
     path('<int:user>/recruitmentpost/add/', AddRecruitmentPost.as_view(), name='add_recruitment_post'),
     path('recruitmentpost/<int:pk>/', ViewRecruitmentPost.as_view(), name='view_recruitment_post'),
+    path('recruitmentpost/<int:pk>/skill/', AddRecruitmentSkill.as_view(), name='add_recruitment_post_skill'),
+    path('recruitmentpost/<int:pk>/skill/<int:skill>/', DeleteRecruitmentSkill.as_view(), name='delete_recruitment_post_skill'),
     path('recruitmentpost/<int:pk>/change/', ChangeRecruitmentPost.as_view(), name='change_recruitment_post'),
     path('recruitmentpost/<int:pk>/apply/', AddRecruitmentApplication.as_view(), name='apply_recruitment_post'),
     path('recruitmentpost/<int:pk>/shareupdate/', AddRecruitmentPostUpdate.as_view(), name='add_recruitment_post_update'),
+    path('recruitmentpost/<int:pk>/applications/', RecruitmentApplications.as_view(), name='recruitment_applications'),
+    path('recruitmentpost/<int:pk>/skillautocomplete/', SkillAutocomplete.as_view(), name='recruitment_post_skill_autocomplete'),
     path('recruitmentpostupdate/<int:pk>/change/', ChangeRecruitmentPostUpdate.as_view(), name='change_recruitment_post_update'),
     path('recruitmentpostupdate/<int:pk>/delete/', DeleteRecruitmentPostUpdate.as_view(), name='delete_recruitment_post_update'),
 ]

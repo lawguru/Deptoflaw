@@ -206,13 +206,11 @@ class AddSkill(View):
             if self.model.objects.filter(name__iexact=form.cleaned_data['name']).exists():
                 skill = self.model.objects.get(
                     name__iexact=form.cleaned_data['name'])
-                skill.users.add(user)
-                skill.save()
             else:
                 skill = self.model.objects.create(
                     name=form.cleaned_data['name'])
-                skill.users.add(user)
-                skill.save()
+            skill.users.add(user)
+            skill.save()
         else:
             raise BadRequest()
         return redirect(reverse(self.redirect_url_name, args=[user.pk]))
@@ -256,13 +254,11 @@ class AddLanguage(View):
             if self.model.objects.filter(name__iexact=form.cleaned_data['name']).exists():
                 language = self.model.objects.get(
                     name__iexact=form.cleaned_data['name'])
-                language.users.add(user)
-                language.save()
             else:
                 language = self.model.objects.create(
                     name=form.cleaned_data['name'])
-                language.users.add(user)
-                language.save()
+            language.users.add(user)
+            language.save()
         else:
             raise BadRequest()
         return redirect(reverse(self.redirect_url_name, args=[user.pk]))

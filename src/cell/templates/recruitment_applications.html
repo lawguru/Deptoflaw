@@ -1,0 +1,739 @@
+{% extends "base.html" %}
+
+{% block title %}Recruitment Post | TPC | CSE | AUS{% endblock %}
+{% load humanize %}
+{% block content %}
+
+<div class="container-xl col-12 col-xl-10 p-3 p-xl-5 min-vh-100 position-relative">
+    <nav class="navbar navbar-expand-xl bg-body p-0 mb-3 border rounded-2">
+        <div class="container-fluid">
+            <a class="lead text-body-emphasis me-3" href="#">Filters</a>
+            <div class="d-flex align-items-center gap-2">
+                <div class="nav-link dropdown">
+                    <a class="nav-link dropdown-toggle p-2" href="#" role="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        Sort By
+                    </a>
+                    <form action="#">
+                        <ul class="dropdown-menu" onclick="event.stopPropagation()">
+                            <li class="px-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="ordering" value="1"
+                                        id="ordering-asc" {% if ordering != 'desc' %}checked{% endif %}>
+                                    <label class="form-check-label" for="ordering-asc">
+                                        Low to High
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="ordering" value="-1"
+                                        id="ordering-desc" {% if orderin == 'desc' %}checked{% endif %}>
+                                    <label class="form-check-label" for="ordering-desc">
+                                        High to Low
+                                    </label>
+                                </div>
+                                <input id="sort-by-form-input" type="hidden" name="sorting" value="applied_on">
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('sort-by-form-input').value='applied_on'"
+                                    value="Apply Time"
+                                    class="dropdown-item {% if sorting == 'applied_on' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('sort-by-form-input').value='total_skills'"
+                                    value="Total Skills"
+                                    class="dropdown-item {% if sorting == 'total_skills' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('sort-by-form-input').value='skill_matches'"
+                                    value="Skill Matches"
+                                    class="dropdown-item {% if sorting == 'skill_matches' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('sort-by-form-input').value='other_skills_count'"
+                                    value="Other Skills"
+                                    class="dropdown-item {% if sorting == 'other_skills_count' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('sort-by-form-input').value='cgpa'" value="CGPA"
+                                    class="dropdown-item {% if sorting == 'cgpa' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('sort-by-form-input').value='backlogs'"
+                                    value="Backlogs"
+                                    class="dropdown-item {% if sorting == 'backlogs' %} active {% endif %}">
+                            </li>
+                        </ul>
+                    </form>
+                </div>
+                <button class="navbar-toggler btn btn-outline-primary rounded-circle p-2 lh-1" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#filters-navbar" aria-controls="filters-navbar"
+                    aria-expanded="false" aria-label="Toggle filters nav">
+                    <span class="bi bi-funnel"></span>
+                </button>
+            </div>
+            <div class="collapse navbar-collapse" id="filters-navbar">
+                <ul class="navbar-nav me-auto mb-2 mb-xl-0">
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Skills
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form id="skill-filter-name-input-form" action="#">
+                                        <div class="input-group mb-1" style="min-width: 32ch;">
+                                            <input type="text" class="skill-name form-control"
+                                                name="skill-filter-name-input" id="skill-filter-name-input"
+                                                list="skill-filter-name-input-list" placeholder="Skill name"
+                                                onchange="resetIfInvalid(this);" required>
+                                            <datalist id="skill-filter-name-input-list"></datalist>
+                                            <button type="button" form="skill-filter-name-input-form"
+                                                class="btn btn-outline-primary border m-0" data-bs-toggle="tooltip"
+                                                data-bs-title="Include results with this skill (OR)"
+                                                onclick="if (this.form.checkValidity() === false){ this.form.reportValidity(); return; } addSkill(document.getElementById('skill-filter-name-input').value, '|'); document.getElementById('skill-filter-name-input').value=''; ">
+                                                or
+                                            </button>
+                                            <button type="button" form="skill-filter-name-input-form"
+                                                class="btn btn-outline-primary border m-0" data-bs-toggle="tooltip"
+                                                data-bs-title="Require the previous and this skill (AND)"
+                                                onclick="if (this.form.checkValidity() === false){ this.form.reportValidity(); return; } addSkill(document.getElementById('skill-filter-name-input').value); document.getElementById('skill-filter-name-input').value=''; ">
+                                                and
+                                            </button>
+                                        </div>
+                                    </form>
+                                </li>
+                                <li>
+                                    <div id="skill-filters-display" class="d-flex flex-wrap align-items-center">
+                                    </div>
+                                </li>
+                                <li>
+                                    <form action="#">
+                                        <input type="text" name="skill-filters" class="d-none" id="skill-filters">
+                                        <input type="submit" value="Apply" class="btn btn-primary w-100">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Course
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form id="course-filter-form" action="#">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="course-filters"
+                                                value="B.Tech" id="course-filter-pending" {% if 'B.Tech' in course_filters %}checked{% endif %}>
+                                            <label class="form-check-label" for="course-filter-pending">
+                                                B.Tech
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <input class="form-check-input" type="checkbox" name="course-filters"
+                                                value="M.Tech" id="course-filter-rejected" {% if 'M.Tech' in course_filters %}checked{% endif %}>
+                                            <label class="form-check-label" for="course-filter-rejected">
+                                                M.Tech
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <input class="form-check-input" type="checkbox" name="course-filters"
+                                                value="PhD" id="course-filter-selected" {% if 'PhD' in course_filters %}checked{% endif %}>
+                                            <label class="form-check-label" for="course-filter-selected">
+                                                PhD
+                                            </label>
+                                        </div>
+                                        <input type="submit" value="Apply" class="btn btn-primary w-100">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Academic Year
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form id="year-filter-form" action="#">
+                                        <div class="input-group mb-1" style="min-width: 30ch;">
+                                            <div class="input-group-text bg-body">
+                                                Lower limit
+                                            </div>
+                                            <input type="number" step=".1" class="form-control" name="year-lower-limit"
+                                                id="year-lower-limit-input" value="{{year_lower_limit}}">
+                                        </div>
+                                        <div class="input-group mb-1" style="min-width: 20ch;">
+                                            <div class="input-group-text bg-body">
+                                                Upper limit
+                                            </div>
+                                            <input type="number" step=".1" class="form-control" name="year-upper-limit"
+                                                id="year-upper-limit-input" placeholder="Default is None" value="{{year_upper_limit}}">
+                                        </div>
+                                        <input type="submit" value="Apply" class="btn btn-primary w-100">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                CGPA
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form id="cgpa-filter-form" action="#">
+                                        <div class="input-group mb-1" style="min-width: 20ch;">
+                                            <div class="input-group-text bg-body">
+                                                Lower limit
+                                            </div>
+                                            <input type="number" step=".1" class="form-control" name="cgpa-lower-limit"
+                                                id="cgpa-lower-limit-input" value="{{cgpa_lower_limit}}">
+                                        </div>
+                                        <input type="submit" value="Apply" class="btn btn-primary w-100">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Backlogs
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form id="backlogs-filter-form" action="#">
+                                        <div class="input-group mb-1" style="min-width: 30ch;">
+                                            <div class="input-group-text bg-body">
+                                                Upper limit
+                                            </div>
+                                            <input type="number" class="form-control" name="backlogs-upper-limit"
+                                                id="backlogs-upper-limit-input" placeholder="Default is None"
+                                                value="{{backlogs_upper_limit}}">
+                                        </div>
+                                        <input type="submit" value="Apply" class="btn btn-primary w-100">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Status
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form id="status-filter-form" action="#">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="status-filters"
+                                                value="P" id="status-filter-pending" {% if 'P' in status_filters %}checked{% endif %}>
+                                            <label class="form-check-label" for="status-filter-pending">
+                                                Pending
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="status-filters"
+                                                value="R" id="status-filter-rejected" {% if 'R' in status_filters %}checked{% endif %}>
+                                            <label class="form-check-label" for="status-filter-rejected">
+                                                Rejected
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="status-filters"
+                                                value="S" id="status-filter-selected" {% if 'S' in status_filters %}checked{% endif %}>
+                                            <label class="form-check-label" for="status-filter-selected">
+                                                Selected
+                                            </label>
+                                        </div>
+                                        <div class="form-check" style="width: 22ch;">
+                                            <input class="form-check-input" type="checkbox" name="status-filters"
+                                                value="I" id="status-filter-interview" {% if 'I' in status_filters %}checked{% endif %}>
+                                            <label class="form-check-label" for="status-filter-interview">
+                                                Shortlisted for Interview
+                                            </label>
+                                        </div>
+                                        <input type="submit" value="Apply" class="btn btn-primary w-100">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+                <div style="width: fit-content;">
+                    <div class="rounded-circle m-2" onclick="location.href=window.location.href.split('?')[0]"
+                        data-bs-toggle="tooltip" data-bs-title="Clear all Filters">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="accordion" id="post-accordion">
+        {% for application in page_obj %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                <button class="accordion-button m-0 collapsed pe-5 pe-lg-3" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="true"
+                    aria-controls="collapse{{ forloop.counter }}">
+                    <div class="d-flex flex-fill flex-column flex-lg-row">
+                        <div>
+                            <strong class="fw-bold lead text-body-emphasis lh-1">
+                                {{ application.user.full_name }}
+                            </strong>
+                            <small class="d-block text-body-secondary lh-1">
+                                {{ application.user.subtext }}
+                            </small>
+                            <small class="d-block badge p-0 text-start text-body-secondary lh-1">
+                                {% if application.status == 'P' %}
+                                Pending
+                                {% elif application.status == 'R' %}
+                                Rejected
+                                {% elif application.status == 'S' %}
+                                Selected
+                                {% else %}
+                                Shortlisted for Interview
+                                {% endif %}
+                                | Applied {{ application.applied_on|naturaltime }}
+                            </small>
+                        </div>
+                        <div
+                            class="ms-0 mt-3 mt-lg-0 ms-lg-auto d-sm-flex flex-wrap align-items-center justify-content-start justify-content-lg-end gap-2 pe-3">
+                            <div class="d-flex align-items-center gap-2 mb-2 mb-sm-0">
+                                <span
+                                    class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                    <div class="rounded-circle m-2">
+                                        <i class="bi 
+                                            {% if application.skill_matches < application.recruitment_post.skills.count %}
+                                            bi-star
+                                            {% else %}
+                                            bi-star-fill
+                                            {% endif %}
+                                            fs-5"></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <strong class="fw-bold text-body-emphasis lh-1">
+                                            {{application.skill_matches}} skills
+                                        </strong>
+                                        <small class="d-block text-body-secondary">out of
+                                            {{application.recruitment_post.skills.count}}</small>
+                                    </div>
+                                </span>
+                                <span
+                                    class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                    <div class="rounded-circle m-2">
+                                        <i class="bi bi-stars fs-5"></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <strong class="fw-bold text-body-emphasis lh-1">
+                                            {{ application.other_skills_count }} other
+                                        </strong>
+                                        <small class="d-block text-body-secondary">Skills</small>
+                                    </div>
+                                </span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span
+                                    class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                    <div class="rounded-circle m-2">
+                                        <i class="bi bi-mortarboard fs-5"></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <strong class="fw-bold text-body-emphasis lh-1">
+                                            {{ application.user.student_profile.cgpa }}
+                                        </strong>
+                                        <small class="d-block text-body-secondary">CGPA</small>
+                                    </div>
+                                </span>
+                                <span
+                                    class="badge d-flex align-items-center py-0 ps-1 pe-3 if {% if application.user.student_profile.backlog_count == 0 %} text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle {% else %} text-danger-emphasis bg-danger-subtle border border-danger-subtle {% endif %} rounded-pill">
+                                    <div class="rounded-circle m-2">
+                                        <i class="bi bi-backspace fs-5"></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <strong class="fw-bold text-body-emphasis lh-1">
+                                            {{ application.user.student_profile.backlog_count }}
+                                        </strong>
+                                        <small class="d-block text-body-secondary">Backlogs</small>
+                                    </div>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </button>
+            </h2>
+            <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse"
+                aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#post-accordion">
+                <div class="accordion-body">
+                    <div class="d-flex flex-wrap align-items-center justify-content-start gap-2 mt-3 mb-3">
+                        <span
+                            class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                            <div class="rounded-circle m-2">
+                                <i class="bi bi-envelope fs-5"></i>
+                            </div>
+                            <div class="text-start">
+                                <strong class="fw-bold text-body-emphasis lh-1">
+                                    {{ application.user.primary_email }}
+                                </strong>
+                                <small class="d-block text-body-secondary">Email</small>
+                            </div>
+                        </span>
+                        <span
+                            class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                            <div class="rounded-circle m-2">
+                                <i class="bi bi-telephone fs-5"></i>
+                            </div>
+                            <div class="text-start">
+                                <strong class="fw-bold text-body-emphasis lh-1">
+                                    {{ application.user.primary_phone_number }}
+                                </strong>
+                                <small class="d-block text-body-secondary">Phone number</small>
+                            </div>
+                        </span>
+                        <span
+                            class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill" data-bs-toggle="tooltip" data-bs-title="{{application.user.primary_address.address}}, PIN/ZIP: {{application.user.primary_address.pincode}}">
+                            <div class="rounded-circle m-2">
+                                <i class="bi bi-map fs-5"></i>
+                            </div>
+                            <div class="text-start">
+                                <strong class="fw-bold text-body-emphasis lh-1">
+                                    {{application.user.primary_address.city}}, {{application.user.primary_address.state}}, {{application.user.primary_address.country}}
+                                </strong>
+                                <small class="d-block text-body-secondary">Location</small>
+                            </div>
+                        </span>
+                    </div>
+                    <h5 class="mb-0 mt-4 fw-bold text-body-emphasis lh-1 ">About</h5>
+                    <div>
+                        {{ application.user.bio }}
+                    </div>
+                    <div class="my-5">
+                        <div>
+                            <strong class="fw-bold lead text-body-emphasis lh-1">Skills</strong>
+                            <span class="d-block text-start badge border border-0 p-0">
+                                <small class="text-success fw-bold lh-1">Matched</small> |
+                                <small class="text-danger fw-bold lh-1">Not Matched</small> |
+                                <small class="text-primary fw-bold lh-1">Additional</small>
+                            </span>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center gap-2 my-3">
+                            {% for skill in application.recruitment_post.skills.all %}
+                            {% if skill in application.user.skills.all %}
+                            <div class="badge d-flex align-items-center rounded-pill text-bg-success gap-1">
+                                <h6 class="replace-abbreviation text-start fw-bold mb-0 lh-1">
+                                    {{ skill.name }}
+                                </h6>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                            {% for skill in application.recruitment_post.skills.all %}
+                            {% if skill not in application.user.skills.all %}
+                            <div class="badge d-flex align-items-center rounded-pill text-bg-danger gap-1">
+                                <h6 class="replace-abbreviation text-start fw-bold mb-0 lh-1">
+                                    {{ skill.name }}
+                                </h6>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                            {% for skill in application.user.skills.all %}
+                            {% if skill not in application.recruitment_post.skills.all %}
+                            <div class="badge d-flex align-items-center rounded-pill text-bg-accent gap-1">
+                                <h6 class="replace-abbreviation text-start fw-bold mb-0 lh-1">
+                                    {{ skill.name }}
+                                </h6>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="my-5">
+                        <div>
+                            <strong class="fw-bold lead text-body-emphasis lh-1">Semester Performance</strong>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center gap-2 my-3">
+                            {% for semester_report_card in application.user.student_profile.semester_report_cards.all %}
+                            {% if semester_report_card.is_complete %}
+                            <div class="badge px-2 d-flex align-items-center text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill border gap-1">
+                                <span class="px-1 fw-bold fs-4">{{semester_report_card.semester}}</span>
+                                <span>
+                                    <strong class="text-start text-body-emphasis fw-bold mb-0 lh-1">
+                                        {{ semester_report_card.sgpa }}
+                                    </strong>
+                                    <small class="text-body-secondary">
+                                        SGPA
+                                    </small>
+                                    <small class="pe-2 d-block text-body-secondary">
+                                        {{ semester_report_card.backlogs }} backlogs
+                                    </small>
+                                </span>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <h5 class="mb-0 mt-3 fw-bold text-body-emphasis lh-1 ">Cover Letter</h5>
+                    <div>
+                        {{ application.cover_letter }}
+                    </div>
+                    <h5 class="mb-0 mt-4 fw-bold text-body-emphasis lh-1 ">Questions</h5>
+                    <div>
+                        {{ application.recruitment_post.questionaires }}
+                    </div>
+                    <p class="lead mt-3 mb-0 lh-1">Answers</p>
+                    <div>
+                        {{ application.answers }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div
+        class="d-flex align-items-center justify-content-between position-absolute w-100 bottom-0 start-0 p-3 p-md-4 p-xl-5">
+        <small class="lh-1 text-body-secondary">Shown {{page_obj.start_index}} to {{page_obj.end_index}} of {{page_obj.paginator.count}} results</small>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center m-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link"
+                        href="?page=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">1</a></li>
+                {% if page_obj.previous_page_number > 1 %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ page_obj.previous_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">&laquo;</a>
+                </li>
+                {% endif %}
+                {% endif %}
+                <li class="page-item"><a class="page-link" href="#">Page {{page_obj.number}} of
+                        {{page_obj.paginator.num_pages}}</a></li>
+                {% if page_obj.has_next %}
+                {% if page_obj.paginator.num_pages > page_obj.next_page_number %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ page_obj.next_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">&raquo;</a>
+                </li>
+                {% endif %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ page_obj.paginator.num_pages }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">{{
+                        page_obj.paginator.num_pages }}</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {
+        element.innerHTML = replaceAbbreviations(element.innerHTML);
+    });
+    skills = {}
+    skills_dict = JSON.parse('{{ skills_dict|escapejs }}'.replace(/'/g, '"'))
+    skill_filters = JSON.parse('{{ skill_filters|escapejs }}'.replace(/'/g, '"'))
+    skill_filter_input = document.getElementById('skill-filters')
+
+    skill_name_inputs = document.querySelectorAll('.skill-name')
+    skill_name_inputs.forEach((element) => {
+        skill_option = document.getElementById(element.getAttribute('list'))
+        element.addEventListener('keyup', function () {
+            fetch(`{% url "recruitment_post_skill_autocomplete" post.pk %}?q=${element.value}`)
+                .then(response => response.json())
+                .then(data => {
+                    skill_option.innerHTML = ''
+                    data.forEach(option => {
+                        newoption = document.createElement('option')
+                        newoption.value = option[0]
+                        skills[option[0]] = option[1]
+                        skills_dict[option[1]] = option[0]
+                        skill_option.appendChild(newoption)
+                    });
+                });
+        });
+    });
+
+    function resetIfInvalid(el) {
+        //just for beeing sure that nothing is done if no value selected
+        if (el.value == "")
+            return;
+        var options = el.list.options;
+        for (var i = 0; i < options.length; i++) {
+            if (el.value == options[i].value)
+                //option matches: work is done
+                return;
+        }
+        //no match was found: reset the value
+        el.value = "";
+    }
+
+    function addSkillDisplay(value, prefix = '', postfix = '') {
+        parent = document.getElementById('skill-filters-display')
+        div = document.createElement('div')
+        div.classList.add('text-start')
+        div.classList.add('selected-skill-name')
+        div.classList.add('replace-abbreviation')
+        div.innerHTML = replaceAbbreviations(value)
+        i = document.createElement('i')
+        i.classList.add('bi')
+        i.classList.add('bi-x-circle')
+        button = document.createElement('div')
+        button.classList.add('rounded-circle')
+        button.classList.add('mx-1')
+        button.classList.add('fs-6')
+        button.setAttribute('onclick', 'removeSkill(Array.from(this.parentElement.parentElement.parentElement.children).indexOf(this.parentElement.parentElement)); this.parentElement.parentElement.remove();')
+        button.appendChild(i)
+        span = document.createElement('span')
+        span.classList.add('badge')
+        span.classList.add('d-flex')
+        span.classList.add('align-items-center')
+        span.classList.add('py-1')
+        span.classList.add('pe-0')
+        span.classList.add('text-secondary-emphasis')
+        span.classList.add('bg-secondary-subtle')
+        span.classList.add('border')
+        span.classList.add('border-secondary-subtle')
+        span.classList.add('rounded-pill')
+        span.appendChild(div)
+        span.appendChild(button)
+        container = document.createElement('div')
+        container.classList.add('d-flex')
+        container.classList.add('align-items-center')
+        container.classList.add('mb-1')
+        if (prefix != '') {
+            prefixel = document.createElement('small')
+            prefixel.classList.add('text-body-secondary')
+            prefixel.classList.add('mx-1')
+            prefixel.innerHTML = prefix
+            container.appendChild(prefixel)
+        }
+        container.appendChild(span)
+        if (postfix != '') {
+            postfixel = document.createElement('small')
+            postfixel.classList.add('text-body-secondary')
+            postfixel.classList.add('mx-1')
+            postfixel.innerHTML = postfix
+            container.appendChild(postfixel)
+        }
+        parent.appendChild(container)
+
+    }
+
+    function buildSkillDisplay() {
+        document.getElementById('skill-filters-display').innerHTML = ''
+        skill_filters = skill_filters.filter(x => x.length !== 0);
+        skill_filter_input.value = JSON.stringify(skill_filters)
+        for (let i = 0; i < skill_filters.length; i++) {
+            for (let j = 0; j < skill_filters[i].length; j++) {
+                skills[skill_filters[i][j]] = skill_filters[i][j]
+                if (i > 0 && j == 0)
+                    if (skill_filters[i].length > 1 && skill_filters[i - 1].length > 1)
+                        prefix = ') & ('
+                    else if (skill_filters[i].length > 1)
+                        prefix = '& ('
+                    else if (skill_filters[i - 1].length > 1)
+                        prefix = ') &'
+                    else
+                        prefix = '&'
+
+                else if (i == 0 && j == 0)
+                    prefix = skill_filters[i].length > 1 ? '(' : ''
+                else
+                    prefix = j == 0 ? '' : '|'
+
+                if (i == skill_filters.length - 1 && j == skill_filters[i].length - 1)
+                    postfix = skill_filters[i].length > 1 ? ')' : ''
+                else
+                    postfix = ''
+                addSkillDisplay(skills_dict[skill_filters[i][j]], prefix, postfix)
+            }
+        }
+    }
+
+    buildSkillDisplay()
+
+    function removeSkill(index) {
+        let currentIndex = 0;
+        for (let i = 0; i < skill_filters.length; i++) {
+            if (index < currentIndex + skill_filters[i].length) {
+                let localIndex = index - currentIndex;
+                skill_filters[i].splice(localIndex, 1);
+                break;
+            }
+            currentIndex += skill_filters[i].length;
+        }
+        buildSkillDisplay()
+    }
+
+    function addSkill(value, symbol = '&') {
+        if (symbol == '&')
+            skill_filters.push([skills[value]])
+        else
+            skill_filters[skill_filters.length - 1].push(skills[value])
+        buildSkillDisplay()
+    }
+
+    function getUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        let paramObj = {};
+        for (let [key, value] of params.entries()) {
+            // Check if key already exists in paramObj
+            if (paramObj[key]) {
+                // If key already exists and is an array, push the new value
+                if (Array.isArray(paramObj[key])) {
+                    paramObj[key].push(value);
+                } else { // If key is not an array, convert it to an array with existing and new values
+                    paramObj[key] = [paramObj[key], value];
+                }
+            } else { // If key doesn't exist in paramObj, set it to the new value
+                paramObj[key] = value;
+            }
+        }
+        return paramObj;
+    }
+
+    // Function to add hidden input fields with the current URL parameters
+    function addHiddenInputs() {
+        const params = getUrlParams();
+        const forms = document.querySelectorAll('form');
+        for (let key in params) {
+            forms.forEach(form => {
+                if (!form.elements[key]) {
+                    if (Array.isArray(params[key])) { // Handle multi-valued fields
+                        params[key].forEach(value => {
+                            let input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = key;
+                            input.value = value;
+                            form.appendChild(input);
+                        });
+                    } else { // Handle single-valued fields
+                        let input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = params[key];
+                        form.appendChild(input);
+                    }
+                }
+            });
+        }
+    }
+    window.onload = addHiddenInputs();
+</script>
+
+{% endblock %}

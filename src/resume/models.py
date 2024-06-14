@@ -113,29 +113,6 @@ class OtherEducation(models.Model):
     duration = models.PositiveSmallIntegerField(
         help_text='Duration in years', default=3, validators=[MinValueValidator(1), MaxValueValidator(20)])
 
-    def get_innerHTML(self, text):
-        # Regular expression to find the pattern: short form (full form)
-        pattern = r'(\b[A-Z]{2,}\b)\s?\(([^)]+)\)'
-
-        # Function to generate replacement text
-        def replace_match(match):
-            short_form = match.group(1)
-            full_form = match.group(2)
-            return f"<abbr title='{full_form}'>{short_form}</abbr>"
-
-        # Replace all matches in the input string
-        result = re.sub(pattern, replace_match, text)
-
-        return result
-
-    @property
-    def get_specialization_innerHTML(self):
-        return self.get_innerHTML(self.specialization)
-
-    @property
-    def get_institution_innerHTML(self):
-        return self.get_innerHTML(self.institution)
-
     def save(self, *args, **kwargs):
         self.user.save()
         super().save(*args, **kwargs)
@@ -165,7 +142,7 @@ class Certification(models.Model):
 
 
 class Skill(models.Model):
-    users = models.ManyToManyField('user.User')
+    users = models.ManyToManyField('user.User', related_name='skills')
     name = models.CharField('I am skilled in', max_length=100)
 
     def __str__(self):
@@ -179,7 +156,7 @@ class Skill(models.Model):
 
 
 class Language(models.Model):
-    users = models.ManyToManyField('user.User')
+    users = models.ManyToManyField('user.User', related_name='languages')
     name = models.CharField('I can speak', max_length=100)
 
     def __str__(self):

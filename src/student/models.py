@@ -8,9 +8,53 @@ from settings.models import Setting
 
 
 class StudentProfile(models.Model):
+    class StudentProfileManager(models.Manager):
+
+        def get_queryset(self):
+            current_academic_half = Setting.objects.get(key='current_academic_half').value
+            return super().get_queryset().annotate(
+                academic_half=models.Value(current_academic_half, output_field=models.CharField()),
+                course_duration=models.Case(
+                    models.When(course='B.Tech', then=4),
+                    models.When(course='M.Tech', then=2),
+                    models.When(course='PhD', then=6),
+                    output_field=models.IntegerField()
+                ),
+                year=models.Case(
+                    models.When(passed_semesters__lt=models.F(
+                        'course_duration') * 2, then=models.F('passed_semesters') / 2 + 1),
+                    default=models.F('course_duration'),
+                    output_field=models.IntegerField()
+                ),
+                semester=models.Case(
+                    models.When(
+                        academic_half='odd',
+                        then=models.F('year') * 2 - 1),
+                    default=models.F('year') * 2,
+                    output_field=models.IntegerField()
+                ),
+                roll=models.ExpressionWrapper(models.functions.Concat(models.F('semester'), datetime.now(
+                ).year % 100, models.F('registration_year') % 100), output_field=models.CharField()),
+                passed_out=models.ExpressionWrapper(models.Case(
+                    models.When(passed_semesters__gte=models.F(
+                        'course_duration') * 2, then=True),
+                    default=False,
+                    output_field=models.BooleanField()
+                ), output_field=models.BooleanField()),
+                is_current=models.ExpressionWrapper(models.Case(
+                    models.When(passed_semesters__lt=models.F(
+                        'course_duration') * 2, then=True),
+                    default=False,
+                    output_field=models.BooleanField()
+                ), output_field=models.BooleanField())
+            )
+
+    objects = StudentProfileManager()
+
     class Meta:
         verbose_name = 'Student Profile'
         verbose_name_plural = 'Student Profiles'
+        base_manager_name = 'objects'
 
     course_choices = [
         ('B.Tech', 'Bachelor of Technology'),
@@ -20,14 +64,14 @@ class StudentProfile(models.Model):
 
     class CurrentStudentProfile(models.Manager):
         def get_queryset(self):
-            q=super().get_queryset()
+            q = super().get_queryset()
             q_ids = [o.id for o in q if o.is_current]
             q = q.filter(id__in=q_ids)
             return q
 
     class PassedOutStudentProfile(models.Manager):
         def get_queryset(self):
-            q=super().get_queryset()
+            q = super().get_queryset()
             q_ids = [o.id for o in q if o.passed_out]
             q = q.filter(id__in=q_ids)
             return q
@@ -36,49 +80,27 @@ class StudentProfile(models.Model):
         def get_queryset(self):
             return super().get_queryset().filter(dropped_out=True)
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='student_profile')
     registration_number = models.PositiveBigIntegerField(
         unique=True, help_text='YYYYXXXXXXX')
     course = models.CharField(max_length=6, choices=course_choices)
     number = models.PositiveBigIntegerField(
         help_text='10 digit number from Exam Roll no.', default=0)
     id_number = models.PositiveSmallIntegerField('ID Number',
-        help_text='Number at the end of ID Card', default=0)
+                                                 help_text='Number at the end of ID Card', default=0)
     dropped_out = models.BooleanField(default=False)
 
-    id_card = models.CharField(max_length=15, editable=False, default='YYCSEXXXXX')
-    registration_year = models.PositiveIntegerField(editable=False, default=2000)
+    id_card = models.CharField(
+        max_length=15, editable=False, default='YYCSEXXXXX')
+    registration_year = models.PositiveIntegerField(
+        editable=False, default=2000)
     backlog_count = models.PositiveSmallIntegerField(editable=False, default=0)
-    pass_out_year = models.PositiveIntegerField(editable=False, null=True, blank=True, default=None)
-    passed_semesters = models.PositiveSmallIntegerField(editable=False, default=0)
+    pass_out_year = models.PositiveIntegerField(
+        editable=False, null=True, blank=True, default=None)
+    passed_semesters = models.PositiveSmallIntegerField(
+        editable=False, default=0)
     cgpa = models.FloatField(editable=False, default=0)
-
-    @property
-    def course_duration(self):
-        return {'B.Tech': 4, 'M.Tech': 2, 'PhD': 6}[self.course]
-
-    @property
-    def year(self):
-        year = int(Setting.objects.get(key='current_academic_year').value) - self.registration_year + 1
-        return 1 if year <= 0 else year if year <= self.course_duration else self.course_duration
-
-    @property
-    def semester(self):
-        return self.year * 2 - 1 if Setting.objects.get( key='current_academic_half') == 'odd' else self.year * 2
-
-    @property
-    def roll(self):
-        return f'{self.semester:02d}{datetime.now().year % 100}{self.registration_year % 100}'
-    
-
-    @property
-    def passed_out(self):
-        return self.passed_semesters >= (self.course_duration * 2) and not self.dropped_out
-
-    @property
-    def is_current(self):
-        return self.passed_semesters < (self.course_duration * 2) and not self.dropped_out
-
 
     @property
     def year_suffix(self):
@@ -125,8 +147,10 @@ class StudentProfile(models.Model):
     def save(self, *args, **kwargs):
         self.registration_year = int(f'{self.registration_number}'[:4])
         self.id_card = f'{self.registration_year % 100}CSE{"BTC" if self.course == "B.Tech" else "MTC" if self.course == "M.Tech" else "PHD"}{self.id_number:03d}'
-        self.backlog_count = sum([semester_report_card.backlogs for semester_report_card in self.semester_report_cards.all()])
-        self.passed_semesters = sum([1 for semester_report_card in self.semester_report_cards.all() if semester_report_card.passed])
+        self.backlog_count = sum(
+            [semester_report_card.backlogs for semester_report_card in self.semester_report_cards.all()])
+        self.passed_semesters = sum(
+            [1 for semester_report_card in self.semester_report_cards.all() if semester_report_card.passed])
         self.cgpa = self.calculate_cgpa()
         if self.pk and StudentProfile.objects.filter(pk=self.pk).exists():
             if StudentProfile.objects.get(pk=self.pk).backlog_count > 0:
@@ -174,13 +198,28 @@ class DroppedOutStudentProfile(StudentProfile):
 
 
 class SemesterReportCard(models.Model):
-    student_profile = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name='semester_report_cards')
+    class SemesterReportCardManager(models.Manager):
+
+        def get_queryset(self):
+            return super().get_queryset().annotate(
+                semester=models.Window(expression=models.functions.RowNumber()),
+                roll=models.ExpressionWrapper(models.functions.Concat(models.F('semester'), datetime.now(
+                ).year % 100, models.F('student_profile__registration_year') % 100), output_field=models.CharField()),
+            )
+
+    objects = SemesterReportCardManager()
+
+    student_profile = models.ForeignKey(
+        StudentProfile, on_delete=models.CASCADE, related_name='semester_report_cards')
     subjects = models.JSONField(default=list, blank=True, null=True)
     subject_codes = models.JSONField(default=list, blank=True, null=True)
     subject_credits = models.JSONField(default=list, blank=True, null=True)
-    subject_letter_grades = models.JSONField(default=list, blank=True, null=True)
-    subject_passing_grade_points = models.JSONField(default=list, blank=True, null=True)
-    subject_grade_points = models.JSONField(default=list, blank=True, null=True)
+    subject_letter_grades = models.JSONField(
+        default=list, blank=True, null=True)
+    subject_passing_grade_points = models.JSONField(
+        default=list, blank=True, null=True)
+    subject_grade_points = models.JSONField(
+        default=list, blank=True, null=True)
     backlogs = models.PositiveSmallIntegerField(default=0)
     passed = models.BooleanField(default=False)
     total_credits = models.FloatField(default=0)
@@ -192,9 +231,13 @@ class SemesterReportCard(models.Model):
         sgpa = 0
         for i in range(len(self.subjects)):
             if self.subject_letter_grades[i] == 'F':
-                sgpa = sgpa + float(self.subject_credits[i]) * float(self.subject_passing_grade_points[i])
+                sgpa = sgpa + \
+                    float(self.subject_credits[i]) * \
+                    float(self.subject_passing_grade_points[i])
             else:
-                sgpa = sgpa + float(self.subject_credits[i]) * float(self.subject_grade_points[i])
+                sgpa = sgpa + \
+                    float(self.subject_credits[i]) * \
+                    float(self.subject_grade_points[i])
         return (sgpa / self.total_credits) if self.total_credits > 0 else 0
 
     def semester(self):
@@ -202,14 +245,16 @@ class SemesterReportCard(models.Model):
             return list(self.student_profile.semester_report_cards.all()).index(self) + 1
         except:
             return self.student_profile.semester_report_cards.count() + 1
-    
+
     def save(self, *args, **kwargs):
         if self.pk:
             self.backlogs = self.subject_letter_grades.count('F')
             self.passed = True if 'F' not in self.subject_letter_grades else False
-            self.earned_credits = round(sum([(float(tuple[0]) * float(tuple[1]) / 10) for tuple in list(zip(self.subject_credits, self.subject_grade_points))]), 2)
+            self.earned_credits = round(sum([(float(tuple[0]) * float(tuple[1]) / 10)
+                                        for tuple in list(zip(self.subject_credits, self.subject_grade_points))]), 2)
         elif SemesterReportCardTemplate.objects.filter(course=self.student_profile.course, semester=self.semester()).exists():
-            template = SemesterReportCardTemplate.objects.get(course=self.student_profile.course, semester=self.semester())
+            template = SemesterReportCardTemplate.objects.get(
+                course=self.student_profile.course, semester=self.semester())
             self.subjects = template.subjects
             self.subject_codes = template.subject_codes
             self.subject_credits = template.subject_credits
@@ -217,24 +262,27 @@ class SemesterReportCard(models.Model):
             self.subject_letter_grades = ['S' for _ in template.subjects]
             self.subject_grade_points = [0 for _ in template.subjects]
 
-        self.total_credits = round(sum([float(subject_credit) for subject_credit in self.subject_credits]), 1)
-        
+        self.total_credits = round(
+            sum([float(subject_credit) for subject_credit in self.subject_credits]), 1)
+
         if self.pk:
             self.sgpa = round(self.get_sgpa(), 2)
-        
+
         super().save(*args, **kwargs)
-        
+
         if self.pk:
             self.student_profile.save()
 
 
 class SemesterReportCardTemplate(models.Model):
-    course = models.CharField(max_length=6, choices=StudentProfile.course_choices)
+    course = models.CharField(
+        max_length=6, choices=StudentProfile.course_choices)
     semester = models.PositiveSmallIntegerField()
     subjects = models.JSONField(default=list, blank=True, null=True)
     subject_codes = models.JSONField(default=list, blank=True, null=True)
     subject_credits = models.JSONField(default=list, blank=True, null=True)
-    subject_passing_grade_points = models.JSONField(default=list, blank=True, null=True)
+    subject_passing_grade_points = models.JSONField(
+        default=list, blank=True, null=True)
 
     class Meta:
         unique_together = [['course', 'semester']]

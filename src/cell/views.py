@@ -1,15 +1,20 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, reverse
 from django.contrib.auth.decorators import permission_required
 from staff.models import StaffProfile
 from settings.models import Setting
 from user.models import User
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from views import AddUserKeyObject, ChangeUserKeyObject, AddObject, DeleteUserKeyObject
-from django.views.generic.base import TemplateView, RedirectView
+from django.views.generic.base import View, TemplateView
+from django.views.generic.list import ListView
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, BadRequest
+from student.models import StudentProfile
 from .forms import *
 from .models import Notice, Quote
+from django.db.models import Q
+import json
 
 # Create your views here.
 
@@ -129,9 +134,12 @@ class ViewRecruitmentPost(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['post'] = RecruitmentPost.objects.get(pk=kwargs['pk'])
-        context['updates'] = [(update, RecruitmentPostUpdateForm(instance=update)) for update in context['post'].updates.all()]
+        context['skills'] = context['post'].skills.all()
+        context['updates'] = [(update, RecruitmentPostUpdateForm(
+            instance=update)) for update in context['post'].updates.all()]
         if context['post'].user == self.request.user or self.request.user.is_superuser or self.request.user.is_coordinator:
             context['update_form'] = RecruitmentPostUpdateForm()
+            context['skill_form'] = SkillForm()
         if self.request.user == context['post'].user:
             context['edit_form'] = RecruiterChangeRecruitmentPostForm(
                 instance=context['post'])
@@ -140,7 +148,8 @@ class ViewRecruitmentPost(TemplateView):
                 instance=context['post'])
         if self.request.user.role == 'student':
             if context['post'].applications.filter(user=self.request.user).exists():
-                context['application'] = context['post'].applications.get(user=self.request.user)
+                context['application'] = context['post'].applications.get(
+                    user=self.request.user)
             if context['post'].is_active:
                 context['apply_form'] = RecruitmentApplicationForm()
         return context
@@ -254,6 +263,50 @@ class DeleteRecruitmentPostUpdate(DeleteUserKeyObject):
 
 
 @method_decorator(login_required, name="dispatch")
+class AddRecruitmentSkill(View):
+    model = Skill
+    form = SkillForm
+    redirect_url_name = 'view_recruitment_post'
+
+    def post(self, request, pk):
+        if not RecruitmentPost.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        post = RecruitmentPost.objects.get(pk=pk)
+        if request.user != post.user and not request.user.is_superuser and not request.user.is_coordinator():
+            raise PermissionDenied()
+        form = self.form(request.POST)
+        if form.is_valid():
+            if self.model.objects.filter(name__iexact=form.cleaned_data['name']).exists():
+                skill = self.model.objects.get(
+                    name__iexact=form.cleaned_data['name'])
+            else:
+                skill = self.model.objects.create(
+                    name=form.cleaned_data['name'])
+            post.skills.add(skill)
+            post.save()
+        else:
+            print(form.errors)
+            raise BadRequest()
+        return redirect(reverse('view_recruitment_post', args=[pk]) + '#skills')
+
+
+@method_decorator(login_required, name="dispatch")
+class DeleteRecruitmentSkill(View):
+    model = Skill
+    redirect_url_name = 'view_recruitment_post'
+
+    def post(self, request, pk, skill):
+        if not RecruitmentPost.objects.filter(pk=pk).exists() or not self.model.objects.filter(pk=skill).exists():
+            raise ObjectDoesNotExist()
+        post = RecruitmentPost.objects.get(pk=pk)
+        if request.user != post.user and not request.user.is_superuser and not request.user.is_coordinator():
+            raise PermissionDenied()
+        post.skills.remove(self.model.objects.get(pk=skill))
+        post.save()
+        return redirect(reverse('view_recruitment_post', args=[pk]) + '#skills')
+
+
+@method_decorator(login_required, name="dispatch")
 class AddRecruitmentApplication(AddObject):
     model = RecruitmentApplication
     form = RecruitmentApplicationForm
@@ -272,3 +325,145 @@ class AddRecruitmentApplication(AddObject):
         if not RecruitmentPost.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         return super().post(request, recruitment_post=RecruitmentPost.objects.get(pk=pk), user=request.user)
+
+
+@method_decorator(login_required, name="dispatch")
+class RecruitmentApplications(ListView):
+    model = RecruitmentApplication
+    paginate_by = 100
+    template_name = 'recruitment_applications.html'
+
+    def get_queryset(self):
+        queryset = self.model.objects.filter(
+            recruitment_post=self.kwargs['pk'])
+        skill_filters = self.request.GET.get('skill-filters')
+        course_filters = self.request.GET.getlist('course-filters')
+        year_lower_limit = self.request.GET.get('year-lower-limit')
+        year_upper_limit = self.request.GET.get('year-upper-limit')
+        cgpa_lower_limit = self.request.GET.get('cgpa-lower-limit')
+        backlogs_upper_limit = self.request.GET.get('backlogs-upper-limit')
+        status_filters = self.request.GET.getlist('status-filters')
+        sorting = self.request.GET.get('sorting')
+        ordering = self.request.GET.get('ordering')
+
+        if skill_filters:
+            for and_filter in json.loads(skill_filters):
+                queryset = queryset.filter(
+                    user__skills__in=and_filter).distinct()
+
+        if course_filters:
+            query = Q()
+            for course in course_filters:
+                query |= Q(user__student_profile__course=course)
+            queryset = queryset.filter(query)
+
+        if year_lower_limit or year_upper_limit:
+            students = StudentProfile.objects
+
+        if year_lower_limit:
+            students = students.filter(year__gte=year_lower_limit)
+
+        if year_upper_limit:
+            students = students.filter(year__lte=year_upper_limit)
+
+        if year_lower_limit or year_upper_limit:
+            queryset = queryset.filter(
+                user__student_profile__in=students)
+
+        if cgpa_lower_limit:
+            queryset = queryset.filter(
+                user__student_profile__cgpa__gte=cgpa_lower_limit)
+
+        if backlogs_upper_limit:
+            queryset = queryset.filter(
+                user__student_profile__backlog_count__lte=backlogs_upper_limit)
+
+        if status_filters:
+            query = Q()
+            for status in status_filters:
+                query |= Q(status=status)
+            queryset = queryset.filter(query)
+
+        if sorting:
+            if sorting == 'cgpa':
+                queryset = queryset.order_by(f'user__student_profile__cgpa')
+            elif sorting == 'backlogs':
+                queryset = queryset.order_by(
+                    f'user__student_profile__backlog_count')
+            elif sorting == 'total_skills':
+                queryset = queryset.annotate(skills_count=models.Count(
+                    'user__skills')).order_by('skills_count')
+            elif sorting == 'skill_matches':
+                queryset = queryset.order_by(f'skill_matches')
+            elif sorting == 'other_skills_count':
+                queryset = queryset.order_by(f'other_skills_count')
+        else:
+            queryset = queryset.order_by(f'applied_on')
+
+        if ordering:
+            if ordering == 'desc':
+                return queryset.reverse()
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['post'] = RecruitmentPost.objects.get(pk=self.kwargs['pk'])
+        skill_filters = self.request.GET.get('skill-filters')
+        course_filters = self.request.GET.getlist('course-filters')
+        year_lower_limit = self.request.GET.get('year-lower-limit')
+        year_upper_limit = self.request.GET.get('year-upper-limit')
+        cgpa_lower_limit = self.request.GET.get('cgpa-lower-limit')
+        backlogs_upper_limit = self.request.GET.get('backlogs-upper-limit')
+        status_filters = self.request.GET.getlist('status-filters')
+        sorting = self.request.GET.get('sorting')
+        ordering = self.request.GET.get('ordering')
+
+        context['skills_dict'] = {}
+        context['skill_filters'] = '[]'
+        context['year_lower_limit'] = '1'
+        context['year_upper_limit'] = ''
+        context['cgpa_lower_limit'] = '0'
+        context['backlogs_upper_limit'] = ''
+        context['status_filters'] = []
+        context['sorting'] = 'applied_on'
+        context['ordering'] = 'asc'
+        context['course_filters'] = '[]'
+
+        if skill_filters:
+            context['skill_filters'] = skill_filters
+            for and_filter in json.loads(skill_filters):
+                if len(and_filter) > 1:
+                    if '' in and_filter:
+                        and_filter.remove('')
+                    for skill in and_filter:
+                        context['skills_dict'][skill] = Skill.objects.get(
+                            pk=skill).name
+                elif len(and_filter) == 1:
+                    context['skills_dict'][and_filter[0]
+                                           ] = Skill.objects.get(pk=and_filter[0]).name
+        if course_filters:
+            context['course_filters'] = course_filters
+        if year_lower_limit:
+            context['year_lower_limit'] = year_lower_limit
+        if year_upper_limit:
+            context['year_upper_limit'] = year_upper_limit
+        if cgpa_lower_limit:
+            context['cgpa_lower_limit'] = cgpa_lower_limit
+        if backlogs_upper_limit:
+            context['backlogs_upper_limit'] = backlogs_upper_limit
+        if status_filters:
+            context['status_filters'] = status_filters
+        if sorting:
+            context['sorting'] = sorting
+        if ordering:
+            context['ordering'] = ordering
+        return context
+
+
+class SkillAutocomplete(View):
+    def get(self, request, pk, *args, **kwargs):
+        query = request.GET.get('q')
+        li = [(obj.name, f'{obj.pk}') for obj in Skill.objects.filter(
+            jobs__id=pk, name__icontains=query)]
+        return JsonResponse(li, safe=False)

@@ -1,4 +1,5 @@
 from django import forms
+from resume.models import Skill
 from .models import *
 
 
@@ -97,19 +98,19 @@ class AddRecruitmentPostForm(RecruitmentPostForm):
 class RecruiterChangeRecruitmentPostForm(RecruitmentPostForm):
     class Meta(RecruitmentPostForm.Meta):
         readonly_widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'company': forms.TextInput(attrs={'class': 'form-control'}),
-            'job_type': forms.Select(attrs={'class': 'form-control'}, choices=RecruitmentPostForm.Meta.model.job_type_choices),
-            'workplace_type': forms.Select(attrs={'class': 'form-control'}, choices=RecruitmentPostForm.Meta.model.workplace_type_choices),
-            'location': forms.TextInput(attrs={'class': 'form-control'}),
-            'sallary_type': forms.Select(attrs={'class': 'form-control'}, choices=RecruitmentPostForm.Meta.model.sallary_type_choices),
-            'sallary_currency': forms.Select(attrs={'class': 'form-control'}, choices=RecruitmentPostForm.Meta.model.currency_choices),
-            'sallary': forms.TextInput(attrs={'class': 'form-control'}),
-            'fee_currency': forms.Select(attrs={'class': 'form-control'}, choices=RecruitmentPostForm.Meta.model.currency_choices),
-            'fee': forms.TextInput(attrs={'class': 'form-control'}),
-            'experience_duration': forms.NumberInput(attrs={'class': 'form-control'}),
-            'start_date_type': forms.Select(attrs={'class': 'form-control'}, choices=RecruitmentPostForm.Meta.model.start_date_type_choices),
-            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'title': forms.TextInput(),
+            'company': forms.TextInput(),
+            'job_type': forms.Select(choices=RecruitmentPostForm.Meta.model.job_type_choices),
+            'workplace_type': forms.Select(choices=RecruitmentPostForm.Meta.model.workplace_type_choices),
+            'location': forms.TextInput(),
+            'sallary_type': forms.Select(choices=RecruitmentPostForm.Meta.model.sallary_type_choices),
+            'sallary_currency': forms.Select(choices=RecruitmentPostForm.Meta.model.currency_choices),
+            'sallary': forms.TextInput(),
+            'fee_currency': forms.Select(choices=RecruitmentPostForm.Meta.model.currency_choices),
+            'fee': forms.TextInput(),
+            'experience_duration': forms.NumberInput(),
+            'start_date_type': forms.Select(choices=RecruitmentPostForm.Meta.model.start_date_type_choices),
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -126,6 +127,14 @@ class TPCChangeRecruitmentPostForm(RecruitmentPostForm):
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'apply_by': forms.DateInput(attrs={'type': 'date'}),
         }
+
+
+class SkillForm(forms.Form):
+    name = forms.CharField(max_length=150, label='Skill', widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Skill', 'id': 'id-skill-name', 'list': 'skill-data-list', 'autocomplete': 'off'}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_suffix = ''
 
 
 class RecruitmentPostUpdateForm(forms.ModelForm):
