@@ -19,23 +19,30 @@
                     <div class="d-flex flex-column vh-100">
                         <div class="heightofnavbar widthofnav bg-accent-subtle"></div>
                         <nav class="flex-fill nav d-flex flex-column justify-content-evenly gap-2 p-2 bg-accent-subtle">
-                            <a href="/" class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1">
-                                <span class="octicon octicon-home-16"></span>
+                            <a href="{% url 'index' %}"
+                                class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1"
+                                style="--bs-bg-opacity: 0.5;">
+                                <i class="bi bi-house"></i>
                             </a>
-                            <a class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1" href="#"
-                                role="button">
-                                <span class="octicon octicon-organization-16"></span>
+                            <a href="{% url 'dashboard' %}"
+                                class="nav-link rounded-pill border border-0  d-flex align-items-center gap-1"
+                                style="--bs-bg-opacity: 0.5;">
+                                <i class="bi bi-view-list"></i>
                             </a>
-                            <a class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1" href="#"
-                                role="button">
-                                <span class="octicon octicon-person-16"></span>
+                            <a href="{% url 'recruitment_posts' %}"
+                                class="nav-link rounded-pill border border-0  d-flex align-items-center gap-1"
+                                style="--bs-bg-opacity: 0.5;">
+                                <i class="bi bi-building"></i>
                             </a>
-                            <a href="#" class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1">
-                                <span class="octicon octicon-people-16"></span>
+                            <a href="{% url 'notices' %}"
+                                class="nav-link rounded-pill border border-0  d-flex align-items-center gap-1"
+                                style="--bs-bg-opacity: 0.5;">
+                                <i class="bi bi-app-indicator"></i>
                             </a>
-                            <a href="/contact/"
-                                class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1">
-                                <span class="octicon octicon-mail-16"></span>
+                            <a href="{% url 'contact' %}"
+                                class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1"
+                                style="--bs-bg-opacity: 0.5;">
+                                <i class="bi bi-chat-left"></i>
                             </a>
                         </nav>
                     </div>
@@ -47,76 +54,34 @@
                     <div class="d-flex flex-column vh-100">
                         <div class="heightofnavbar widthofnav2 bg-accent-subtle"></div>
                         <nav class="flex-fill nav d-flex flex-column justify-content-evenly gap-2 p-2 bg-accent-subtle">
-                            <a href="/" class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1"
-                                style="--bs-bg-opacity: 0.5;" id="home">
-                                <span class="octicon octicon-home-16"></span>
+                            <a href="{% url 'index' %}"
+                                class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1"
+                                style="--bs-bg-opacity: 0.5;">
+                                <i class="bi bi-house"></i>
                                 <span>Home</span>
                             </a>
-                            <div class="accordion accordion-flush" id="accordionFlushExample">
-                                <div class="accordion-item bg-transparent">
-                                    <a href="#" role="button"
-                                        class="nav-link rounded-pill border border-0 shadow-none bg-transparent accordion-button collapsed"
-                                        data-bs-toggle="collapse" data-bs-target="#for-recruiters-collapse"
-                                        aria-expanded="false" aria-controls="for-recruiters-collapse">
-                                        <div class="nav-link d-flex align-items-center gap-1 p-0 mb-0 pe-2">
-                                            <span class="octicon octicon-organization-16"></span>
-                                            <span>For Recruiters</span>
-                                        </div>
-                                    </a>
-                                    <div id="for-recruiters-collapse" class="accordion-collapse collapse"
-                                        data-bs-parent="#accordionFlushExample">
-                                        <div class="accordion-body bg-transparent py-0">
-                                            <ul class="nav list-group">
-                                                <li><a class="bg-transparent border border-0 list-group-item action"
-                                                        href="#">Action</a></li>
-                                                <li><a class="bg-transparent border border-0 list-group-item action"
-                                                        href="#">Action
-                                                        two</a></li>
-                                                <li><a class="bg-transparent border border-0 list-group-item action"
-                                                        href="#">Action
-                                                        three</a></li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="accordion accordion-flush" id="accordionFlushExample">
-                                <div class="accordion-item bg-transparent">
-                                    <a href="#" role="button"
-                                        class="nav-link rounded-pill border border-0 shadow-none bg-transparent accordion-button collapsed"
-                                        data-bs-toggle="collapse" data-bs-target="#for-students-collapse"
-                                        aria-expanded="false" aria-controls="for-students-collapse">
-                                        <div class="nav-link d-flex align-items-center gap-1 p-0 mb-0 pe-2">
-                                            <span class="octicon octicon-person-16"></span>
-                                            <span>For Students</span>
-                                        </div>
-                                    </a>
-                                    <div id="for-students-collapse" class="accordion-collapse collapse"
-                                        data-bs-parent="#accordionFlushExample">
-                                        <div class="accordion-body bg-transparent py-0">
-                                            <ul class="nav list-group">
-                                                <li><a class="bg-transparent border border-0 list-group-item action"
-                                                        href="#">Action</a></li>
-                                                <li><a class="bg-transparent border border-0 list-group-item action"
-                                                        href="#">Action
-                                                        two</a></li>
-                                                <li><a class="bg-transparent border border-0 list-group-item action"
-                                                        href="#">Action
-                                                        three</a></li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <a href="#" class="nav-link rounded-pill border border-0  d-flex align-items-center gap-1"
-                                style="--bs-bg-opacity: 0.5;" id="repos">
-                                <span class="octicon octicon-people-16"></span>
-                                <span>Student Team</span>
+                            <a href="{% url 'dashboard' %}"
+                                class="nav-link rounded-pill border border-0  d-flex align-items-center gap-1"
+                                style="--bs-bg-opacity: 0.5;">
+                                <i class="bi bi-view-list"></i>
+                                <span>Dashboard</span>
                             </a>
-                            <a href="/contact/"
+                            <a href="{% url 'recruitment_posts' %}"
+                                class="nav-link rounded-pill border border-0  d-flex align-items-center gap-1"
+                                style="--bs-bg-opacity: 0.5;">
+                                <i class="bi bi-building"></i>
+                                <span>Recruitment Posts</span>
+                            </a>
+                            <a href="{% url 'notices' %}"
+                                class="nav-link rounded-pill border border-0  d-flex align-items-center gap-1"
+                                style="--bs-bg-opacity: 0.5;">
+                                <i class="bi bi-app-indicator"></i>
+                                <span>Notices</span>
+                            </a>
+                            <a href="{% url 'contact' %}"
                                 class="nav-link rounded-pill border border-0 d-flex align-items-center gap-1"
-                                style="--bs-bg-opacity: 0.5;" id="gists">
-                                <span class="octicon octicon-mail-16"></span>
+                                style="--bs-bg-opacity: 0.5;">
+                                <i class="bi bi-chat-left"></i>
                                 <span>Contact Us</span>
                             </a>
                         </nav>
@@ -150,11 +115,23 @@
                         </div>
                     </div>
                 </a>
-                <a href="{% url 'sign_in' %}"
+                {% if request.user.is_authenticated %}
+                <div class="ms-0 ms-sm-auto me-0 me-sm-3 dropdown">
+                    <a href="#" class="nav-link rounded-pill border border-0 d-flex align-items-center px-3 m-1 gap-1 fs-3 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end me-3 me-sm-0">
+                        <li><a href="{% url 'build_profile' request.user.pk %}" class="dropdown-item">View Profile</a></li>
+                        <li><a href="{% url 'build_profile' request.user.pk %}" class="dropdown-item">Build Profile</a></li>
+                        <li><a href="{% url 'sign_out' %}?next={{ request.path }}" class="dropdown-item">Logout</a></li>
+                    </ul>
+                </div>
+                {% else %}
+                <a href="{% url 'sign_in' %}?next={{ request.path }}"
                     class="ms-0 ms-sm-auto nav-link rounded-pill border border-0 d-flex align-items-center px-3 m-1 gap-1">
-                    <span class="octicon octicon-person-16"></span>
                     <span>Login</span>
                 </a>
+                {% endif %}
             </nav>
         </div>
     </div>

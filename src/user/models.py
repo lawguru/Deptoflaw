@@ -110,9 +110,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         self.full_name = self.get_full_name()
         self.short_name = self.get_short_name()
-        if self.pk:
-            self.is_coordinator = self.groups.filter(
-                name='coordinators').exists()
         self.is_doctor = self.check_if_doctor()
         super().save(*args, **kwargs)
 

@@ -4,15 +4,15 @@ from .models import Notice, Message, Quote
 # Register your models here.
 @admin.register(Notice)
 class NoticeAdmin(admin.ModelAdmin):
-    list_display = ('title', 'date', 'added_by')
-    search_fields = ('title', 'description', 'added_by__full_name')
+    list_display = ('title', 'date', 'user')
+    search_fields = ('title', 'description', 'user__full_name')
     readonly_fields = ('date', 'date_edited')
 
     fieldsets = [
         (
             None,
             {
-                'fields': ['title', 'description', ('date', 'date_edited'), 'added_by'],
+                'fields': ['title', 'description', ('date', 'date_edited'), 'user'],
             }
         ),
     ]

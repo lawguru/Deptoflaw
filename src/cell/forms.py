@@ -52,7 +52,6 @@ class RecruitmentPostForm(forms.ModelForm):
     class Meta:
         model = RecruitmentPost
         exclude = [
-            'user',
             'skills',
             'is_active',
         ]
@@ -70,6 +69,7 @@ class RecruitmentPostForm(forms.ModelForm):
 class AddRecruitmentPostForm(RecruitmentPostForm):
     class Meta(RecruitmentPostForm.Meta):
         fields = [
+            'user',
             'title',
             'company',
             'job_type',
@@ -93,11 +93,15 @@ class AddRecruitmentPostForm(RecruitmentPostForm):
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'apply_by': forms.DateInput(attrs={'type': 'date'}),
         }
+        readonly_widgets = {
+            'user': forms.HiddenInput(),
+        }
 
 
 class RecruiterChangeRecruitmentPostForm(RecruitmentPostForm):
     class Meta(RecruitmentPostForm.Meta):
         readonly_widgets = {
+            'user': forms.HiddenInput(),
             'title': forms.TextInput(),
             'company': forms.TextInput(),
             'job_type': forms.Select(choices=RecruitmentPostForm.Meta.model.job_type_choices),

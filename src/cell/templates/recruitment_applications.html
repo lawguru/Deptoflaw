@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Recruitment Post | TPC | CSE | AUS{% endblock %}
+{% block title %}Recruitment Applications | TPC | CSE | AUS{% endblock %}
 {% load humanize %}
 {% block content %}
 
-<div class="container-xl col-12 col-xl-10 p-3 p-xl-5 min-vh-100 position-relative">
+<div class="container-fluid p-3 p-xl-5 min-vh-100">
     <nav class="navbar navbar-expand-xl bg-body p-0 mb-3 border rounded-2">
         <div class="container-fluid">
             <a class="lead text-body-emphasis me-3" href="#">Filters</a>
@@ -15,23 +15,16 @@
                         Sort By
                     </a>
                     <form action="#">
+                        <input id="sort-by-form-input" type="hidden" name="sorting" value="{{sorting}}">
+                        <input id="ordering-form-input" type="hidden" name="ordering" value="{{ordering}}">
                         <ul class="dropdown-menu" onclick="event.stopPropagation()">
-                            <li class="px-2">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="ordering" value="1"
-                                        id="ordering-asc" {% if ordering != 'desc' %}checked{% endif %}>
-                                    <label class="form-check-label" for="ordering-asc">
-                                        Low to High
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="ordering" value="-1"
-                                        id="ordering-desc" {% if orderin == 'desc' %}checked{% endif %}>
-                                    <label class="form-check-label" for="ordering-desc">
-                                        High to Low
-                                    </label>
-                                </div>
-                                <input id="sort-by-form-input" type="hidden" name="sorting" value="applied_on">
+                            <li>
+                                <input type="submit" onclick="document.getElementById('ordering-form-input').value='asc'" value="Low to High"
+                                    class="dropdown-item {% if ordering != 'desc' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <input type="submit" onclick="document.getElementById('ordering-form-input').value='desc'" value="High to Low"
+                                    class="dropdown-item {% if ordering == 'desc' %} active {% endif %}">
                             </li>
                             <li>
                                 <hr class="dropdown-divider">
@@ -41,6 +34,11 @@
                                     onclick="document.getElementById('sort-by-form-input').value='applied_on'"
                                     value="Apply Time"
                                     class="dropdown-item {% if sorting == 'applied_on' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('sort-by-form-input').value='name'" value="Name"
+                                    class="dropdown-item {% if sorting == 'name' %} active {% endif %}">
                             </li>
                             <li>
                                 <input type="submit"
@@ -59,6 +57,16 @@
                                     onclick="document.getElementById('sort-by-form-input').value='other_skills_count'"
                                     value="Other Skills"
                                     class="dropdown-item {% if sorting == 'other_skills_count' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('sort-by-form-input').value='course'" value="Course"
+                                    class="dropdown-item {% if sorting == 'course' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('sort-by-form-input').value='year'" value="Year"
+                                    class="dropdown-item {% if sorting == 'year' %} active {% endif %}">
                             </li>
                             <li>
                                 <input type="submit"
@@ -136,22 +144,22 @@
                                     <form id="course-filter-form" action="#">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" name="course-filters"
-                                                value="B.Tech" id="course-filter-pending" {% if 'B.Tech' in course_filters %}checked{% endif %}>
-                                            <label class="form-check-label" for="course-filter-pending">
+                                                value="B.Tech" id="course-filter-btc" {% if 'B.Tech' in course_filters %}checked{% endif %}>
+                                            <label class="form-check-label" for="course-filter-btc">
                                                 B.Tech
                                             </label>
                                         </div>
                                         <div>
                                             <input class="form-check-input" type="checkbox" name="course-filters"
-                                                value="M.Tech" id="course-filter-rejected" {% if 'M.Tech' in course_filters %}checked{% endif %}>
-                                            <label class="form-check-label" for="course-filter-rejected">
+                                                value="M.Tech" id="course-filter-mtc" {% if 'M.Tech' in course_filters %}checked{% endif %}>
+                                            <label class="form-check-label" for="course-filter-mtc">
                                                 M.Tech
                                             </label>
                                         </div>
                                         <div>
                                             <input class="form-check-input" type="checkbox" name="course-filters"
-                                                value="PhD" id="course-filter-selected" {% if 'PhD' in course_filters %}checked{% endif %}>
-                                            <label class="form-check-label" for="course-filter-selected">
+                                                value="PhD" id="course-filter-phd" {% if 'PhD' in course_filters %}checked{% endif %}>
+                                            <label class="form-check-label" for="course-filter-phd">
                                                 PhD
                                             </label>
                                         </div>
@@ -289,14 +297,14 @@
         </div>
     </nav>
 
-    <div class="accordion" id="post-accordion">
+    <div class="accordion my-5" id="post-accordion">
         {% for application in page_obj %}
         <div class="accordion-item">
             <h2 class="accordion-header" id="heading{{ forloop.counter }}">
-                <button class="accordion-button m-0 collapsed pe-5 pe-lg-3" type="button" data-bs-toggle="collapse"
+                <button class="accordion-button m-0 collapsed pe-5 pe-xl-3" type="button" data-bs-toggle="collapse"
                     data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="true"
                     aria-controls="collapse{{ forloop.counter }}">
-                    <div class="d-flex flex-fill flex-column flex-lg-row">
+                    <div class="d-flex flex-fill flex-column flex-xl-row">
                         <div>
                             <strong class="fw-bold lead text-body-emphasis lh-1">
                                 {{ application.user.full_name }}
@@ -318,7 +326,38 @@
                             </small>
                         </div>
                         <div
-                            class="ms-0 mt-3 mt-lg-0 ms-lg-auto d-sm-flex flex-wrap align-items-center justify-content-start justify-content-lg-end gap-2 pe-3">
+                            class="ms-0 mt-3 mt-xl-0 ms-xl-auto d-sm-flex flex-wrap align-items-center justify-content-start justify-content-xl-end gap-2 pe-3">
+                            <div class="d-flex align-items-center gap-2 mb-2 mb-sm-0">
+                                <span class="badge d-flex align-items-center py-0 ps-1 pe-3
+                                                                                    {% if application.status == 'P' %}
+                                                                                    text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle
+                                                                                    {% elif application.status == 'R' %}
+                                                                                    text-danger-emphasis bg-danger-subtle border border-danger-subtle
+                                                                                    {% elif application.status == 'S' %}
+                                                                                    text-success-emphasis bg-success-subtle border border-success-subtle
+                                                                                    {% elif application.status == 'I' %}
+                                                                                    text-info-emphasis bg-info-subtle border border-info-subtle
+                                                                                    {% endif %}
+                                                                                    rounded-pill">
+                                    <div class="rounded-circle m-2">
+                                        {% if application.status == 'P' %}
+                                        <i class="bi bi-app-indicator fs-5"></i>
+                                        {% elif application.status == 'R' %}
+                                        <i class="bi bi-x-circle fs-5"></i>
+                                        {% elif application.status == 'S' %}
+                                        <i class="bi bi-check2-circle fs-5"></i>
+                                        {% elif application.status == 'I' %}
+                                        <i class="bi bi-info-circle fs-5"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-start">
+                                        <strong class="fw-bold text-body-emphasis lh-1">
+                                            {{ application.get_status_display }}
+                                        </strong>
+                                        <small class="d-block text-body-secondary">Status</small>
+                                    </div>
+                                </span>
+                            </div>
                             <div class="d-flex align-items-center gap-2 mb-2 mb-sm-0">
                                 <span
                                     class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
@@ -385,6 +424,42 @@
             <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse"
                 aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#post-accordion">
                 <div class="accordion-body">
+                    {% if request.user == application.recruitment_post.user or request.user.is_superuser %}
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Action
+                        </button>
+                        <ul class="dropdown-menu">
+                            {% if application.status == 'P' %}
+                            <li>
+                                <form action="{% url 'select_recruitment_application' application.pk %}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="submit" class="btn dropdown-item" value="Select">
+                                </form>
+                            </li>
+                            <li>
+                                <form action="{% url 'reject_recruitment_application' application.pk %}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="submit" class="btn dropdown-item" value="Reject">
+                                </form>
+                            </li>
+                            <li>
+                                <form action="{% url 'shortlist_recruitment_application' application.pk %}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="submit" class="btn dropdown-item" value="Shortlist for Interview">
+                                </form>
+                            </li>
+                            {% else %}
+                            <li>
+                                <form action="{% url 'pending_recruitment_application' application.pk %}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="submit" class="btn dropdown-item" value="Set as Pending">
+                                </form>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endif %}
                     <div class="d-flex flex-wrap align-items-center justify-content-start gap-2 mt-3 mb-3">
                         <span
                             class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
@@ -510,7 +585,7 @@
     </div>
 
     <div
-        class="d-flex align-items-center justify-content-between position-absolute w-100 bottom-0 start-0 p-3 p-md-4 p-xl-5">
+        class="d-flex align-items-center justify-content-between w-100">
         <small class="lh-1 text-body-secondary">Shown {{page_obj.start_index}} to {{page_obj.end_index}} of {{page_obj.paginator.count}} results</small>
         <nav aria-label="Page navigation example">
             <ul class="pagination justify-content-center m-0">

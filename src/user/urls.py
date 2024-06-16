@@ -3,10 +3,15 @@ from django.views.generic.base import RedirectView
 from .views import *
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='self/')),
-    path('self/', SelfUser.as_view(), name='self_user'),
+    path('', SelfUser.as_view(), name='self_user'),
+    path('list/', UserListView.as_view(), name='user_list'),
     path('signin/', SignIn.as_view(), name='sign_in'),
+    path('signout/', SignOut.as_view(), name='sign_out'),
     path('<int:pk>/', BuildProfile.as_view(), name='build_profile'),
+    path('<int:pk>/approve/', ApproveUser.as_view(), name='approve_user'),
+    path('<int:pk>/reject/', RejectUser.as_view(), name='reject_user'),
+    path('<int:pk>/removecoordinator/', RemoveCoordinator.as_view(), name='remove_coordinator'),
+    path('<int:pk>/makecoordinator/', MakeCoordinator.as_view(), name='make_coordinator'),
     path('<int:pk>/personal/', PersonalContactInfo.as_view(), name='personal_contact_info'),
     path('<int:pk>/personal/phone-numbers/', RedirectView.as_view(url='../#phone-numbers'), name='phone_numbers'),
     path('<int:pk>/personal/emails/', RedirectView.as_view(url='../#emails'), name='emails'),

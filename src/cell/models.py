@@ -14,7 +14,7 @@ class Notice(models.Model):
     description = models.TextField()
     date = models.DateTimeField(auto_now_add=True, editable=False)
     date_edited = models.DateTimeField(auto_now=True, editable=False)
-    added_by = models.ForeignKey(
+    user = models.ForeignKey(
         'user.User', null=True, on_delete=models.SET_NULL, related_name='notices')
 
     def __str__(self):
@@ -162,6 +162,7 @@ class RecruitmentPost(models.Model):
     apply_by = models.DateField(
         default=datetime.now().date() + timedelta(days=7))
     posted_on = models.DateTimeField(auto_now_add=True, editable=False)
+    edited_on = models.DateTimeField(auto_now=True, editable=False)
     pending_application_instructions = models.TextField(blank=True)
     rejected_application_instructions = models.TextField(blank=True)
     selected_application_instructions = models.TextField(blank=True)
@@ -179,7 +180,8 @@ class RecruitmentPostUpdate(models.Model):
         RecruitmentPost, on_delete=models.RESTRICT, related_name='updates')
     user = models.ForeignKey(
         User, null=True, on_delete=models.SET_NULL, related_name='recruitment_post_updates')
-    shared_on = models.DateTimeField(auto_now_add=True, editable=False)
+    date = models.DateTimeField(auto_now_add=True, editable=False)
+    date_edited = models.DateTimeField(auto_now=True, editable=False)
 
 
 class RecruitmentApplication(models.Model):

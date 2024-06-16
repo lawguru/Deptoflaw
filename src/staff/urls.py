@@ -3,7 +3,7 @@ from django.views.generic.base import RedirectView
 from .views import *
 
 urlpatterns = [
-    path('', StaffListView.as_view() , name='staffs_list'),
+    path('', RedirectView.as_view(url='../user/list/?role-filter=staff') , name='staffs_list'),
     path('signup/', StaffSignUp.as_view(), name='staff_sign_up'),
     path('signin/', StaffSignIn.as_view(), name='staff_sign_in'),
     path('<int:pk>/', StaffInfo.as_view(), name='staff_info'),

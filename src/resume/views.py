@@ -32,16 +32,20 @@ class EducationInfo(TemplateView):
 
         context = super().get_context_data(**kwargs)
         context['user'] = user
-        context['othereducations'] = [(other_education, OtherEducationForm(instance=other_education)) for other_education in OtherEducation.objects.filter(user=user)]
-        context['certifications'] = [(certification, CertificationForm(instance=certification)) for certification in Certification.objects.filter(user=user)]
+        context['othereducations'] = [(other_education, OtherEducationForm(
+            instance=other_education)) for other_education in OtherEducation.objects.filter(user=user)]
+        context['certifications'] = [(certification, CertificationForm(
+            instance=certification)) for certification in Certification.objects.filter(user=user)]
         context['skills'] = Skill.objects.filter(users__pk=user.pk)
         context['languages'] = Language.objects.filter(users__pk=user.pk)
         if self.check_write_permission(**kwargs):
             context['write_permission'] = True
             context['skill_form'] = SkillForm()
             context['language_form'] = LanguageForm()
-            context['other_education_form'] = OtherEducationForm(initial={'user': user.pk})
-            context['certification_form'] = CertificationForm(initial={'user': user.pk})
+            context['other_education_form'] = OtherEducationForm(
+                initial={'user': user.pk})
+            context['certification_form'] = CertificationForm(
+                initial={'user': user.pk})
         return context
 
 
@@ -64,11 +68,14 @@ class ExperienceInfo(TemplateView):
 
         context = super().get_context_data(**kwargs)
         context['user'] = user
-        context['work_experiences'] = [(work_experiences, WorkExperienceForm(instance=work_experiences)) for work_experiences in WorkExperience.objects.filter(user=user)]
-        context['projects'] = [(project, ProjectForm(instance=project)) for project in Project.objects.filter(user=user)]
+        context['work_experiences'] = [(work_experiences, WorkExperienceForm(
+            instance=work_experiences)) for work_experiences in WorkExperience.objects.filter(user=user)]
+        context['projects'] = [(project, ProjectForm(instance=project))
+                               for project in Project.objects.filter(user=user)]
         if self.check_write_permission(**kwargs):
             context['write_permission'] = True
-            context['work_experience_form'] = WorkExperienceForm(initial={'user': user.pk})
+            context['work_experience_form'] = WorkExperienceForm(
+                initial={'user': user.pk})
             context['project_form'] = ProjectForm(initial={'user': user.pk})
         return context
 
@@ -92,12 +99,15 @@ class IPInfo(TemplateView):
 
         context = super().get_context_data(**kwargs)
         context['user'] = user
-        context['patents'] = [(patent, PatentForm(instance=patent)) for patent in Patent.objects.filter(user=user)]
-        context['publications'] = [(publication, PublicationForm(instance=publication)) for publication in Publication.objects.filter(user=user)]
+        context['patents'] = [(patent, PatentForm(instance=patent))
+                              for patent in Patent.objects.filter(user=user)]
+        context['publications'] = [(publication, PublicationForm(
+            instance=publication)) for publication in Publication.objects.filter(user=user)]
         if self.check_write_permission(**kwargs):
             context['write_permission'] = True
             context['patent_form'] = PatentForm(initial={'user': user.pk})
-            context['publication_form'] = PublicationForm(initial={'user': user.pk})
+            context['publication_form'] = PublicationForm(
+                initial={'user': user.pk})
         return context
 
 
@@ -120,14 +130,20 @@ class OtherInfos(TemplateView):
 
         context = super().get_context_data(**kwargs)
         context['user'] = user
-        context['achievements'] = [(achievement, AchievementForm(instance=achievement)) for achievement in Achievement.objects.filter(user=user)]
-        context['presentations'] = [(presentation, PresentationForm(instance=presentation)) for presentation in Presentation.objects.filter(user=user)]
-        context['other_infos'] = [(other_info, OtherInfoForm(instance=other_info)) for other_info in OtherInfo.objects.filter(user=user)]
+        context['achievements'] = [(achievement, AchievementForm(
+            instance=achievement)) for achievement in Achievement.objects.filter(user=user)]
+        context['presentations'] = [(presentation, PresentationForm(
+            instance=presentation)) for presentation in Presentation.objects.filter(user=user)]
+        context['other_infos'] = [(other_info, OtherInfoForm(
+            instance=other_info)) for other_info in OtherInfo.objects.filter(user=user)]
         if self.check_write_permission(**kwargs):
             context['write_permission'] = True
-            context['achievement_form'] = AchievementForm(initial={'user': user.pk})
-            context['presentation_form'] = PresentationForm(initial={'user': user.pk})
-            context['other_info_form'] = OtherInfoForm(initial={'user': user.pk})
+            context['achievement_form'] = AchievementForm(
+                initial={'user': user.pk})
+            context['presentation_form'] = PresentationForm(
+                initial={'user': user.pk})
+            context['other_info_form'] = OtherInfoForm(
+                initial={'user': user.pk})
         return context
 
 
@@ -482,8 +498,12 @@ class SkillAutocomplete(View):
     def get(self, request, *args, **kwargs):
         query = request.GET.get('q')
         user = request.GET.get('u')
-        li = [obj.name for obj in Skill.objects.exclude(
-            users__id=user).filter(name__icontains=query)]
+        if user:
+            li = [obj.name for obj in Skill.objects.exclude(
+                users__id=user).filter(name__icontains=query)]
+        else:
+            li = [obj.name for obj in Skill.objects.filter(
+                name__icontains=query)]
         return JsonResponse(li, safe=False)
 
 

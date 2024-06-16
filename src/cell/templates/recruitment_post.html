@@ -421,18 +421,30 @@
             {% if not post.is_active %}
             <li class="list-group-item list-group-item-danger p-0">
                 <div class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
-                    {% csrf_token %}
                     <div class="flex-fill">
                         <strong class="fs-4 fw-bold text-danger-emphasis lh-1">
                             Not receiving Applications
                         </strong>
                         <p class="fs-6 text-body-secondary mb-0">
-                            To Receive Applications, edit this post and extend Apply By date
+                            To Receive Applications, edit this post and extend Apply By date.
                         </p>
                     </div>
                 </div>
             </li>
             {% endif %}
+            <li class="list-group-item list-group-item-action list-group-item-accent p-0">
+                <a href="{% url 'recruitment_applications' post.pk %}" class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
+                    <div class="flex-fill">
+                        <strong class="fs-4 fw-bold text-body-emphasis lh-1">
+                            {{post.applications.all|length}} Applications Received
+                        </strong>
+                        <p class="fs-6 text-body-secondary mb-0">
+                            {{pending_applications_count}} pending, {{rejected_applications_count}} rejected, {{selected_applications_count}} selected, {{interview_applications_count}} shortlisted for interview. View all.
+                        </p>
+                    </div>
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
             <li class="list-group-item list-group-item-action list-group-item-accent p-0" data-bs-toggle="modal"
                 data-bs-target="#edit-post-modal">
                 <a href="#" class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
@@ -441,7 +453,7 @@
                             Edit
                         </strong>
                         <p class="fs-6 text-body-secondary mb-0">
-                            Edit / Add Instructions for Applicants
+                            Edit / Add Instructions for Applicants.
                         </p>
                     </div>
                     <i class="bi bi-chevron-right"></i>
@@ -455,7 +467,7 @@
                             Share an Update
                         </strong>
                         <p class="fs-6 text-body-secondary mb-0">
-                            Share Notifications, Updates or any additional information related to this post
+                            Share Notifications, Updates or any additional information related to this post.
                         </p>
                     </div>
                     <i class="bi bi-chevron-right"></i>
@@ -469,7 +481,7 @@
                 <a href="#" class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
                     <div class="flex-fill">
                         <strong class="fs-4 fw-bold text-body-emphasis lh-1">
-                            View Application
+                            You have already applied
                         </strong>
                         <p class="fs-6 text-body-secondary mb-0">
                             Your application is {{ application.get_status_display }}.
@@ -495,7 +507,7 @@
             </li>
             {% else %}
             <li class="list-group-item list-group-item-action list-group-item-accent p-0">
-                <a href="#" class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
+                <div class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
                     <div class="flex-fill">
                         <strong class="fs-4 fw-bold text-body-emphasis lh-1">
                             Can't Apply
@@ -504,8 +516,7 @@
                             This Post is not receiving applications anymore.
                         </p>
                     </div>
-                    <i class="bi bi-chevron-right"></i>
-                </a>
+                </div>
             </li>
             {% endif %}
             {% endif %}

@@ -16,8 +16,8 @@
                 {{ form.password }}
                 {{ form.password.label_tag }}
             </div>
-            <p class="form-text ms-2 mb-1">Don't have an Account? <a href="{% url 'staff_sign_up' %}">Sign Up</a></p>
-            <p class="form-text ms-2">Not a Staff member? <a href="{% url 'sign_in' %}">Click here</a></p>
+            <p class="form-text ms-2 mb-1">Don't have an Account? <a href="{% url 'staff_sign_up' %}?next={{ request.GET.next }}">Sign Up</a></p>
+            <p class="form-text ms-2">Not a Staff member? <a href="{% url 'sign_in' %}?next={{ request.GET.next }}">Click here</a></p>
             <input type="submit" class="btn btn-primary btn-lg mb-3 w-100" value="Submit">
             {% if success %}
             <div class="alert alert-success" role="alert">

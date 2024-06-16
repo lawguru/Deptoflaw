@@ -12,53 +12,6 @@ from django.views.generic.base import TemplateView
 
 # Create your views here.
 
-
-@method_decorator(login_required, name="dispatch")
-class StudentListView(ListView):
-    model = StudentProfile
-    template_name = 'students.html'
-    context_object_name = 'students'
-    ordering = ['registration_number']
-    paginate_by = 10
-
-    headers = {
-        'ID': 'id_card',
-        'Registration Number': 'registration_number',
-        'Name': 'user__full_name',
-        'Phone Number': 'user__primary_phone_number',
-        'Email': 'user__primary_email',
-        'Course': 'course',
-        'Roll': 'roll',
-        'Number': 'number',
-        'Semester': 'semester',
-        'Year': 'year',
-        'Backlogs': 'backlog_count',
-    }
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        students_list = []
-        for student in context['students']:
-            students_list.append({})
-            for key, value in self.headers.items():
-                if '__' not in value:
-                    students_list[-1][value] = getattr(student, value)
-                else:
-                    property_splits = value.split('__')
-                    students_list[-1][value] = getattr(
-                        student, property_splits[0])
-                    for split in property_splits[1:]:
-                        students_list[-1][value] = getattr(
-                            students_list[-1][value], split)
-
-        context['headers_property'] = [
-            value for key, value in self.headers.items()]
-        context['headers_label'] = [key for key, value in self.headers.items()]
-        context['students'] = students_list
-        return context
-
-
 class StudentSignUp(TemplateView):
     template_name = 'student_sign_up.html'
 
@@ -78,7 +31,7 @@ class StudentSignUp(TemplateView):
             student.user.set_password(form.cleaned_data['password'])
             student.user.save()
             email.save()
-            return redirect('student_sign_in')
+            return redirect(reverse('student_sign_in')+f'?next={reverse("build_profile", args=[student.user.pk])}')
         return render(request, self.template_name, {'form': form})
 
 
@@ -102,13 +55,12 @@ class StudentSignIn(TemplateView):
                     username=student.user.pk, password=password)
                 if user is not None:
                     login(request, user)
+                    next = request.GET.get('next')
+                    if next:
+                        return redirect(next)
                     return redirect('build_profile', user.pk)
-                else:
-                    return render(request, self.template_name, {'form': form, 'error': 'Wrong Password'})
-            else:
-                return render(request, self.template_name, {'form': form, 'error': 'Invalid Registration Number'})
-        else:
-            raise BadRequest()
+                return render(request, self.template_name, {'form': form, 'error': 'Wrong Password'})
+            return render(request, self.template_name, {'form': form, 'error': 'Invalid Registration Number'})
         return render(request, self.template_name, {'form': form})
 
 

@@ -3,7 +3,7 @@ from django.views.generic.base import RedirectView
 from .views import *
 
 urlpatterns = [
-    path('', StudentListView.as_view() , name='students_list'),
+    path('', RedirectView.as_view(url='../user/list/?role-filter=student') , name='students_list'),
     path('signup/', StudentSignUp.as_view(), name='student_sign_up'),
     path('signin/', StudentSignIn.as_view(), name='student_sign_in'),
     path('<int:pk>/', AcademicInfo.as_view(), name='academic_info'),

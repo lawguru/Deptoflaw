@@ -1,0 +1,718 @@
+{% extends "base.html" %}
+
+{% block title %}Recruitment Posts | TPC | CSE | AUS{% endblock %}
+{% load humanize %}
+{% block content %}
+
+<div class="container-fluid p-3 p-xl-5 min-vh-100">
+    <div class="d-flex align-items-center gap-3 pe-0 my-5">
+        <div class="flex-fill">
+            <strong class="display-6 fw-bold text-body-emphasis lh-1">Recruitment Posts</strong>
+            {% if user_filter %}
+            <small class="d-block text-body-secondary">
+                By {{user.full_name}}
+            </small>
+            {% endif %}
+        </div>
+        {% if add_post_form %}
+        <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-post-modal">
+            <i class="bi bi-plus-circle"></i>
+        </a>
+        <div class="modal fade" id="add-post-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+            aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                            Post a Recruitment Offer
+                        </strong>
+                        <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{% url 'add_recruitment_post' %}" id="add-post-form" method="POST">
+                            {% csrf_token %}
+                            {{add_post_form.user}}
+                            <div class="form-floating mb-3">
+                                {{ add_post_form.title }}
+                                {{ add_post_form.title.label_tag }}
+                            </div>
+                            <div class="row g-0 gap-3 mb-3">
+                                <div class="col-12 col-sm-5 form-floating">
+                                    {{ add_post_form.company }}
+                                    {{ add_post_form.company.label_tag }}
+                                </div>
+                                <div class="col-12 col-sm form-floating">
+                                    {{ add_post_form.job_type }}
+                                    {{ add_post_form.job_type.label_tag }}
+                                </div>
+                                <div class="col-12 col-sm form-floating">
+                                    {{ add_post_form.workplace_type }}
+                                    {{ add_post_form.workplace_type.label_tag }}
+                                </div>
+                            </div>
+                            <div class="row g-0 gap-3 mb-3">
+                                <div class="col-12 col-sm-5">
+                                    <div class="form-floating">
+                                        {{ add_post_form.sallary_type }}
+                                        {{ add_post_form.sallary_type.label_tag }}
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm">
+                                    <div class="input-group">
+                                        <div style="width: 13ch">
+                                            <div class="form-floating">
+                                                {{ add_post_form.sallary_currency}}
+                                                <label for="sallary_currency">Currency</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-floating">
+                                            {{ add_post_form.sallary }}
+                                            {{ add_post_form.sallary.label_tag }}
+                                        </div>
+                                    </div>
+                                    {% if add_post_form.sallary.help_text %}
+                                    <div class="form-text ms-3">
+                                        {{ add_post_form.sallary.help_text }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row g-0 gap-3 mb-3">
+                                <div class="col-12 col-sm-5">
+                                    <div class="input-group">
+                                        <div class="form-floating">
+                                            {{ add_post_form.experience_duration }}
+                                            {{ add_post_form.experience_duration.label_tag }}
+                                        </div>
+                                        <div class="input-group-text bg-transparent">
+                                            Years
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm">
+                                    <div class="input-group">
+                                        <div style="width: 13ch">
+                                            <div class="form-floating">
+                                                {{ add_post_form.fee_currency }}
+                                                <label for="fee_currency">Currency</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-floating">
+                                            {{ add_post_form.fee }}
+                                            {{ add_post_form.fee.label_tag }}
+                                        </div>
+                                    </div>
+                                    {% if add_post_form.fee.help_text %}
+                                    <div class="form-text ms-3">
+                                        {{ add_post_form.fee.help_text }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row g-0 gap-3 mb-3">
+                                <div class="col-12 col-sm-5">
+                                    <div class="form-floating">
+                                        {{ add_post_form.start_date_type }}
+                                        {{ add_post_form.start_date_type.label_tag }}
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm">
+                                    <div class="form-floating">
+                                        {{ add_post_form.start_date }}
+                                        {{ add_post_form.start_date.label_tag }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-floating mb-3">
+                                {{ add_post_form.description }}
+                                {{ add_post_form.description.label_tag }}
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="submit" form="add-post-form" class="btn btn-primary btn-lg w-100" value="Submit"
+                            onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true; this.value='Submitting...'; this.form.submit();">
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <nav class="navbar navbar-expand-xxl bg-body p-0 mb-3 border rounded-2">
+        <div class="container-fluid">
+            <a class="lead text-body-emphasis me-3" href="#">Filters</a>
+            <div class="d-flex align-items-center gap-2">
+                <div class="nav-link dropdown">
+                    <a class="nav-link dropdown-toggle p-2" href="#" role="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        Sort By
+                    </a>
+                    <form action="#">
+                        <input id="sort-by-form-input" type="hidden" name="sorting" value="{{sorting}}">
+                        <input id="ordering-form-input" type="hidden" name="ordering" value="{{ordering}}">
+                        <ul class="dropdown-menu" onclick="event.stopPropagation()">
+                            <li>
+                                <input type="submit" onclick="document.getElementById('ordering-form-input').value='asc'" value="Low to High"
+                                    class="dropdown-item {% if ordering != 'desc' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <input type="submit" onclick="document.getElementById('ordering-form-input').value='desc'" value="High to Low"
+                                    class="dropdown-item {% if ordering == 'desc' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            {% for option in sorting_options %}
+                            <li>
+                                <input type="submit" onclick="document.getElementById('sort-by-form-input').value='{{option.0}}'" value="{{option.1}}"
+                                    class="dropdown-item {% if sorting == option.0 %} active {% endif %}">
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </form>
+                </div>
+                <button class="navbar-toggler btn btn-outline-primary rounded-circle p-2 lh-1" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#filters-navbar" aria-controls="filters-navbar"
+                    aria-expanded="false" aria-label="Toggle filters nav">
+                    <span class="bi bi-funnel"></span>
+                </button>
+            </div>
+            <div class="collapse navbar-collapse" id="filters-navbar">
+                <ul class="navbar-nav me-auto mb-2 mb-xl-0">
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Skills
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form id="skill-filter-name-input-form" action="#">
+                                        <div class="input-group mb-1" style="min-width: 32ch;">
+                                            <input type="text" class="skill-name form-control"
+                                                name="skill-filter-name-input" id="skill-filter-name-input"
+                                                list="skill-filter-name-input-list" placeholder="Skill name"
+                                                onchange="resetIfInvalid(this);" required>
+                                            <datalist id="skill-filter-name-input-list"></datalist>
+                                            <button type="button" form="skill-filter-name-input-form"
+                                                class="btn btn-outline-primary border m-0" data-bs-toggle="tooltip"
+                                                data-bs-title="Add"
+                                                onclick="if (this.form.checkValidity() === false){ this.form.reportValidity(); return; } addSkill(document.getElementById('skill-filter-name-input').value); document.getElementById('skill-filter-name-input').value=''; document.getElementById('skill-filter-name-input-list').innerHTML='';">
+                                                <i class="bi bi-plus-circle"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </li>
+                                <li>
+                                    <div id="skill-filters-display" class="d-flex flex-wrap align-items-center col-gap-1">
+                                    </div>
+                                </li>
+                                <li>
+                                    <form id="skill-filter-form" action="#">
+                                        <input type="submit" value="Apply" class="btn btn-primary w-100">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Company
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        <div class="input-group" style="min-width: 20ch;">
+                                            <input type="text" class="form-control" name="company-filter" id="company-filter"
+                                                placeholder="Company name" value="{{company_filter}}">
+                                            <button type="submit" class="btn btn-outline-primary border m-0"
+                                                data-bs-toggle="tooltip" data-bs-title="Apply">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Location
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        <div class="input-group" style="min-width: 44ch;">
+                                            <input type="text" class="form-control" name="location-filter" id="location-filter"
+                                                placeholder="Locality, City, State or Country name" value="{{location_filter}}">
+                                            <button type="submit" class="btn btn-outline-primary border m-0"
+                                                data-bs-toggle="tooltip" data-bs-title="Apply">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Type
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        {% for choice in job_type_choices %}
+                                        <div class="form-check">
+                                            <input class="form-check-input"  type="checkbox" value="{{ choice.0 }}" name="job-type-filters"
+                                                id="job-type-filter-{{ choice.0 }}" {% if choice.0 in job_type_filters %}checked{% endif %}>
+                                            <label class="form-check-label" for="job-type-filter-{{ choice.0 }}">{{ choice.1 }}</label>
+                                        </div>
+                                        {% endfor %}
+                                        <input type="submit" class="btn btn-primary w-100" value="Apply">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Workplace
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        {% for choice in workplace_type_choices %}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="{{ choice.0 }}" name="workplace-type-filters"
+                                                id="workplace-type-filter-{{ choice.0 }}" {% if choice.0 in workplace_type_filters %}checked{% endif %}>
+                                            <label class="form-check-label" for="workplace-type-filter-{{ choice.0 }}">{{ choice.1 }}</label>
+                                        </div>
+                                        {% endfor %}
+                                        <input type="submit" class="btn btn-primary w-100" value="Apply">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Experience
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        <div class="input-group mb-1" style="width: 30ch">
+                                            <div class="input-group-text bg-transparent">Lower limit</div>
+                                            <input type="number" class="form-control" name="experience-filter-lower-limit" id="experience-filter-lower-limit"
+                                                value="{{experience_filter_lower_limit}}" placeholder="0">
+                                        </div>
+                                        <div class="input-group mb-1" style="width: 30ch">
+                                            <div class="input-group-text bg-transparent">Upper limit</div>
+                                            <input type="number" class="form-control" name="experience-filter-upper-limit" id="experience-filter-upper-limit"
+                                                value="{{experience_filter_upper_limit}}" placeholder="Default is None">
+                                        </div>
+                                        <input type="submit" value="Apply" class="btn btn-primary border w-100 m-0">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Start Date
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        <select class="form-select mb-1" name="start-date-type-filter" id="start-date-type-filter" onchange="this.parentElement.submit()">
+                                            {% for choice in start_date_type_choices %}
+                                            <option value="{{ choice.0 }}" {% if start_date_type_filter == choice.0 %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if start_date_type_filter == 'S' %}
+                                        <input type="date" class="form-control mb-1" name="start-date-filter-lower-limit"
+                                            id="start-date-filter-lower-limit" value="{{ start_date_filter_lower_limit }}">
+                                        <input type="date" class="form-control mb-1" name="start-date-filter-upper-limit"
+                                            id="start-date-filter-upper-limit" value="{{ start_date_filter_upper_limit }}">
+                                        {% endif %}
+                                        <input type="submit" value="Apply" class="btn btn-primary border w-100 m-0">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                More
+                            </a>
+                            <form action="#">
+                            <input type="hidden" id="post-filter-form-input" name="post-filter">
+                            <ul class="dropdown-menu" onclick="event.stopPropagation()">
+                                <li>
+                                    <input type="submit" onclick="document.getElementById('post-filter-form-input').value=''"
+                                        value="Any Post" class="dropdown-item {% if post_filter == '' %}active{% endif %}">
+                                </li>
+                                <li>
+                                    <input type="submit" onclick="document.getElementById('post-filter-form-input').value='by-me'"
+                                        value="Posted by Me" class="dropdown-item {% if post_filter == 'by-me' %}active{% endif %}">
+                                </li>
+                                <li>
+                                    <input type="submit" onclick="document.getElementById('post-filter-form-input').value='applied-by-me'"
+                                        value="Applied by Me" class="dropdown-item {% if post_filter == 'applied-by-me' %}active{% endif %}">
+                                </li>
+                            </ul>
+                            </form>
+                        </div>
+                    </li>
+                </ul>
+                <div style="width: fit-content;">
+                    <div class="rounded-circle m-2" onclick="location.href=window.location.href.split('?')[0]"
+                        data-bs-toggle="tooltip" data-bs-title="Clear all Filters">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <ul class="list-group list-group-flush my-5">
+        {% for post in page_obj %}
+        <li class="list-group-item list-group-item-action list-group-item-accent">
+            <a href="{% url 'view_recruitment_post' post.pk %}"
+                class="d-flex align-items-center justify-content-between m-0 p-4 icon-link icon-link-hover no-shadow">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="me-auto">
+                        <strong class="fw-bold lead text-body-emphasis lh-1">
+                            {{post.get_workplace_type_display}} {{post.get_job_type_display}} {{post.title}} at
+                            {{post.company}}
+                        </strong>
+                        <small class="d-block text-body-secondary lh-1">
+                            By {{post.user.full_name}} | {{post.user.subtext}}
+                        </small>
+                        <small class="d-block badge px-0 py-1 text-start text-body-secondary">
+                            Apply By {{post.apply_by|date:"F d, Y"}} | Posted {{ post.posted_on|naturaltime }}
+                        </small>
+                        <div class="my-4 d-flex flex-wrap g-0 gap-2 align-items-center justify-content-start">
+                            {% if post.location %}
+                            <span
+                                class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                <div class="rounded-circle m-2">
+                                    <i class="bi bi-geo-alt fs-5"></i>
+                                </div>
+                                <div class="text-start">
+                                    <strong class="fw-bold text-body-emphasis lh-1">
+                                        {{ post.location }}
+                                    </strong>
+                                    <small class="d-block text-body-secondary">Location</small>
+                                </div>
+                            </span>
+                            {% endif %}
+                            <span
+                                class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                <div class="rounded-circle m-2">
+                                    <i class="bi bi-cash-stack fs-5"></i>
+                                </div>
+                                <div class="text-start">
+                                    <strong class="fw-bold text-body-emphasis lh-1">
+                                        {% if post.sallary_type == 'S' %}
+                                        {{ post.get_sallary_currency_display|slice:"6:" }} {{ post.sallary }}
+                                        {% elif post.sallary_type == 'B' %}
+                                        {{ post.get_sallary_currency_display|slice:"6:" }} {{ post.sallary }} +
+                                        Bonus
+                                        {% elif post.sallary_type == 'P' %}
+                                        Performance Based
+                                        {% else %}
+                                        Negotiable
+                                        {% endif %}
+                                    </strong>
+                                    <small class="d-block text-body-secondary">Sallary</small>
+                                </div>
+                            </span>
+                            {% if post.fee %}
+                            <span
+                                class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                <div class="rounded-circle m-2">
+                                    <i class="bi bi-receipt fs-5"></i>
+                                </div>
+                                <div class="text-start">
+                                    <strong class="fw-bold text-body-emphasis lh-1">{{
+                                        post.get_fee_currency_display|slice:"6:" }}
+                                        {{ post.fee }}</strong>
+                                    <small class="d-block text-body-secondary">Fee</small>
+                                </div>
+                            </span>
+                            {% endif %}
+                            <span
+                                class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                <div class="rounded-circle m-2">
+                                    <i class="bi bi-suitcase-lg fs-5"></i>
+                                </div>
+                                <div class="text-start">
+                                    <strong class="fw-bold text-body-emphasis lh-1">
+                                        {{ post.experience_duration }} Years Required
+                                    </strong>
+                                    <small class="d-block text-body-secondary">Work Experience</small>
+                                </div>
+                            </span>
+                            <span
+                                class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                <div class="rounded-circle m-2">
+                                    <i class="bi bi-calendar-event fs-5"></i>
+                                </div>
+                                <div class="text-start">
+                                    <strong class="fw-bold text-body-emphasis lh-1">
+                                        {% if post.start_date_type == 'S' %}
+                                        {{ post.start_date }}
+                                        {% else %}
+                                        Immediately
+                                        {% endif %}
+                                    </strong>
+                                    <small class="d-block text-body-secondary">Start date</small>
+                                </div>
+                            </span>
+                            {% for application in post.applications.all %}
+                            {% if application.user == request.user %}
+                            <span class="badge d-flex align-items-center py-0 ps-1 pe-3
+                                                        {% if application.status == 'P' %}
+                                                        text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle
+                                                        {% elif application.status == 'R' %}
+                                                        text-danger-emphasis bg-danger-subtle border border-danger-subtle
+                                                        {% elif application.status == 'S' %}
+                                                        text-success-emphasis bg-success-subtle border border-success-subtle
+                                                        {% elif application.status == 'I' %}
+                                                        text-info-emphasis bg-info-subtle border border-info-subtle
+                                                        {% endif %}
+                                                        rounded-pill">
+                                <div class="rounded-circle m-2">
+                                    {% if application.status == 'P' %}
+                                    <i class="bi bi-app-indicator fs-5"></i>
+                                    {% elif application.status == 'R' %}
+                                    <i class="bi bi-x-circle fs-5"></i>
+                                    {% elif application.status == 'S' %}
+                                    <i class="bi bi-check2-circle fs-5"></i>
+                                    {% elif application.status == 'I' %}
+                                    <i class="bi bi-info-circle fs-5"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="text-start">
+                                    <strong class="fw-bold text-body-emphasis lh-1">
+                                        Application {{ application.get_status_display }}
+                                    </strong>
+                                    <small class="d-block text-body-secondary">You applied {{application.applied_on|naturaltime}}</small>
+                                </div>
+                            </span>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div id="skills" class="mt-4">
+                            <strong class="fw-bold text-body-emphasis lh-1 my-4">Skills Required</strong>
+                            <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+                                {% for skill in post.skills.all %}
+                                <div
+                                    class="badge d-flex align-items-center rounded-pill {% if request.user.role == 'student' and skill not in request.user.skills.all %} text-bg-danger {% else %} text-bg-accent {% endif %} gap-1">
+                                    <h6 class="replace-abbreviation text-start fw-bold mb-0 lh-1">
+                                        {{ skill.name }}
+                                    </h6>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <i class="bi bi-chevron-right h3"></i>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div
+        class="d-flex align-items-center justify-content-between w-100">
+        <small class="lh-1 text-body-secondary">Shown {{page_obj.start_index}} to {{page_obj.end_index}} of
+            {{page_obj.paginator.count}} results</small>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center m-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link"
+                        href="?page=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">1</a></li>
+                {% if page_obj.previous_page_number > 1 %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ page_obj.previous_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">&laquo;</a>
+                </li>
+                {% endif %}
+                {% endif %}
+                <li class="page-item"><a class="page-link" href="#">Page {{page_obj.number}} of
+                        {{page_obj.paginator.num_pages}}</a></li>
+                {% if page_obj.has_next %}
+                {% if page_obj.paginator.num_pages > page_obj.next_page_number %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ page_obj.next_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">&raquo;</a>
+                </li>
+                {% endif %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ page_obj.paginator.num_pages }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">{{
+                        page_obj.paginator.num_pages }}</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {
+        element.innerHTML = replaceAbbreviations(element.innerHTML);
+    });
+    
+    skill_filter = JSON.parse('{{ skill_filter|escapejs }}'.replace(/'/g, '"'))
+    
+    skill_name_inputs = document.querySelectorAll('.skill-name')
+    
+    skill_name_inputs.forEach((element) => {
+        skill_option = document.getElementById(element.getAttribute('list'))
+        element.addEventListener('keyup', function () {
+            fetch(`{% url "skill_autocomplete" %}?q=${element.value}`)
+                .then(response => response.json())
+                .then(data => {
+                    skill_option.innerHTML = ''
+                    data.forEach(option => {
+                        if (!skill_filter.includes(option)) {
+                            newoption = document.createElement('option')
+                            newoption.value = option
+                            skill_option.appendChild(newoption)
+                        }
+                    });
+                });
+        });
+    });
+    
+    function resetIfInvalid(el) {
+        //just for beeing sure that nothing is done if no value selected
+        if (el.value == "")
+            return;
+        var options = el.list.options;
+        for (var i = 0; i < options.length; i++) {
+            if (el.value == options[i].value)
+                //option matches: work is done
+                return;
+        }
+        //no match was found: reset the value
+        el.value = "";
+    }
+
+    function addSkill(value) {
+        skill_filter.push(value)
+        parent = document.getElementById('skill-filters-display')
+        input = document.createElement('input')
+        input.setAttribute('id', `skill-filter-${value}`)
+        input.type = 'hidden'
+        input.name = 'skill-filter'
+        input.value = value
+        document.getElementById('skill-filter-form').appendChild(input)
+
+        div = document.createElement('div')
+        div.classList.add('text-start')
+        div.classList.add('selected-skill-name')
+        div.classList.add('replace-abbreviation')
+        div.disabled = true
+        div.innerHTML = replaceAbbreviations(value)
+        i = document.createElement('i')
+        i.classList.add('bi')
+        i.classList.add('bi-x-circle')
+        button = document.createElement('div')
+        button.classList.add('rounded-circle')
+        button.classList.add('mx-1')
+        button.classList.add('fs-6')
+        button.setAttribute('onclick', `this.parentElement.remove(); document.getElementById('skill-filter-${value}').remove()`)
+        button.appendChild(i)
+        span = document.createElement('span')
+        span.classList.add('badge')
+        span.classList.add('d-flex')
+        span.classList.add('align-items-center')
+        span.classList.add('py-1')
+        span.classList.add('pe-0')
+        span.classList.add('mb-1')
+        span.classList.add('text-secondary-emphasis')
+        span.classList.add('bg-secondary-subtle')
+        span.classList.add('border')
+        span.classList.add('border-secondary-subtle')
+        span.classList.add('rounded-pill')
+        span.appendChild(div)
+        span.appendChild(button)
+        parent.appendChild(span)
+    }
+
+    function buildSkillDisplay() {
+        document.getElementById('skill-filters-display').innerHTML = ''
+        skill_filter.forEach((value) => {
+            addSkill(value);
+        });
+    }
+    
+    buildSkillDisplay()
+
+    function getUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        let paramObj = {};
+        for (let [key, value] of params.entries()) {
+            // Check if key already exists in paramObj
+            if (paramObj[key]) {
+                // If key already exists and is an array, push the new value
+                if (Array.isArray(paramObj[key])) {
+                    paramObj[key].push(value);
+                } else { // If key is not an array, convert it to an array with existing and new values
+                    paramObj[key] = [paramObj[key], value];
+                }
+            } else { // If key doesn't exist in paramObj, set it to the new value
+                paramObj[key] = value;
+            }
+        }
+        return paramObj;
+    }
+
+    // Function to add hidden input fields with the current URL parameters
+    function addHiddenInputs() {
+        const params = getUrlParams();
+        const forms = document.querySelectorAll('form');
+        for (let key in params) {
+            forms.forEach(form => {
+                if (!form.elements[key]) {
+                    if (Array.isArray(params[key])) { // Handle multi-valued fields
+                        params[key].forEach(value => {
+                            let input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = key;
+                            input.value = value;
+                            form.appendChild(input);
+                        });
+                    } else { // Handle single-valued fields
+                        let input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = params[key];
+                        form.appendChild(input);
+                    }
+                }
+            });
+        }
+    }
+    window.onload = addHiddenInputs();
+</script>
+
+{% endblock %}

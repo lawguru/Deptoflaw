@@ -7,49 +7,9 @@ from views import ChangeUserKeyObject
 from user.models import Email
 from .models import RecruiterProfile
 from .forms import *
-from django.views.generic import ListView
 from django.views.generic.base import TemplateView, RedirectView
 
 # Create your views here.
-
-
-@method_decorator(login_required, name="dispatch")
-class RecruiterListView(ListView):
-    model = RecruiterProfile
-    template_name = 'recruiters.html'
-    context_object_name = 'recruiters'
-    ordering = ['id_number']
-    paginate_by = 10
-
-    headers = {
-        'ID': 'id_number',
-        'Name': 'user__full_name',
-        'Phone Number': 'user__primary_phone_number',
-        'Email': 'user__primary_email',
-    }
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        recruiters_list = []
-        for recruiter in context['recruiters']:
-            recruiters_list.append({})
-            for key, value in self.headers.items():
-                if '__' not in value:
-                    recruiters_list[-1][value] = getattr(recruiter, value)
-                else:
-                    property_splits = value.split('__')
-                    recruiters_list[-1][value] = getattr(
-                        recruiter, property_splits[0])
-                    for split in property_splits[1:]:
-                        recruiters_list[-1][value] = getattr(
-                            recruiters_list[-1][value], split)
-
-        context['headers_property'] = [
-            value for key, value in self.headers.items()]
-        context['headers_label'] = [key for key, value in self.headers.items()]
-        context['recruiters'] = recruiters_list
-        return context
 
 
 class RecruiterSignUp(TemplateView):
@@ -71,7 +31,7 @@ class RecruiterSignUp(TemplateView):
             recruiter.user.set_password(form.cleaned_data['password'])
             recruiter.user.save()
             email.save()
-            return redirect('recruiter_sign_in')
+            return redirect(reverse('recruiter_sign_in') + f'?next={reverse("build_profile", args=[recruiter.user.pk])}')
         return render(request, self.template_name, {'form': form})
 
 
@@ -95,7 +55,10 @@ class RecruiterSignIn(TemplateView):
                     username=recruiter.user.pk, password=password)
                 if user is not None:
                     login(request, user)
-                return redirect('build_profile', user.pk)
+                    next = request.GET.get('next')
+                    if next:
+                        return redirect(next)
+                    return redirect('build_profile', user.pk)
         return render(request, self.template_name, {'form': form})
 
 
