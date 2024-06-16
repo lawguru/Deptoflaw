@@ -4,15 +4,18 @@
 
 {% block content %}
 {% load static %}
-<div class="container-xxl col-xxl-8 p-3 p-sm-4 p-md-5">
+<div class="container-xxl col-xxl-10 p-3 p-sm-4 p-md-5">
     <div class="row p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-4 border shadow-lg g-0">
         <div class="col-lg-7 p-3 p-lg-5 pt-lg-3">
-            {% for line in home_subheading %}
-            <h4 class="fw-bold text-body-emphasis lh-1 mb-0">{{ line }}</h4>
-            {% endfor %}
-            <h1 class="fw-bold text-body-emphasis lh-1 my-3">{{ home_heading }}</h1>
+            <h4 class="fw-bold text-body-emphasis lh-1 mb-0">Assam University, Department of</h4>
+            <h4 class="fw-bold text-body-emphasis lh-1 mb-0">Computer Science and Engineering</h4>
+            <h1 class="fw-bold text-body-emphasis lh-1 my-3">Training & Placement Cell</h1>
             <p>
-                {{ home_description }}
+                Training & Placement Cell (TPC) handles all aspects of campus placements for the graduating students of
+                the Department. TPC of Assam University\'s Department of Computer Science and Engineering (CSE) is well
+                equipped with excellent infrastructure to support each and every stage of the placement processes. TPC
+                staff members and student team assist in arranging Pre-Placement Talks, Written Tests, Group
+                Discussions, and Interviews etc. as per the requirements of the Organizations and Recruiters.
             </p>
         </div>
         <div class="col-lg-4 offset-lg-1 p-0 overflow-hidden shadow-lg">
@@ -25,7 +28,8 @@
                 <p class="display-6 fw-bold text-body-emphasis mb-4 text-center fst-italic">"{{ quote.quote }}"</p>
             </blockquote>
             <figcaption class="blockquote-footer text-end">
-                {{ quote.author }}{% if quote.fictional %}, <cite title="Source Title">fictional character</cite>{% endif %}
+                {{ quote.author }}{% if quote.fictional %}, <cite title="Source Title">fictional character</cite>
+                {% endif %}
                 {% if quote.source %}
                 in <cite title="Source Title">{{ quote.source }}</cite>
                 {% endif %}
