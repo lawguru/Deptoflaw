@@ -343,6 +343,8 @@ class RemoveCoordinator(View):
         if not User.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         user = User.objects.get(pk=pk)
+        if user.staff_profile and (user.staff_profile.is_hod or user.staff_profile.is_tpc_head):
+            raise PermissionDenied()
         user.is_coordinator = False
         user.save()
         return redirect(reverse('user_list'))

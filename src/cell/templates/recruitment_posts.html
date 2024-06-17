@@ -5,139 +5,12 @@
 {% block content %}
 
 <div class="container-fluid p-3 p-xl-5 min-vh-100">
-    <div class="d-flex align-items-center gap-3 pe-0 my-5">
-        <div class="flex-fill">
-            <strong class="display-6 fw-bold text-body-emphasis lh-1">Recruitment Posts</strong>
-            {% if user_filter %}
-            <small class="d-block text-body-secondary">
-                By {{user.full_name}}
-            </small>
-            {% endif %}
-        </div>
-        {% if add_post_form %}
-        <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-post-modal">
-            <i class="bi bi-plus-circle"></i>
-        </a>
-        <div class="modal fade" id="add-post-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-            aria-labelledby="staticBackdropLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <strong class="modal-title fs-3 fw-bold text-body-emphasis">
-                            Post a Recruitment Offer
-                        </strong>
-                        <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form action="{% url 'add_recruitment_post' %}" id="add-post-form" method="POST">
-                            {% csrf_token %}
-                            {{add_post_form.user}}
-                            <div class="form-floating mb-3">
-                                {{ add_post_form.title }}
-                                {{ add_post_form.title.label_tag }}
-                            </div>
-                            <div class="row g-0 gap-3 mb-3">
-                                <div class="col-12 col-sm-5 form-floating">
-                                    {{ add_post_form.company }}
-                                    {{ add_post_form.company.label_tag }}
-                                </div>
-                                <div class="col-12 col-sm form-floating">
-                                    {{ add_post_form.job_type }}
-                                    {{ add_post_form.job_type.label_tag }}
-                                </div>
-                                <div class="col-12 col-sm form-floating">
-                                    {{ add_post_form.workplace_type }}
-                                    {{ add_post_form.workplace_type.label_tag }}
-                                </div>
-                            </div>
-                            <div class="row g-0 gap-3 mb-3">
-                                <div class="col-12 col-sm-5">
-                                    <div class="form-floating">
-                                        {{ add_post_form.sallary_type }}
-                                        {{ add_post_form.sallary_type.label_tag }}
-                                    </div>
-                                </div>
-                                <div class="col-12 col-sm">
-                                    <div class="input-group">
-                                        <div style="width: 13ch">
-                                            <div class="form-floating">
-                                                {{ add_post_form.sallary_currency}}
-                                                <label for="sallary_currency">Currency</label>
-                                            </div>
-                                        </div>
-                                        <div class="form-floating">
-                                            {{ add_post_form.sallary }}
-                                            {{ add_post_form.sallary.label_tag }}
-                                        </div>
-                                    </div>
-                                    {% if add_post_form.sallary.help_text %}
-                                    <div class="form-text ms-3">
-                                        {{ add_post_form.sallary.help_text }}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="row g-0 gap-3 mb-3">
-                                <div class="col-12 col-sm-5">
-                                    <div class="input-group">
-                                        <div class="form-floating">
-                                            {{ add_post_form.experience_duration }}
-                                            {{ add_post_form.experience_duration.label_tag }}
-                                        </div>
-                                        <div class="input-group-text bg-transparent">
-                                            Years
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-sm">
-                                    <div class="input-group">
-                                        <div style="width: 13ch">
-                                            <div class="form-floating">
-                                                {{ add_post_form.fee_currency }}
-                                                <label for="fee_currency">Currency</label>
-                                            </div>
-                                        </div>
-                                        <div class="form-floating">
-                                            {{ add_post_form.fee }}
-                                            {{ add_post_form.fee.label_tag }}
-                                        </div>
-                                    </div>
-                                    {% if add_post_form.fee.help_text %}
-                                    <div class="form-text ms-3">
-                                        {{ add_post_form.fee.help_text }}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="row g-0 gap-3 mb-3">
-                                <div class="col-12 col-sm-5">
-                                    <div class="form-floating">
-                                        {{ add_post_form.start_date_type }}
-                                        {{ add_post_form.start_date_type.label_tag }}
-                                    </div>
-                                </div>
-                                <div class="col-12 col-sm">
-                                    <div class="form-floating">
-                                        {{ add_post_form.start_date }}
-                                        {{ add_post_form.start_date.label_tag }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-floating mb-3">
-                                {{ add_post_form.description }}
-                                {{ add_post_form.description.label_tag }}
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <input type="submit" form="add-post-form" class="btn btn-primary btn-lg w-100" value="Submit"
-                            onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true; this.value='Submitting...'; this.form.submit();">
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-    </div>
+    <strong class="display-6 fw-bold text-body-emphasis lh-1">Recruitment Posts</strong>
+    {% if user_filter %}
+    <small class="d-block text-body-secondary">
+        By {{user.full_name}}
+    </small>
+    {% endif %}
 
     <nav class="navbar navbar-expand-xxl bg-body p-0 mb-3 border rounded-2">
         <div class="container-fluid">
@@ -153,11 +26,15 @@
                         <input id="ordering-form-input" type="hidden" name="ordering" value="{{ordering}}">
                         <ul class="dropdown-menu" onclick="event.stopPropagation()">
                             <li>
-                                <input type="submit" onclick="document.getElementById('ordering-form-input').value='asc'" value="Low to High"
+                                <input type="submit"
+                                    onclick="document.getElementById('ordering-form-input').value='asc'"
+                                    value="Low to High"
                                     class="dropdown-item {% if ordering != 'desc' %} active {% endif %}">
                             </li>
                             <li>
-                                <input type="submit" onclick="document.getElementById('ordering-form-input').value='desc'" value="High to Low"
+                                <input type="submit"
+                                    onclick="document.getElementById('ordering-form-input').value='desc'"
+                                    value="High to Low"
                                     class="dropdown-item {% if ordering == 'desc' %} active {% endif %}">
                             </li>
                             <li>
@@ -165,7 +42,9 @@
                             </li>
                             {% for option in sorting_options %}
                             <li>
-                                <input type="submit" onclick="document.getElementById('sort-by-form-input').value='{{option.0}}'" value="{{option.1}}"
+                                <input type="submit"
+                                    onclick="document.getElementById('sort-by-form-input').value='{{option.0}}'"
+                                    value="{{option.1}}"
                                     class="dropdown-item {% if sorting == option.0 %} active {% endif %}">
                             </li>
                             {% endfor %}
@@ -205,7 +84,8 @@
                                     </form>
                                 </li>
                                 <li>
-                                    <div id="skill-filters-display" class="d-flex flex-wrap align-items-center col-gap-1">
+                                    <div id="skill-filters-display"
+                                        class="d-flex flex-wrap align-items-center col-gap-1">
                                     </div>
                                 </li>
                                 <li>
@@ -226,8 +106,9 @@
                                 <li>
                                     <form action="#">
                                         <div class="input-group" style="min-width: 20ch;">
-                                            <input type="text" class="form-control" name="company-filter" id="company-filter"
-                                                placeholder="Company name" value="{{company_filter}}">
+                                            <input type="text" class="form-control" name="company-filter"
+                                                id="company-filter" placeholder="Company name"
+                                                value="{{company_filter}}">
                                             <button type="submit" class="btn btn-outline-primary border m-0"
                                                 data-bs-toggle="tooltip" data-bs-title="Apply">
                                                 <i class="bi bi-check-circle"></i>
@@ -248,8 +129,9 @@
                                 <li>
                                     <form action="#">
                                         <div class="input-group" style="min-width: 44ch;">
-                                            <input type="text" class="form-control" name="location-filter" id="location-filter"
-                                                placeholder="Locality, City, State or Country name" value="{{location_filter}}">
+                                            <input type="text" class="form-control" name="location-filter"
+                                                id="location-filter" placeholder="Locality, City, State or Country name"
+                                                value="{{location_filter}}">
                                             <button type="submit" class="btn btn-outline-primary border m-0"
                                                 data-bs-toggle="tooltip" data-bs-title="Apply">
                                                 <i class="bi bi-check-circle"></i>
@@ -271,8 +153,8 @@
                                     <form action="#">
                                         {% for choice in job_type_choices %}
                                         <div class="form-check">
-                                            <input class="form-check-input"  type="checkbox" value="{{ choice.0 }}" name="job-type-filters"
-                                                id="job-type-filter-{{ choice.0 }}" {% if choice.0 in job_type_filters %}checked{% endif %}>
+                                            <input class="form-check-input" type="checkbox" value="{{ choice.0 }}"
+                                                name="job-type-filters" id="job-type-filter-{{ choice.0 }}" {% if choice.0 in job_type_filters %}checked{% endif %}>
                                             <label class="form-check-label" for="job-type-filter-{{ choice.0 }}">{{ choice.1 }}</label>
                                         </div>
                                         {% endfor %}
@@ -293,12 +175,37 @@
                                     <form action="#">
                                         {% for choice in workplace_type_choices %}
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" value="{{ choice.0 }}" name="workplace-type-filters"
-                                                id="workplace-type-filter-{{ choice.0 }}" {% if choice.0 in workplace_type_filters %}checked{% endif %}>
-                                            <label class="form-check-label" for="workplace-type-filter-{{ choice.0 }}">{{ choice.1 }}</label>
+                                            <input class="form-check-input" type="checkbox" value="{{ choice.0 }}"
+                                                name="workplace-type-filters" id="workplace-type-filter-{{ choice.0 }}"
+                                                {% if choice.0 in workplace_type_filters %}checked{% endif %}>
+                                            <label class="form-check-label"
+                                                for="workplace-type-filter-{{ choice.0 }}">{{ choice.1 }}</label>
                                         </div>
                                         {% endfor %}
                                         <input type="submit" class="btn btn-primary w-100" value="Apply">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Salary
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        <div class="input-group mb-1" style="width: 38ch">
+                                            <div class="input-group-text bg-transparent">Expected</div>
+                                            <input type="number" class="form-control" name="expected-salary"
+                                                id="expected-salary" value="{{expected_salary}}" placeholder="0">
+                                            <button type="submit" class="btn btn-outline-primary border m-0"
+                                                data-bs-toggle="tooltip" data-bs-title="Apply">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        </div>
                                     </form>
                                 </li>
                             </ul>
@@ -315,12 +222,14 @@
                                     <form action="#">
                                         <div class="input-group mb-1" style="width: 30ch">
                                             <div class="input-group-text bg-transparent">Lower limit</div>
-                                            <input type="number" class="form-control" name="experience-filter-lower-limit" id="experience-filter-lower-limit"
+                                            <input type="number" class="form-control"
+                                                name="experience-filter-lower-limit" id="experience-filter-lower-limit"
                                                 value="{{experience_filter_lower_limit}}" placeholder="0">
                                         </div>
                                         <div class="input-group mb-1" style="width: 30ch">
                                             <div class="input-group-text bg-transparent">Upper limit</div>
-                                            <input type="number" class="form-control" name="experience-filter-upper-limit" id="experience-filter-upper-limit"
+                                            <input type="number" class="form-control"
+                                                name="experience-filter-upper-limit" id="experience-filter-upper-limit"
                                                 value="{{experience_filter_upper_limit}}" placeholder="Default is None">
                                         </div>
                                         <input type="submit" value="Apply" class="btn btn-primary border w-100 m-0">
@@ -338,7 +247,8 @@
                             <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
                                 <li>
                                     <form action="#">
-                                        <select class="form-select mb-1" name="start-date-type-filter" id="start-date-type-filter" onchange="this.parentElement.submit()">
+                                        <select class="form-select mb-1" name="start-date-type-filter"
+                                            id="start-date-type-filter" onchange="this.parentElement.submit()">
                                             {% for choice in start_date_type_choices %}
                                             <option value="{{ choice.0 }}" {% if start_date_type_filter == choice.0 %}selected{% endif %}>
                                                 {{ choice.1 }}
@@ -346,10 +256,12 @@
                                             {% endfor %}
                                         </select>
                                         {% if start_date_type_filter == 'S' %}
-                                        <input type="date" class="form-control mb-1" name="start-date-filter-lower-limit"
-                                            id="start-date-filter-lower-limit" value="{{ start_date_filter_lower_limit }}">
-                                        <input type="date" class="form-control mb-1" name="start-date-filter-upper-limit"
-                                            id="start-date-filter-upper-limit" value="{{ start_date_filter_upper_limit }}">
+                                        <input type="date" class="form-control mb-1"
+                                            name="start-date-filter-lower-limit" id="start-date-filter-lower-limit"
+                                            value="{{ start_date_filter_lower_limit }}">
+                                        <input type="date" class="form-control mb-1"
+                                            name="start-date-filter-upper-limit" id="start-date-filter-upper-limit"
+                                            value="{{ start_date_filter_upper_limit }}">
                                         {% endif %}
                                         <input type="submit" value="Apply" class="btn btn-primary border w-100 m-0">
                                     </form>
@@ -364,21 +276,27 @@
                                 More
                             </a>
                             <form action="#">
-                            <input type="hidden" id="post-filter-form-input" name="post-filter">
-                            <ul class="dropdown-menu" onclick="event.stopPropagation()">
-                                <li>
-                                    <input type="submit" onclick="document.getElementById('post-filter-form-input').value=''"
-                                        value="Any Post" class="dropdown-item {% if post_filter == '' %}active{% endif %}">
-                                </li>
-                                <li>
-                                    <input type="submit" onclick="document.getElementById('post-filter-form-input').value='by-me'"
-                                        value="Posted by Me" class="dropdown-item {% if post_filter == 'by-me' %}active{% endif %}">
-                                </li>
-                                <li>
-                                    <input type="submit" onclick="document.getElementById('post-filter-form-input').value='applied-by-me'"
-                                        value="Applied by Me" class="dropdown-item {% if post_filter == 'applied-by-me' %}active{% endif %}">
-                                </li>
-                            </ul>
+                                <input type="hidden" id="post-filter-form-input" name="post-filter">
+                                <ul class="dropdown-menu" onclick="event.stopPropagation()">
+                                    <li>
+                                        <input type="submit"
+                                            onclick="document.getElementById('post-filter-form-input').value=''"
+                                            value="Any Post"
+                                            class="dropdown-item {% if post_filter == '' %}active{% endif %}">
+                                    </li>
+                                    <li>
+                                        <input type="submit"
+                                            onclick="document.getElementById('post-filter-form-input').value='by-me'"
+                                            value="Posted by Me"
+                                            class="dropdown-item {% if post_filter == 'by-me' %}active{% endif %}">
+                                    </li>
+                                    <li>
+                                        <input type="submit"
+                                            onclick="document.getElementById('post-filter-form-input').value='applied-by-me'"
+                                            value="Applied by Me"
+                                            class="dropdown-item {% if post_filter == 'applied-by-me' %}active{% endif %}">
+                                    </li>
+                                </ul>
                             </form>
                         </div>
                     </li>
@@ -432,18 +350,17 @@
                                 </div>
                                 <div class="text-start">
                                     <strong class="fw-bold text-body-emphasis lh-1">
-                                        {% if post.sallary_type == 'S' %}
-                                        {{ post.get_sallary_currency_display|slice:"6:" }} {{ post.sallary }}
-                                        {% elif post.sallary_type == 'B' %}
-                                        {{ post.get_sallary_currency_display|slice:"6:" }} {{ post.sallary }} +
-                                        Bonus
-                                        {% elif post.sallary_type == 'P' %}
-                                        Performance Based
+                                        {% if post.salary_type == 'S' %}
+                                        {% if post.minimum_salary == post.maximum_salary %}
+                                        ₹ {{ post.minimum_salary }} per month
                                         {% else %}
-                                        Negotiable
+                                        ₹ {{ post.minimum_salary }} - {{ post.maximum_salary }} per month
+                                        {% endif %}
+                                        {% elif post.salary_type == 'P' %}
+                                        Performance Based
                                         {% endif %}
                                     </strong>
-                                    <small class="d-block text-body-secondary">Sallary</small>
+                                    <small class="d-block text-body-secondary">Salary</small>
                                 </div>
                             </span>
                             {% if post.fee %}
@@ -454,8 +371,8 @@
                                 </div>
                                 <div class="text-start">
                                     <strong class="fw-bold text-body-emphasis lh-1">{{
-                                        post.get_fee_currency_display|slice:"6:" }}
-                                        {{ post.fee }}</strong>
+                                        ₹ {{ post.fee }}
+                                    </strong>
                                     <small class="d-block text-body-secondary">Fee</small>
                                 </div>
                             </span>
@@ -516,7 +433,8 @@
                                     <strong class="fw-bold text-body-emphasis lh-1">
                                         Application {{ application.get_status_display }}
                                     </strong>
-                                    <small class="d-block text-body-secondary">You applied {{application.applied_on|naturaltime}}</small>
+                                    <small class="d-block text-body-secondary">You applied
+                                        {{application.applied_on|naturaltime}}</small>
                                 </div>
                             </span>
                             {% endif %}
@@ -543,8 +461,7 @@
         {% endfor %}
     </ul>
 
-    <div
-        class="d-flex align-items-center justify-content-between w-100">
+    <div class="d-flex align-items-center justify-content-between w-100">
         <small class="lh-1 text-body-secondary">Shown {{page_obj.start_index}} to {{page_obj.end_index}} of
             {{page_obj.paginator.count}} results</small>
         <nav aria-label="Page navigation example">
@@ -579,11 +496,11 @@
     document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {
         element.innerHTML = replaceAbbreviations(element.innerHTML);
     });
-    
+
     skill_filter = JSON.parse('{{ skill_filter|escapejs }}'.replace(/'/g, '"'))
-    
+
     skill_name_inputs = document.querySelectorAll('.skill-name')
-    
+
     skill_name_inputs.forEach((element) => {
         skill_option = document.getElementById(element.getAttribute('list'))
         element.addEventListener('keyup', function () {
@@ -601,7 +518,7 @@
                 });
         });
     });
-    
+
     function resetIfInvalid(el) {
         //just for beeing sure that nothing is done if no value selected
         if (el.value == "")
@@ -664,7 +581,7 @@
             addSkill(value);
         });
     }
-    
+
     buildSkillDisplay()
 
     function getUrlParams() {

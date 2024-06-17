@@ -20,21 +20,6 @@ class StudentProfile(models.Model):
                     models.When(course='PhD', then=6),
                     output_field=models.IntegerField()
                 ),
-                year=models.Case(
-                    models.When(passed_semesters__lt=models.F(
-                        'course_duration') * 2, then=models.F('passed_semesters') / 2 + 1),
-                    default=models.F('course_duration'),
-                    output_field=models.IntegerField()
-                ),
-                semester=models.Case(
-                    models.When(
-                        academic_half='odd',
-                        then=models.F('year') * 2 - 1),
-                    default=models.F('year') * 2,
-                    output_field=models.IntegerField()
-                ),
-                roll=models.ExpressionWrapper(models.functions.Concat(models.F('semester'), datetime.now(
-                ).year % 100, models.F('registration_year') % 100), output_field=models.CharField()),
                 passed_out=models.ExpressionWrapper(models.Case(
                     models.When(passed_semesters__gte=models.F(
                         'course_duration') * 2, then=True),
@@ -46,7 +31,30 @@ class StudentProfile(models.Model):
                         'course_duration') * 2, then=True),
                     default=False,
                     output_field=models.BooleanField()
-                ), output_field=models.BooleanField())
+                ), output_field=models.BooleanField()),
+                year=models.Case(
+                    models.When(
+                        is_current=True,
+                        then=datetime.now().year - models.F('registration_year')),
+                    default=0,
+                    output_field=models.IntegerField()
+                ),
+                semester=models.Case(
+                    models.When(
+                        academic_half='odd',
+                        then=models.F('year') * 2 - 1),
+                    default=models.F('year') * 2,
+                    output_field=models.IntegerField()
+                ),
+                roll=models.Case(
+                    models.When(
+                        is_current=True,
+                        then=models.ExpressionWrapper(models.functions.Concat(models.F('semester'), datetime.now(
+                        ).year % 100, models.F('registration_year') % 100), output_field=models.CharField())
+                    ),
+                    default=models.Value('SSYYRR', output_field=models.CharField()),
+                    output_field=models.CharField()
+                )
             )
 
     objects = StudentProfileManager()
@@ -90,6 +98,7 @@ class StudentProfile(models.Model):
     id_number = models.PositiveSmallIntegerField('ID Number',
                                                  help_text='Number at the end of ID Card', default=0)
     dropped_out = models.BooleanField(default=False)
+    is_cr = models.BooleanField(default=False)
 
     id_card = models.CharField(
         max_length=15, editable=False, default='YYCSEXXXXX')

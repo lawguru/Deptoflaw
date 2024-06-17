@@ -53,7 +53,6 @@ class RecruitmentPostForm(forms.ModelForm):
         model = RecruitmentPost
         exclude = [
             'skills',
-            'is_active',
         ]
 
     def __init__(self, *args, **kwargs):
@@ -64,30 +63,21 @@ class RecruitmentPostForm(forms.ModelForm):
             visible.field.widget.attrs['placeholder'] = visible.field.label
             if isinstance(visible.field.widget, forms.Textarea):
                 visible.field.widget.attrs['style'] = 'height: 8rem'
+        for field in self.Meta.readonly_widgets:
+            self.fields[field].widget = self.Meta.readonly_widgets[field]
+            self.fields[field].disabled = True
 
 
 class AddRecruitmentPostForm(RecruitmentPostForm):
     class Meta(RecruitmentPostForm.Meta):
-        fields = [
-            'user',
-            'title',
-            'company',
-            'job_type',
-            'workplace_type',
-            'location',
-            'sallary_type',
-            'sallary_currency',
-            'sallary',
-            'fee_currency',
-            'fee',
-            'experience_duration',
-            'start_date_type',
-            'start_date',
-            'apply_by',
-            'description',
-            'requirements',
-            'required_documents',
-            'questionaires',
+        exclude = [
+            'skills',
+            'posted_on',
+            'edited_on',
+            'pending_application_instructions',
+            'rejected_application_instructions',
+            'selected_application_instructions',
+            'shortlisted_application_instructions',
         ]
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
@@ -107,21 +97,14 @@ class RecruiterChangeRecruitmentPostForm(RecruitmentPostForm):
             'job_type': forms.Select(choices=RecruitmentPostForm.Meta.model.job_type_choices),
             'workplace_type': forms.Select(choices=RecruitmentPostForm.Meta.model.workplace_type_choices),
             'location': forms.TextInput(),
-            'sallary_type': forms.Select(choices=RecruitmentPostForm.Meta.model.sallary_type_choices),
-            'sallary_currency': forms.Select(choices=RecruitmentPostForm.Meta.model.currency_choices),
+            'sallary_type': forms.Select(choices=RecruitmentPostForm.Meta.model.salary_type_choices),
+            'minimum_salary': forms.TextInput(),
             'sallary': forms.TextInput(),
-            'fee_currency': forms.Select(choices=RecruitmentPostForm.Meta.model.currency_choices),
             'fee': forms.TextInput(),
             'experience_duration': forms.NumberInput(),
             'start_date_type': forms.Select(choices=RecruitmentPostForm.Meta.model.start_date_type_choices),
             'start_date': forms.DateInput(attrs={'type': 'date'}),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.Meta.readonly_widgets:
-            self.fields[field].widget = self.Meta.readonly_widgets[field]
-            self.fields[field].disabled = True
 
 
 class TPCChangeRecruitmentPostForm(RecruitmentPostForm):
@@ -130,6 +113,9 @@ class TPCChangeRecruitmentPostForm(RecruitmentPostForm):
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'apply_by': forms.DateInput(attrs={'type': 'date'}),
+        }
+        readonly_widgets = {
+            'user': forms.HiddenInput(),
         }
 
 

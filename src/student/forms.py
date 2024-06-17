@@ -62,6 +62,7 @@ class SemesterReportCardForm(forms.ModelForm):
         exclude = ('student_profile', 'backlogs', 'passed',
                    'total_credits', 'earned_credits', 'sgpa')
 
+
 class SemesterReportCardTemplateForm(forms.ModelForm):
     class Meta:
         model = SemesterReportCardTemplate

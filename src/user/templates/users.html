@@ -627,6 +627,8 @@
                 <div class="accordion-body">
                     <div class="d-flex align-items-center justify-content-between">
                         <small>Joined {{user.date_joined|naturaltime}}</small>
+                        {% if user.role != 'recruiter' %}
+                        {% if not user.staff_profile.is_hod or not user.staff_profile.is_tpc_head %}
                         {% if request.user.is_coordinator or request.user.is_superuser %}
                         <div class="dropdown">
                             <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -650,12 +652,14 @@
                                 {% if request.user.is_superuser %}
                                 {% if user.role == 'student' or user.role == 'staff' %}
                                 {% if user.is_coordinator %}
+                                {% if not user.staff_profile.is_hod and not user.staff_profile.is_tpc_head %}
                                 <li>
                                     <form action="{% url 'remove_coordinator' user.pk %}" method="POST">
                                         {% csrf_token %}
                                         <input type="submit" class="btn dropdown-item" value="Remove Coordinator">
                                     </form>
                                 </li>
+                                {% endif %}
                                 {% else %}
                                 <li>
                                     <form action="{% url 'make_coordinator' user.pk %}" method="POST">
@@ -665,6 +669,7 @@
                                 </li>
                                 {% endif %}
                                 {% endif %}
+                                {% if user.staff_profile %}
                                 {% if not user.staff_profile.is_hod %}
                                 <li>
                                     <form action="{% url 'make_hod' user.staff_profile.pk %}" method="POST">
@@ -682,8 +687,11 @@
                                 </li>
                                 {% endif %}
                                 {% endif %}
+                                {% endif %}
                             </ul>
                         </div>
+                        {% endif %}
+                        {% endif %}
                         {% endif %}
                     </div>
                     <div class="d-flex flex-wrap align-items-center justify-content-start gap-2 mt-3 mb-3">

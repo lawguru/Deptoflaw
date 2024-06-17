@@ -13,8 +13,6 @@ class RecruiterProfile(models.Model):
         'Your Position at the Company', max_length=50)
 
     def save(self, *args, **kwargs):
-        if not self.pk and self.user == None:
-            self.user = User.objects.create(role='recruiter')
         super().save(*args, **kwargs)
         self.user.save()
 

@@ -4,7 +4,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, reverse
 from views import ChangeUserKeyObject
-from user.models import Email
+from user.models import Email, User
 from .models import RecruiterProfile
 from .forms import *
 from django.views.generic.base import TemplateView, RedirectView
@@ -23,11 +23,16 @@ class RecruiterSignUp(TemplateView):
     def post(self, request):
         form = RecruiterSignUpForm(request.POST)
         if form.is_valid():
-            email = Email.objects.create(email=form.cleaned_data['email'])
-            recruiter = RecruiterProfile.objects.create(
-                company_name=form.cleaned_data['company_name'], designation=form.cleaned_data['designation'], primary_email=email)
+            email, created = Email.objects.get_or_create(
+                email=form.cleaned_data['email'])
+            if email.user:
+                return render(request, self.template_name, {'form': form, 'error': 'Email already in use'})
+            user = User.objects.create(role='recruiter', primary_email=email)
+            recruiter = RecruiterProfile.objects.create(user=user,
+                                                        company_name=form.cleaned_data['company_name'], designation=form.cleaned_data['designation'])
             recruiter.user.first_name = form.cleaned_data['first_name']
             recruiter.user.last_name = form.cleaned_data['last_name']
+            recruiter.user.primary_email = email
             recruiter.user.set_password(form.cleaned_data['password'])
             recruiter.user.save()
             email.save()

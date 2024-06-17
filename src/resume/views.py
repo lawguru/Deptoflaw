@@ -498,9 +498,13 @@ class SkillAutocomplete(View):
     def get(self, request, *args, **kwargs):
         query = request.GET.get('q')
         user = request.GET.get('u')
+        post = request.GET.get('p')
         if user:
             li = [obj.name for obj in Skill.objects.exclude(
                 users__id=user).filter(name__icontains=query)]
+        elif post:
+            li = [obj.name for obj in Skill.objects.exclude(
+                jobs__id=post).filter(name__icontains=query)]
         else:
             li = [obj.name for obj in Skill.objects.filter(
                 name__icontains=query)]

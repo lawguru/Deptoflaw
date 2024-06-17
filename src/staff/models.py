@@ -54,10 +54,10 @@ class StaffProfile(models.Model):
     def save(self, *args, **kwargs):
         if self.is_hod:
             StaffProfile.objects.filter(is_hod=True).update(is_hod=False)
+            self.user.is_coordinator = True
         if self.is_tpc_head:
             StaffProfile.objects.filter(is_tpc_head=True).update(is_tpc_head=False)
-        if not self.pk and self.user == None:
-            self.user = User.objects.create(role='staff')
+            self.user.is_coordinator = True
         super().save(*args, **kwargs)
         self.user.save()
     

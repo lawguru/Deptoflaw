@@ -73,13 +73,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     def subtext(self):
         subtext = ''
         if self.role == 'student' and hasattr(self, 'student_profile'):
-            subtext = self.student_profile.course + ' ' + \
-                self.student_profile.semester_name + ' Semester'
+            if self.student_profile.is_current:
+                subtext = self.student_profile.course + ' ' + \
+                    self.student_profile.semester_name + ' Semester'
+            elif self.student_profile.dropped_out:
+                subtext = self.student_profile.course + ' ' + 'Drop Out'
+            elif self.student_profile.passed_out:
+                subtext = self.student_profile.course + ' ' + 'Alumni'
         if self.role == 'staff':
-            subtext = self.staff_profile.designation + \
-                (', TPC Head and HOD' if self.staff_profile.is_hod and self.staff_profile.is_tpc_head else '') + \
-                (' and HOD' if self.staff_profile.is_hod else '') + \
-                (' and TPC Head' if self.staff_profile.is_tpc_head else '')
+            subtext = (self.staff_profile.designation + \
+                (', Coordinator' if self.is_coordinator and not self.staff_profile.is_tpc_head and not self.staff_profile.is_hod else '') + \
+                (', TPC Head' if self.staff_profile.is_tpc_head else '') + \
+                (', HOD' if self.staff_profile.is_hod else ''))[::-1].replace(',', 'dna ', 1)[::-1]
         if self.role == 'recruiter':
             subtext = self.recruiter_profile.designation + \
                 ' at ' + self.recruiter_profile.company_name

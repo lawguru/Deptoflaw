@@ -65,7 +65,7 @@ class Contact(View):
 @method_decorator(login_required, name="dispatch")
 class AddNotice(View):
     def post(self, request):
-        if not self.request.user.role == 'staff' and not self.request.user.is_superuser and not self.request.user.is_coordinator:
+        if not (self.request.user.is_approved and self.request.user.role == 'staff') and not self.request.user.is_superuser and not self.request.user.is_coordinator:
             raise PermissionDenied()
         form = NoticeForm(request.POST)
         if form.is_valid():
@@ -142,9 +142,6 @@ class ListNotice(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated and (self.request.user.role == 'staff' or self.request.user.is_superuser or self.request.user.is_coordinator):
-            context['add_notice_form'] = NoticeForm()
-
         context['user_filter'] = self.request.GET.get('user-filter') or ''
         context['type_filter'] = self.request.GET.get('type-filter') or ''
         if context['type_filter'] == 'post-update':
@@ -169,6 +166,7 @@ class ListRecruitmentPost(ListView):
         queryset = self.apply_location_filter(queryset)
         queryset = self.apply_job_type_filters(queryset)
         queryset = self.apply_workplace_type_filters(queryset)
+        queryset = self.apply_salary_filter(queryset)
         queryset = self.apply_experience_filter(queryset)
         queryset = self.apply_start_date_filter(queryset)
         queryset = self.apply_skill_filter(queryset)
@@ -215,6 +213,12 @@ class ListRecruitmentPost(ListView):
         if workplace_type_filters:
             queryset = queryset.filter(
                 workplace_type__in=workplace_type_filters)
+        return queryset
+
+    def apply_salary_filter(self, queryset):
+        expected_salary = self.request.GET.get('expected-salary', 0)
+        if expected_salary:
+            queryset = queryset.filter(minimum_salary__gte=expected_salary)
         return queryset
 
     def apply_experience_filter(self, queryset):
@@ -280,10 +284,6 @@ class ListRecruitmentPost(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.role in ['recruiter', 'superuser', 'coordinator']:
-            context['add_post_form'] = AddRecruitmentPostForm(
-                initial={'user': self.request.user})
-
         context['company_filter'] = self.request.GET.get('company-filter', '')
         context['location_filter'] = self.request.GET.get(
             'location-filter', '')
@@ -293,6 +293,8 @@ class ListRecruitmentPost(ListView):
         context['workplace_type_filters'] = self.request.GET.getlist(
             'workplace-type-filters', [])
         context['workplace_type_choices'] = RecruitmentPost.workplace_type_choices
+        context['expected_salary'] = self.request.GET.get(
+            'expected-salary', 0)
         context['experience_filter_lower_limit'] = self.request.GET.get(
             'experience-filter-lower-limit', 0)
         context['experience_filter_upper_limit'] = self.request.GET.get(
@@ -335,8 +337,8 @@ class AddRecruitmentPost(AddUserKeyObject):
     redirect_url_name = 'recruitment_posts'
 
     def check_permission(self, request, *args, **kwargs):
-        if User.objects.get(pk=kwargs['user']) == request.user and request.user.is_coordinator:
-            return True
+        if not (User.objects.get(pk=kwargs['user']) == request.user and request.user.role == 'recruiter' and request.user.is_approved) and not request.user.is_coordinator and not request.user.is_superuser:
+            return False
         return super().check_permission(request, kwargs['user'], *args, **kwargs)
 
     def get_redirect_url_params(self, request, *args, **kwargs):
@@ -751,8 +753,14 @@ class Dashboard(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         user = self.request.user
+        
+        if (user.role == 'recruiter' and user.is_approved) or user.is_superuser or user.is_coordinator:
+            context['add_post_form'] = AddRecruitmentPostForm(
+                initial={'user': user})
+
+        if (user.role == 'staff' and user.is_approved) or user.is_superuser or user.is_coordinator:
+            context['add_notice_form'] = NoticeForm()
 
         if user.role == 'student':
             self.add_student_context(context, user)

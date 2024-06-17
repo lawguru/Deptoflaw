@@ -23,9 +23,13 @@ class StudentSignUp(TemplateView):
     def post(self, request):
         form = StudentSignUpForm(request.POST)
         if form.is_valid():
-            email = Email.objects.create(email=form.cleaned_data['email'])
-            student = StudentProfile.objects.create(registration_number=form.cleaned_data['registration_number'], course=form.cleaned_data['course'], number=int(
-                form.cleaned_data['number']), id_number=int(form.cleaned_data['id_number']), primary_email=email)
+            email, created = Email.objects.get_or_create(
+                email=form.cleaned_data['email'])
+            if email.user:
+                return render(request, self.template_name, {'form': form, 'error': 'Email already in use'})
+            user = User.objects.create(role='student', primary_email=email)
+            student = StudentProfile.objects.create(user=user, registration_number=form.cleaned_data['registration_number'], course=form.cleaned_data['course'], number=int(
+                form.cleaned_data['number']), id_number=int(form.cleaned_data['id_number']))
             student.user.first_name = form.cleaned_data['first_name']
             student.user.last_name = form.cleaned_data['last_name']
             student.user.set_password(form.cleaned_data['password'])
@@ -154,6 +158,12 @@ class SemesterReportCardTemplateListView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['empty_form'] = SemesterReportCardTemplateForm()
+        if self.request.user.is_superuser or self.request.user.is_coordinator: 
+            queryset = SemesterReportCardTemplate.objects.all()
+        elif self.request.user.student_profile.is_cr:
+            queryset = SemesterReportCardTemplate.objects.filter(course=self.request.user.student_profile.course, semester=self.request.user.student_profile.semester)
+        else:
+            queryset = []
         context['semester_report_card_templates'] = [
             (semester_report_card_template,
                 SemesterReportCardTemplateForm(
@@ -170,12 +180,12 @@ class SemesterReportCardTemplateListView(TemplateView):
                         } for i in range(len(semester_report_card_template.subjects))
                     ]
                 }
-             ) for semester_report_card_template in SemesterReportCardTemplate.objects.all()
+             ) for semester_report_card_template in queryset
         ]
         return context
 
     def get(self, request, *args, **kwargs):
-        if not request.user.is_superuser and not request.user.is_coordinator:
+        if not request.user.is_superuser and not request.user.is_coordinator and not request.user.student_profile.is_cr:
             raise PermissionDenied()
         return super().get(request, *args, **kwargs)
 

@@ -52,17 +52,17 @@
                     </div>
                     <div class="text-start">
                         <strong class="fw-bold text-body-emphasis lh-1">
-                            {% if post.sallary_type == 'S' %}
-                            {{ post.get_sallary_currency_display|slice:"6:" }} {{ post.sallary }}
-                            {% elif post.sallary_type == 'B' %}
-                            {{ post.get_sallary_currency_display|slice:"6:" }} {{ post.sallary }} + Bonus
-                            {% elif post.sallary_type == 'P' %}
-                            Performance Based
+                            {% if post.salary_type == 'S' %}
+                            {% if post.minimum_salary == post.maximum_salary %}
+                            ₹ {{ post.minimum_salary }} per month
                             {% else %}
-                            Negotiable
+                            ₹ {{ post.minimum_salary }} - {{ post.maximum_salary }} per month
+                            {% endif %}
+                            {% elif post.salary_type == 'P' %}
+                            Performance Based
                             {% endif %}
                         </strong>
-                        <small class="d-block text-body-secondary">Sallary</small>
+                        <small class="d-block text-body-secondary">Salary</small>
                     </div>
                 </span>
             </div>
@@ -74,8 +74,9 @@
                         <i class="bi bi-receipt fs-5"></i>
                     </div>
                     <div class="text-start">
-                        <strong class="fw-bold text-body-emphasis lh-1">{{ post.get_fee_currency_display|slice:"6:" }}
-                            {{ post.fee }}</strong>
+                        <strong class="fw-bold text-body-emphasis lh-1">
+                            ₹ {{ post.fee }}
+                        </strong>
                         <small class="d-block text-body-secondary">Fee</small>
                     </div>
                 </span>
@@ -617,7 +618,7 @@
 </div>
 <div class="modal fade" id="edit-post-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
     aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
         <div class="modal-content">
             <div class="modal-header">
                 <strong class="modal-title fs-3 fw-bold text-body-emphasis">
@@ -628,6 +629,7 @@
             <div class="modal-body">
                 <form id="edit-post-form" action="{% url 'change_recruitment_post' post.pk %}" method="POST">
                     {% csrf_token %}
+                    {{edit_form.user}}
                     <div class="form-text">
                         <strong class="text-body-emphasis">Note:</strong>
                         <ul>
@@ -689,38 +691,39 @@
                         </div>
                     </div>
                     <div class="row g-0 gap-3 mb-3">
-                        <div class="col-12 col-lg">
+                        <div class="col-12 col-xl">
                             <div class="input-group">
                                 <div style="width: 13ch">
                                     <div class="form-floating">
-                                        {{ edit_form.sallary_type}}
-                                        {{ edit_form.sallary_type.label_tag }}
+                                        {{ edit_form.salary_type}}
+                                        {{ edit_form.salary_type.label_tag }}
                                     </div>
                                 </div>
-                                <div style="width: 13ch">
-                                    <div class="form-floating">
-                                        {{ edit_form.sallary_currency}}
-                                        <label for="sallary_currency">Currency</label>
-                                    </div>
+                                <div class="input-group-text bg-transparent">
+                                    ₹
                                 </div>
                                 <div class="form-floating">
-                                    {{ edit_form.sallary }}
-                                    {{ edit_form.sallary.label_tag }}
+                                    {{ edit_form.minimum_salary }}
+                                    {{ edit_form.minimum_salary.label_tag }}
+                                </div>
+                                <div class="form-floating">
+                                    {{ edit_form.maximum_salary }}
+                                    {{ edit_form.maximum_salary.label_tag }}
+                                </div>
+                                <div class="input-group-text bg-transparent">
+                                    per month
                                 </div>
                             </div>
-                            {% if edit_form.sallary.help_text %}
+                            {% if edit_form.salary_type.help_text %}
                             <div class="form-text ms-3">
-                                {{ edit_form.sallary.help_text }}
+                                {{ edit_form.salary_type.help_text }}
                             </div>
                             {% endif %}
                         </div>
                         <div class="col-12 col-lg">
                             <div class="input-group">
-                                <div style="width: 13ch">
-                                    <div class="form-floating">
-                                        {{ edit_form.fee_currency }}
-                                        <label for="fee_currency">Currency</label>
-                                    </div>
+                                <div class="input-group-text bg-transparent">
+                                    ₹
                                 </div>
                                 <div class="form-floating">
                                     {{ edit_form.fee }}
@@ -879,4 +882,23 @@
         </div>
     </div>
 </div>
+<script>
+    skill_name = document.getElementById('id-skill-name')
+    skill_options = document.getElementById('skill-data-list')
+    skill_name.addEventListener('keyup', function () {
+        if (skill_name.value != '')
+            fetch(`{% url "skill_autocomplete" %}?q=${skill_name.value}&p={{ post.pk}}`)
+                .then(response => response.json())
+                .then(data => {
+                    skill_options.innerHTML = ''
+                    data.forEach(option => {
+                        newoption = document.createElement('option')
+                        newoption.value = option
+                        skill_options.appendChild(newoption)
+                    });
+                });
+        else
+            skill_options.innerHTML = ''
+    });
+</script>
 {% endblock %}

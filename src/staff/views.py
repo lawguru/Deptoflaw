@@ -4,12 +4,13 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, reverse
 from views import ChangeUserKeyObject
-from user.models import Email
+from user.models import Email, User
 from .models import StaffProfile
 from .forms import *
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, View
 
 # Create your views here.
+
 
 class StaffSignUp(TemplateView):
     template_name = 'staff_sign_up.html'
@@ -22,11 +23,16 @@ class StaffSignUp(TemplateView):
     def post(self, request):
         form = StaffSignUpForm(request.POST)
         if form.is_valid():
-            email = Email.objects.create(email=form.cleaned_data['email'])
-            staff = StaffProfile.objects.create(
-                id_number=form.cleaned_data['id_number'], qualification=form.cleaned_data['qualification'], designation=form.cleaned_data['designation'], primary_email=email)
+            email, created = Email.objects.get_or_create(
+                email=form.cleaned_data['email'])
+            if email.user:
+                return render(request, self.template_name, {'form': form, 'error': 'Email already in use'})
+            user = User.objects.create(role='staff', primary_email=email)
+            staff = StaffProfile.objects.create(user=user,
+                                                id_number=form.cleaned_data['id_number'], qualification=form.cleaned_data['qualification'], designation=form.cleaned_data['designation'])
             staff.user.first_name = form.cleaned_data['first_name']
             staff.user.last_name = form.cleaned_data['last_name']
+            staff.user.primary_email = email
             staff.user.set_password(form.cleaned_data['password'])
             staff.user.save()
             email.save()
@@ -57,7 +63,37 @@ class StaffSignIn(TemplateView):
                     if next:
                         return redirect(next)
                     return redirect('build_profile', user.pk)
+                else:
+                    return render(request, self.template_name, {'form': form, 'error': 'Invalid Password'})
+            else:
+                return render(request, self.template_name, {'form': form, 'error': 'Invalid ID Number'})
         return render(request, self.template_name, {'form': form})
+
+
+@method_decorator(login_required, name="dispatch")
+class MakeHOD(View):
+    def post(self, request, pk):
+        if not request.user.is_superuser and not request.user.staff_profile and not request.user.staff_profile.is_hod:
+            raise PermissionDenied()
+        if not StaffProfile.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        staff = StaffProfile.objects.get(pk=pk)
+        staff.is_hod = True
+        staff.save()
+        return redirect('staff_list')
+
+
+@method_decorator(login_required, name="dispatch")
+class MakeTPCHead(View):
+    def post(self, request, pk):
+        if not request.user.is_superuser and not request.user.staff_profile and not request.user.staff_profile.is_hod and not request.user.staff_profile.is_tpc_head:
+            raise PermissionDenied()
+        if not StaffProfile.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        staff = StaffProfile.objects.get(pk=pk)
+        staff.is_tpc_head = True
+        staff.save()
+        return redirect('staff_list')
 
 
 @method_decorator(login_required, name="dispatch")

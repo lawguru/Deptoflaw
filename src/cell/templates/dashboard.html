@@ -11,10 +11,47 @@
             <li class="list-group-item list-group-item-accent p-4">
                 <div
                     class="d-flex align-items-center justify-content-between m-0 icon-link icon-link-hover no-shadow">
-                    <div class="d-flex align-items-center gap-4">
+                    <div class="d-flex align-items-center gap-4 flex-fill">
                         <i class="bi bi-bell display-5"></i>
-                        <div class="me-auto">
-                            <h2 class="fw-bold text-body-emphasis lh-1">Notices and Updates</h2>
+                        <div class="flex-fill">
+                            <div class="d-flex align-items-center justify-content-between w-100">
+                                <h2 class="fw-bold text-body-emphasis lh-1">Notices and Updates</h2>
+                                {% if add_notice_form %}
+                                <a class="btn border border-0 m-0 fs-5" href="#" data-bs-toggle="modal" data-bs-target="#add-notice-modal">
+                                    <i class="bi bi-plus-circle"></i>
+                                </a>
+                                <div class="modal fade" id="add-notice-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                                    aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                                    Add a Notice
+                                                </strong>
+                                                <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form action="{% url 'add_notice' %}" id="add-notice-form" method="POST">
+                                                    {% csrf_token %}
+                                                    <div class="form-floating mb-3">
+                                                        {{ add_notice_form.title }}
+                                                        {{ add_notice_form.title.label_tag }}
+                                                    </div>
+                                                    <div class="form-floating">
+                                                        {{ add_notice_form.description }}
+                                                        {{ add_notice_form.description.label_tag }}
+                                                    </div>
+                                                </form>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <input type="submit" form="add-notice-form" class="btn btn-primary btn-lg w-100" value="Submit"
+                                                    onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true; this.value='Submitting...'; this.form.submit();">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
                             <div class="font-monospace" style="width: fit-content;">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span style="width: 8ch;">Total:</span>
@@ -42,7 +79,7 @@
             <li class="list-group-item list-group-item-accent p-4">
                 <div class="d-flex align-items-start gap-4">
                     <i class="bi bi-person-lines-fill display-5"></i>
-                    <div class="me-auto">
+                    <div class="flex-fill">
                         <h2 class="fw-bold text-body-emphasis lh-1">Filter Students</h2>
                         <div>Use our advanced filtering and sorting options to find the right students based on any
                             of your
@@ -75,7 +112,7 @@
             <li class="list-group-item list-group-item-accent p-4">
                 <div class="d-flex align-items-start gap-4">
                     <i class="bi bi-person-check display-5"></i>
-                    <div class="me-auto">
+                    <div class="flex-fill">
                         <h2 class="fw-bold text-body-emphasis lh-1">Approve new Users</h2>
                         <div class="mb-3">Approve or reject new Users who signed up.</div>
                         <div class="font-monospace" style="width: fit-content;">
@@ -119,9 +156,197 @@
             <li class="list-group-item list-group-item-accent p-4">
                 <div class="d-flex align-items-start gap-4">
                     <i class="bi bi-person-check display-5"></i>
-                    <div class="me-auto">
-                        <h2 class="fw-bold text-body-emphasis lh-1">Recruitments</h2>
-                        <div class="mb-3">Recruitments Posted by Recruiters that Students can Apply to.</div>
+                    <div class="flex-fill">
+                        <div class="d-flex align-items-center justify-content-between w-100">
+                            <div>
+                                <h2 class="fw-bold text-body-emphasis lh-1">Recruitments</h2>
+                                <div class="mb-3">Recruitments Posted by Recruiters that Students can Apply to.</div>
+                            </div>
+                            {% if add_post_form %}
+                            <a class="btn border border-0 m-0 fs-5" href="#" data-bs-toggle="modal" data-bs-target="#add-post-modal">
+                                <i class="bi bi-plus-circle"></i>
+                            </a>
+                            <div class="modal fade" id="add-post-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                                aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                                Post a Recruitment Offer
+                                            </strong>
+                                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form action="{% url 'add_recruitment_post' %}" id="add-post-form" method="POST">
+                                                {% csrf_token %}
+                                                {{add_post_form.user}}
+                                                <div class="form-text">
+                                                    <strong class="text-body-emphasis">Note:</strong>
+                                                    <ul>
+                                                        <li>
+                                                            You can edit this post and add instructions for applicants.
+                                                        </li>
+                                                        <li>
+                                                            You can also extend the Apply By date to receive more applications.
+                                                        </li>
+                                                        {% if not request.user.is_superuser and not request.user.is_coordinator %}
+                                                        <li>
+                                                            Some fields are uneditable after the post is published to avoid confusion among
+                                                            applicants. If you still need to make subtle changes to any of them, please contact
+                                                            the
+                                                            TPC.
+                                                        </li>
+                                                        {% endif %}
+                                                    </ul>
+                                                </div>
+                                                <div class="form-floating mb-3">
+                                                    {{ add_post_form.title }}
+                                                    {{ add_post_form.title.label_tag }}
+                                                </div>
+                                                <div class="row g-0 gap-3 mb-3">
+                                                    <div class="col-12 col-md form-floating">
+                                                        {{ add_post_form.company }}
+                                                        {{ add_post_form.company.label_tag }}
+                                                    </div>
+                                                    <div class="col-12 col-md">
+                                                        <div class="form-floating">
+                                                            {{ add_post_form.location }}
+                                                            {{ add_post_form.location.label_tag }}
+                                                        </div>
+                                                        {% if add_post_form.location.help_text %}
+                                                        <div class="form-text ms-3">
+                                                            {{ add_post_form.location.help_text }}
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="row g-0 gap-3 mb-3">
+                                                    <div class="col-12 col-sm form-floating">
+                                                        {{ add_post_form.job_type }}
+                                                        {{ add_post_form.job_type.label_tag }}
+                                                    </div>
+                                                    <div class="col-12 col-sm form-floating">
+                                                        {{ add_post_form.workplace_type }}
+                                                        {{ add_post_form.workplace_type.label_tag }}
+                                                    </div>
+                                                    <div class="col-12 col-lg">
+                                                        <div class="input-group">
+                                                            <div class="form-floating">
+                                                                {{ add_post_form.experience_duration }}
+                                                                {{ add_post_form.experience_duration.label_tag }}
+                                                            </div>
+                                                            <div class="input-group-text bg-body">
+                                                                Years
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row g-0 gap-3 mb-3">
+                                                    <div class="col-12 col-xl">
+                                                        <div class="input-group">
+                                                            <div style="width: 13ch">
+                                                                <div class="form-floating">
+                                                                    {{ add_post_form.salary_type}}
+                                                                    {{ add_post_form.salary_type.label_tag }}
+                                                                </div>
+                                                            </div>
+                                                            <div class="input-group-text bg-transparent">
+                                                                ₹
+                                                            </div>
+                                                            <div class="form-floating">
+                                                                {{ add_post_form.minimum_salary }}
+                                                                {{ add_post_form.minimum_salary.label_tag }}
+                                                            </div>
+                                                            <div class="form-floating">
+                                                                {{ add_post_form.maximum_salary }}
+                                                                {{ add_post_form.maximum_salary.label_tag }}
+                                                            </div>
+                                                            <div class="input-group-text bg-transparent">
+                                                                per month
+                                                            </div>
+                                                        </div>
+                                                        {% if add_post_form.salary_type.help_text %}
+                                                        <div class="form-text ms-3">
+                                                            {{ add_post_form.salary_type.help_text }}
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="col-12 col-lg">
+                                                        <div class="input-group">
+                                                            <div class="input-group-text bg-transparent">
+                                                                ₹
+                                                            </div>
+                                                            <div class="form-floating">
+                                                                {{ add_post_form.fee }}
+                                                                {{ add_post_form.fee.label_tag }}
+                                                            </div>
+                                                        </div>
+                                                        {% if add_post_form.fee.help_text %}
+                                                        <div class="form-text ms-3">
+                                                            {{ add_post_form.fee.help_text }}
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="row g-0 gap-3 mb-3">
+                                                    <div class="col-12 col-sm">
+                                                        <div class="input-group">
+                                                            <div style="width: 13ch">
+                                                                <div class="form-floating">
+                                                                    {{ add_post_form.start_date_type }}
+                                                                    {{ add_post_form.start_date_type.label_tag }}
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-floating">
+                                                                {{ add_post_form.start_date }}
+                                                                {{ add_post_form.start_date.label_tag }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12 col-sm">
+                                                        <div class="form-floating">
+                                                            {{ add_post_form.apply_by }}
+                                                            {{ add_post_form.apply_by.label_tag }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-floating mb-3">
+                                                    {{ add_post_form.description }}
+                                                    {{ add_post_form.description.label_tag }}
+                                                </div>
+                                                <div class="form-floating">
+                                                    {{ add_post_form.requirements }}
+                                                    {{ add_post_form.requirements.label_tag }}
+                                                </div>
+                                                <div class="form-text ms-3 mb-3">
+                                                    {{ add_post_form.requirements.help_text }}
+                                                </div>
+                                                <div class="form-floating">
+                                                    {{ add_post_form.required_documents }}
+                                                    {{ add_post_form.required_documents.label_tag }}
+                                                </div>
+                                                <div class="form-text ms-3 mb-3">
+                                                    {{ add_post_form.required_documents.help_text }}
+                                                </div>
+                                                <div class="form-floating">
+                                                    {{ add_post_form.questionaires }}
+                                                    {{ add_post_form.questionaires.label_tag }}
+                                                </div>
+                                                <div class="form-text ms-3 mb-3">
+                                                    {{ add_post_form.questionaires.help_text }}
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <input type="submit" form="add-post-form" class="btn btn-primary btn-lg w-100" value="Submit"
+                                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true; this.value='Submitting...'; this.form.submit();">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
                         <div class="font-monospace" style="width: fit-content;">
                             {% if request.user.is_superuser or request.user.is_coordinator %}
                             <div class="d-flex align-items-center justify-content-between">
@@ -166,7 +391,7 @@
             <li class="list-group-item list-group-item-accent p-4">
                 <div class="d-flex align-items-start gap-4">
                     <i class="bi bi-person-check display-5"></i>
-                    <div class="me-auto">
+                    <div class="flex-fill">
                         <h2 class="fw-bold text-body-emphasis lh-1">Applications</h2>
                         <div class="mb-3">Applications received from Students.</div>
                         <div class="font-monospace" style="width: fit-content;">
@@ -386,6 +611,28 @@
                                 </div>
                             </div>
                             {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {% endif %}
+            {% if request.user.is_superuser or request.user.is_coordinator or request.user.student_profile.is_cr and request.user.student_profile.is_current %}
+            <li class="list-group-item list-group-item-accent p-4">
+                <div
+                    class="d-flex align-items-center justify-content-between m-0 icon-link icon-link-hover no-shadow">
+                    <div class="d-flex align-items-center gap-4">
+                        <i class="bi bi-book display-5"></i>
+                        <div class="flex-fill">
+                            <h2 class="fw-bold text-body-emphasis lh-1">Subjects</h2>
+                            <div class="font-monospace" style="width: fit-content;">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span>View or Edit list of Subjects
+                                        <a class="btn btn-link rounded-pill m-0 p-0" href="{% url 'semester_report_card_template' %}">
+                                            View
+                                        </a>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

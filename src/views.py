@@ -28,8 +28,7 @@ class AddObject(ObjectView):
     template_name = None
 
     def form_unvalid(self, request, form, *args, **kwargs):
-        print(form.errors)
-        raise BadRequest()
+        raise BadRequest(form.errors)
 
     def get(self, request, *args, **kwargs):
         if not self.check_permission(request, *args, **kwargs):
@@ -57,8 +56,7 @@ class ChangeObject(ObjectView):
     template_name = None
 
     def form_unvalid(self, request, form, *args, **kwargs):
-        print(form.errors)
-        raise BadRequest()
+        raise BadRequest(form.errors)
 
     def get(self, request, pk, *args, **kwargs):
         if not self.model.objects.filter(pk=pk, **kwargs).exists():

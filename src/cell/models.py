@@ -69,62 +69,13 @@ class RecruitmentPost(models.Model):
         ('R', 'Remote'),
         ('H', 'Hybrid'),
     ]
-    currency_choices = [
-        ('INR', '(INR) ₹'),
-        ('USD', '(USD) $'),
-        ('EUR', '(EUR) €'),
-        ('GBP', '(GBP) £'),
-        ('JPY', '(JPY) ¥'),
-        ('CNY', '(CNY) ¥'),
-        ('AUD', '(AUD) $'),
-        ('CAD', '(CAD) $'),
-        ('CHF', '(CHF) Fr'),
-        ('SEK', '(SEK) kr'),
-        ('NZD', '(NZD) $'),
-        ('KRW', '(KRW) ₩'),
-        ('SGD', '(SGD) $'),
-        ('NOK', '(NOK) kr'),
-        ('MXN', '(MXN) $'),
-        ('HKD', '(HKD) $'),
-        ('TRY', '(TRY) ₺'),
-        ('RUB', '(RUB) ₽'),
-        ('INR', '(INR) ₹'),
-        ('BRL', '(BRL) R$'),
-        ('ZAR', '(ZAR) R'),
-        ('TWD', '(TWD) NT$'),
-        ('DKK', '(DKK) kr'),
-        ('PLN', '(PLN) zł'),
-        ('THB', '(THB) ฿'),
-        ('IDR', '(IDR) Rp'),
-        ('HUF', '(HUF) Ft'),
-        ('CZK', '(CZK) Kč'),
-        ('ILS', '(ILS) ₪'),
-        ('CLP', '(CLP) $'),
-        ('PHP', '(PHP) ₱'),
-        ('AED', '(AED) د.إ'),
-        ('COP', '(COP) $'),
-        ('SAR', '(SAR) ر.س'),
-        ('MYR', '(MYR) RM'),
-        ('VND', '(VND) ₫'),
-        ('IQD', '(IQD) ع.د'),
-        ('KWD', '(KWD) د.ك'),
-        ('NGN', '(NGN) ₦'),
-        ('EGP', '(EGP) E£'),
-        ('PKR', '(PKR) Rs'),
-        ('BDT', '(BDT) ৳'),
-        ('QAR', '(QAR) ر.ق'),
-        ('OMR', '(OMR) ر.ع.'),
-        ('LKR', '(LKR) Rs'),
-    ]
     start_date_type_choices = [
         ('I', 'Immediately'),
         ('S', 'Specify'),
     ]
-    sallary_type_choices = [
+    salary_type_choices = [
         ('S', 'Specified'),
-        ('B', 'Specified and Bonus'),
         ('P', 'Performance Based'),
-        ('N', 'Negotiable'),
     ]
     user = models.ForeignKey(
         User, null=True, on_delete=models.SET_NULL, related_name='recruitment_posts')
@@ -136,14 +87,10 @@ class RecruitmentPost(models.Model):
                                 max_length=2, choices=job_type_choices, default='FT')
     workplace_type = models.CharField('Workplace',
                                       max_length=1, choices=workplace_type_choices, default='S')
-    sallary_type = models.CharField('Paycheck type',
-                                    max_length=1, choices=sallary_type_choices, default='S')
-    sallary_currency = models.CharField(
-        max_length=3, choices=currency_choices, default='INR')
-    sallary = models.CharField('Amount',
-                               max_length=50, default='0', help_text='Paycheck / Sallary / Stipend. Example: 40 KPM, 4-6 LPA etc.')
-    fee_currency = models.CharField(
-        max_length=3, choices=currency_choices, default='INR')
+    salary_type = models.CharField('Paycheck type',
+                                    max_length=1, choices=salary_type_choices, default='S', help_text='Performance based or Specify a range')
+    minimum_salary = models.FloatField('Minimum', default=0)
+    maximum_salary = models.FloatField('Maximum', default=0)
     fee = models.FloatField(validators=[MinValueValidator(
         0)], default=0, help_text='Any fee to be paid by the applicant.')
     experience_duration = models.SmallIntegerField('Required Experience',
