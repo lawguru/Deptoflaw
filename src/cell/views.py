@@ -1,6 +1,5 @@
 from django.db.models import Count
 from django.shortcuts import render, redirect, reverse
-from django.contrib.auth.decorators import permission_required
 from staff.models import StaffProfile
 from settings.models import Setting
 from user.models import User
@@ -18,6 +17,7 @@ import json
 from itertools import chain
 
 # Create your views here.
+
 
 class Index(TemplateView):
     template_name = 'index.html'
@@ -120,8 +120,8 @@ class ListNotice(ListView):
 
     def apply_user_filter(self, queryset):
         user_filter = self.request.GET.get('user-filter')
-        if user_filter:
-            return queryset.filter(user__id=user_filter)
+        if user_filter == 'me':
+            return queryset.filter(user=self.request.user)
         return queryset
 
     def apply_recruitment_post_filters(self, queryset):
@@ -154,7 +154,6 @@ class ListNotice(ListView):
         return context
 
 
-@method_decorator(login_required, name="dispatch")
 class ListRecruitmentPost(ListView):
     model = RecruitmentPost
     template_name = 'recruitment_posts.html'
@@ -269,6 +268,11 @@ class ListRecruitmentPost(ListView):
         return queryset
 
     def apply_applications_filter(self, queryset):
+        if self.request.user.is_authenticated and self.request.user.role == 'recruiter' and not self.request.GET.get('post-filter') == 'applied-by-me':
+            return queryset
+        elif self.request.user.is_authenticated and not self.request.user.is_superuser and not self.request.user.is_coordinator:
+            return queryset
+        
         applications_filter_lower_limit = self.request.GET.get(
             'applications-filter-lower-limit', 0)
         queryset = queryset.annotate(application_count=Count('applications')).filter(
@@ -310,12 +314,13 @@ class ListRecruitmentPost(ListView):
         context['skill_filter'] = self.request.GET.getlist('skill-filter')
         context['is_active_filter'] = self.request.GET.get(
             'is-active-filter', 'any')
-        context['applications_filter_lower_limit'] = self.request.GET.get(
-            'applications-filter-lower-limit', 0)
-        context['applications_status_filters'] = self.request.GET.getlist(
-            'applications-status-filters', [])
+        if (self.request.user.is_authenticated and self.request.user.role == 'recruiter' and self.request.GET.get('post-filter') == 'applied-by-me') or (self.request.user.is_authenticated and self.request.user.is_superuser and self.request.user.is_coordinator):
+            context['applications_filter_lower_limit'] = self.request.GET.get(
+                'applications-filter-lower-limit', 0)
+            context['applications_status_filters'] = self.request.GET.getlist(
+                'applications-status-filters', [])
         context['post_filter'] = self.request.GET.get('post-filter', '')
-        if self.request.user.role == 'student':
+        if self.request.user.is_authenticated and self.request.user.role == 'student':
             context['applied_posts'] = RecruitmentPost.objects.filter(
                 applications__user=self.request.user).distinct()
 
@@ -754,7 +759,7 @@ class Dashboard(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        
+
         if (user.role == 'recruiter' and user.is_approved) or user.is_superuser or user.is_coordinator:
             context['add_post_form'] = AddRecruitmentPostForm(
                 initial={'user': user})

@@ -4,12 +4,14 @@
 {% load humanize %}
 {% block content %}
 <div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
-    <strong class="display-6 fw-bold text-body-emphasis lh-1">Notices</strong>
-    {% if user_filter %}
-    <small class="d-block text-body-secondary">
-        By {{user.full_name}}
-    </small>
-    {% endif %}
+    <div class="my-5">
+        <strong class="display-6 fw-bold text-body-emphasis lh-1">Notices</strong>
+        {% if user_filter == 'me' %}
+        <small class="d-block text-body-secondary">
+            By {{user.full_name}}
+        </small>
+        {% endif %}
+    </div>
 
     <nav class="navbar navbar-expand-xl bg-body p-0 mb-3 border rounded-2">
         <div class="container-fluid">
@@ -75,6 +77,32 @@
             </div>
             <div class="collapse navbar-collapse" id="filters-navbar">
                 <ul class="navbar-nav me-auto mb-2 mb-xl-0">
+                    {% if request.user.is_superuser or request.user.is_coordinator or request.user.role == 'recruiter' or request.user.role == 'staff' %}
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle p-2" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Posted by
+                            </a>
+                            <form action="#">
+                                <input id="user-form-input" type="hidden" name="user-filter">
+                                <ul class="dropdown-menu" onclick="event.stopPropagation()">
+                                    <li>
+                                        <input type="submit"
+                                            onclick="document.getElementById('user-form-input').value=''" value="Any"
+                                            class="dropdown-item {% if user_filter == '' %} active {% endif %}">
+                                    </li>
+                                    <li>
+                                        <input type="submit"
+                                            onclick="document.getElementById('user-form-input').value='me'"
+                                            value="Me"
+                                            class="dropdown-item {% if user_filter == 'me' %} active {% endif %}">
+                                    </li>
+                                </ul>
+                            </form>
+                        </div>
+                    </li>
+                    {% endif %}
                     <li class="nav-item">
                         <div class="nav-link dropdown">
                             <a class="nav-link dropdown-toggle p-2" href="#" role="button" data-bs-toggle="dropdown"
@@ -106,8 +134,7 @@
                         </div>
                     </li>
                     {% if type_filter == 'post-update' %}
-                    {% if request.user.is_superuser or request.user.is_coordinator or request.user.role == 'recruiter'
-                    or request.user.role == 'student' %}
+                    {% if request.user.is_superuser or request.user.is_coordinator or request.user.role == 'recruiter' or request.user.role == 'student' %}
                     <li class="nav-item">
                         <div class="nav-link dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
@@ -124,8 +151,7 @@
                                             value="All"
                                             class="dropdown-item {% if recruitment_post_filter == '' %} active {% endif %}">
                                     </li>
-                                    {% if request.user.is_superuser or request.user.is_coordinator or request.user.role
-                                    == 'recruiter' %}
+                                    {% if request.user.is_superuser or request.user.is_coordinator or request.user.role == 'recruiter' %}
                                     <li>
                                         <input type="submit"
                                             onclick="document.getElementById('recruitment-post-filter-form-input').value='by-me'"

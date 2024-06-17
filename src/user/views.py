@@ -48,7 +48,7 @@ class UserListView(ListView):
 
     def apply_approval_filter(self, queryset):
         is_approved_filter = self.request.GET.get('is-approved-filter')
-        if is_approved_filter == 'False':
+        if is_approved_filter == 'False' and (self.request.user.is_superuser or self.request.user.is_coordinator):
             return queryset.filter(is_approved=False)
         return queryset.filter(is_approved=True)
 
@@ -226,6 +226,10 @@ class UserListView(ListView):
         context['roles'] = User.role_choices
         context['role_filter'] = self.request.GET.get('role-filter', '')
         context['skill_filters'] = self.request.GET.get('skill-filters', '[]')
+        context['is_approved_filter'] = True
+        is_approved_filter = self.request.GET.get('is-approved-filter')
+        if is_approved_filter == 'False' and (self.request.user.is_superuser or self.request.user.is_coordinator):
+            context['is_approved_filter'] = False
 
         if context['role_filter'] == 'student':
             self.add_student_context(context)
