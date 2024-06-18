@@ -43,5 +43,7 @@ class Command(BaseCommand):
             user.set_password(User.objects.make_random_password())
 
         user.save()
+        email_obj.user = user
+        email_obj.save()
         StaffProfile.objects.create(user=user)
         self.stdout.write(self.style.SUCCESS(f'Successfully created superuser with email: {email}'))
