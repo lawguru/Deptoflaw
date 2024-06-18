@@ -51,13 +51,13 @@ class StudentSignIn(TemplateView):
     def post(self, request):
         form = StudentSigninForm(request.POST)
         if form.is_valid():
-            registration_number = form.cleaned_data['registration_number']
+            registration_number_or_email = form.cleaned_data['registration_number_or_email']
             password = form.cleaned_data['password']
-            if StudentProfile.objects.filter(registration_number=int(registration_number)).exists():
+            if StudentProfile.objects.filter(registration_number=int(registration_number_or_email)).exists():
                 user = StudentProfile.objects.get(
-                    registration_number=int(registration_number)).user
-            elif Email.objects.filter(email=registration_number).exists():
-                email = Email.objects.get(email=registration_number)
+                    registration_number=int(registration_number_or_email)).user
+            elif Email.objects.filter(email=registration_number_or_email).exists():
+                email = Email.objects.get(email=registration_number_or_email)
                 if email.user:
                     user = email.user
                 else:
