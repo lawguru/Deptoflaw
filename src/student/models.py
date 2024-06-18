@@ -211,8 +211,8 @@ class StudentProfile(models.Model):
     def save(self, *args, **kwargs):
         self.registration_year = int(f'{self.registration_number}'[:4])
         self.id_card = f'{self.registration_year % 100}CSE{"BTC" if self.course == "B.Tech" else "MTC" if self.course == "M.Tech" else "PHD"}{self.id_number:03d}'
-        self.cgpa = self.calculate_cgpa()
         if self.pk and StudentProfile.objects.filter(pk=self.pk).exists():
+            self.cgpa = self.calculate_cgpa()
             self.backlog_count = sum(
                 [semester_report_card.backlogs for semester_report_card in self.semester_report_cards.all()])
             self.passed_semesters = sum(
@@ -222,7 +222,6 @@ class StudentProfile(models.Model):
                     self.pass_out_year = datetime.now().year
                 else:
                     self.pass_out_year = None
-        if self.pk:
             while self.semester_report_cards.count() < self.semester:
                 SemesterReportCard.objects.create(student_profile=self)
         if self.is_cr:
