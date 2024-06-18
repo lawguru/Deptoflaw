@@ -28,5 +28,6 @@ __pycache__/
 # Ignore secret key file
 /secret_key.txt
 
-# Ignore migrations
-migrations/
+# Igonre files inside migrations except __init__.py
+**/migrations/*
+!**/migrations/__init__.py
