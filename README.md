@@ -2,13 +2,14 @@
 
 ## Prerequisites
 
-1. python and pip should be installed on the system
+1. python and pip and git should be installed on the system
 
     To Check execute in Command line:
 
       ```
       python --version
       pip --version
+      git --version
       ```
 
 ## Installation
