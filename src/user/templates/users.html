@@ -664,7 +664,7 @@
                                 <li>
                                     <form action="{% url 'make_superuser' user.pk %}" method="POST">
                                         {% csrf_token %}
-                                        <input type="submit" class="btn dropdown-item" value="Make Coordinator">
+                                        <input type="submit" class="btn dropdown-item" value="Make Superuser">
                                     </form>
                                 </li>
                                 {% endif %}
