@@ -30,6 +30,9 @@
                         <div class="modal-body">
                             <form id="add-other-education-form" action="{% url 'add_other_education' %}" method="POST">
                                 {% csrf_token %}
+                                <div class="d-none">
+                                    {{ other_education_form.user }}
+                                </div>
                                 <div class="form-floating mb-3">
                                     {{ other_education_form.education }}
                                     {{ other_education_form.education.label_tag }}
@@ -106,7 +109,7 @@
                 <p class="mb-0">with <strong>{{ education.0.grade_point }} points</strong> out of 10</p>
                 <p>on <strong>{{ education.0.year }}</strong> in <strong>{{ education.0.duration }} years</strong></p>
                 <span class="d-flex gap-3">
-                    {% if request.user in education.edit_users %}
+                    {% if request.user in education.0.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#change-other-education-{{ education.0.pk }}-modal">
                         <i class="bi bi-pen"></i>
@@ -128,6 +131,9 @@
                                     <form id="change-other-education-{{ education.0.pk }}-form"
                                         action="{% url 'change_other_education' education.0.pk %}" method="POST">
                                         {% csrf_token %}
+                                        <div class="d-none">
+                                            {{ education.1.user }}
+                                        </div>
                                         <div class="form-floating mb-3">
                                             {{ education.1.education }}
                                             {{ education.1.education.label_tag }}
@@ -188,7 +194,7 @@
                         </div>
                     </div>
                     {% endif %}
-                    {% if request.user in education.delete_users %}
+                    {% if request.user in education.0.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#delete-other-education-{{  education.0.pk }}-modal">
                         <i class="bi bi-x-circle"></i>
@@ -303,7 +309,7 @@
                 </div>
                 <p class="replace-abbreviation">{{ certification.0.description }}</p>
                 <span class="d-flex gap-3">
-                    {% if request.user in certification.edit_users %}
+                    {% if request.user in certification.0.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#change-certification-{{ certification.0.pk }}-modal">
                         <i class="bi bi-pen"></i>
@@ -361,7 +367,7 @@
                         </div>
                     </div>
                     {% endif %}
-                    {% if request.user in certification.delete_users %}
+                    {% if request.user in certification.0.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#delete-certification-{{ certification.0.pk }}-modal">
                         <i class="bi bi-x-circle"></i>

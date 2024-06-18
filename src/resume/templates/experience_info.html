@@ -30,6 +30,9 @@
                         <div class="modal-body">
                             <form id="add-work-experience-form" action="{% url 'add_work_experience' %}" method="POST">
                                 {% csrf_token %}
+                                <div class="d-none">
+                                    {{ work_experience_form.user }}
+                                </div>
                                 <div class="form-floating mb-3">
                                     {{ work_experience_form.title }}
                                     {{ work_experience_form.title.label_tag }}
@@ -95,7 +98,7 @@
                 </div>
                 <p class="replace-abbreviation">{{ work_experience.0.description }}</p>
                 <span class="d-flex gap-3">
-                    {% request.user in work_experience.edit_users %}
+                    {% if request.user in work_experience.0.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#change-work-experience-{{ work_experience.0.pk }}-modal">
                         <i class="bi bi-pen"></i>
@@ -117,6 +120,9 @@
                                     <form id="change-work-experience-{{ work_experience.0.pk }}-form"
                                         action="{% url 'change_work_experience' work_experience.0.pk %}" method="POST">
                                         {% csrf_token %}
+                                        <div class="d-none">
+                                            {{ work_experience.1.user }}
+                                        </div>
                                         <div class="form-floating mb-3">
                                             {{ work_experience.1.title }}
                                             {{ work_experience.1.title.label_tag }}
@@ -160,7 +166,7 @@
                         </div>
                     </div>
                     {% endif %}
-                    {% if request.user in work_experience.delete_users %}
+                    {% if request.user in work_experience.0.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#delete-work-experience-{{ work_experience.0.pk }}-modal">
                         <i class="bi bi-x-circle"></i>
@@ -224,6 +230,9 @@
                         <div class="modal-body">
                             <form id="add-project-form" action="{% url 'add_project' %}" method="POST">
                                 {% csrf_token %}
+                                <div class="d-none">
+                                    {{ project_form.user }}
+                                </div>
                                 <div class="form-floating mb-3">
                                     {{ project_form.title }}
                                     {{ project_form.title.label_tag }}
@@ -286,7 +295,7 @@
                 </div>
                 <p class="replace-abbreviation">{{ project.0.description }}</p>
                 <span class="d-flex gap-3">
-                    {% if request.user in project.edit_users %}
+                    {% if request.user in project.0.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#change-project-{{ project.0.pk }}-modal">
                         <i class="bi bi-pen"></i>
@@ -307,6 +316,9 @@
                                     <form id="change-project-{{ project.0.pk }}-form"
                                         action="{% url 'change_project' project.0.pk %}" method="POST">
                                         {% csrf_token %}
+                                        <div class="d-none">
+                                            {{ project.1.user }}
+                                        </div>
                                         <div class="form-floating mb-3">
                                             {{ project.1.title }}
                                             {{ project.1.title.label_tag }}
@@ -347,7 +359,7 @@
                         </div>
                     </div>
                     {% endif %}
-                    {% if request.user in project.delete_users %}
+                    {% if request.user in project.0.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#delete-project-{{ project.0.pk }}-modal">
                         <i class="bi bi-x-circle"></i>

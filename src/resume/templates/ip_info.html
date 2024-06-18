@@ -29,6 +29,9 @@
                         <div class="modal-body">
                             <form id="add-patent-form" action="{% url 'add_patent' %}" method="POST">
                                 {% csrf_token %}
+                                <div class="d-none">
+                                    {{ patent_form.user }}
+                                </div>
                                 <div class="form-floating mb-3">
                                     {{ patent_form.title }}
                                     {{ patent_form.title.label_tag }}
@@ -110,6 +113,9 @@
                                     <form id="change-patent-{{ patent.0.pk }}-form"
                                         action="{% url 'change_patent' patent.0.pk %}" method="POST">
                                         {% csrf_token %}
+                                        <div class="d-none">
+                                            {{ patent.1.user }}
+                                        </div>
                                         <div class="form-floating mb-3">
                                             {{ patent.1.title }}
                                             {{ patent.1.title.label_tag }}
@@ -209,6 +215,9 @@
                         <div class="modal-body">
                             <form id="add-publication-form" action="{% url 'add_publication' %}" method="POST">
                                 {% csrf_token %}
+                                <div class="d-none">
+                                    {{ publication_form.user }}
+                                </div>
                                 <div class="form-floating mb-3">
                                     {{ publication_form.title }}
                                     {{ publication_form.title.label_tag }}
@@ -283,6 +292,9 @@
                                     <form id="change-publication-{{ publication.0.pk }}-form"
                                         action="{% url 'change_publication' publication.0.pk %}" method="POST">
                                         {% csrf_token %}
+                                        <div class="d-none">
+                                            {{ publication.1.user }}
+                                        </div>
                                         <div class="form-floating mb-3">
                                             {{ publication.1.title }}
                                             {{ publication.1.title.label_tag }}

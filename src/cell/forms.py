@@ -65,7 +65,6 @@ class RecruitmentPostForm(forms.ModelForm):
                 visible.field.widget.attrs['style'] = 'height: 8rem'
         for field in self.Meta.readonly_widgets:
             self.fields[field].widget = self.Meta.readonly_widgets[field]
-            self.fields[field].disabled = True
 
 
 class AddRecruitmentPostForm(RecruitmentPostForm):

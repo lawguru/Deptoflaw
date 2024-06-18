@@ -331,6 +331,9 @@
                                     <form id="change-address-{{ address.0.pk }}-form"
                                         action="{% url 'change_address' address.0.pk %}" method="POST">
                                         {% csrf_token %}
+                                        <div class="d-none">
+                                            {{ address.1.user }}
+                                        </div>
                                         <div class="form-floating mb-3">
                                             {{ address.1.address }}
                                             {{ address.1.address.label_tag }}

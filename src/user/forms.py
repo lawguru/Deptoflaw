@@ -34,7 +34,6 @@ class PhoneNumberForm(forms.ModelForm):
         if user:
             self.fields['user'].initial = user
         self.fields['user'].widget.attrs['readonly'] = True
-        self.fields['user'].disabled = True
 
 
 class EmailForm(forms.ModelForm):
@@ -53,7 +52,6 @@ class EmailForm(forms.ModelForm):
         if user:
             self.fields['user'].initial = user
         self.fields['user'].widget.attrs['readonly'] = True
-        self.fields['user'].disabled = True
 
 
 class AddressForm(forms.ModelForm):
@@ -77,7 +75,6 @@ class AddressForm(forms.ModelForm):
         if user:
             self.fields['user'].initial = user
         self.fields['user'].widget.attrs['readonly'] = True
-        self.fields['user'].disabled = True
 
 
 class LinkForm(forms.ModelForm):
@@ -97,7 +94,6 @@ class LinkForm(forms.ModelForm):
         if user:
             self.fields['user'].initial = user
         self.fields['user'].widget.attrs['readonly'] = True
-        self.fields['user'].disabled = True
         for visible in self.visible_fields():
             visible.field.widget.attrs['class'] = 'form-control'
             visible.field.widget.attrs['placeholder'] = visible.field.label

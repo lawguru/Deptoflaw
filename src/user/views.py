@@ -524,7 +524,7 @@ class AddPhoneNumber(AddUserKeyObject):
     form = PhoneNumberForm
     redirect_url_name = 'phone_numbers'
 
-    def get(self, request, user):
+    def get(self, request):
         raise BadRequest()
 
 
