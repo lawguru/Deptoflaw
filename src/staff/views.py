@@ -51,23 +51,26 @@ class StaffSignIn(TemplateView):
     def post(self, request):
         form = StaffSigninForm(request.POST)
         if form.is_valid():
-            id_number = form.cleaned_data['id_number']
+            email_or_id = form.cleaned_data['email_or_id']
             password = form.cleaned_data['password']
-            if StaffProfile.objects.filter(id_number=id_number).exists():
-                staff = StaffProfile.objects.get(
-                    id_number=id_number)
-                user = authenticate(username=staff.user.pk, password=password)
-                if user is not None:
-                    login(request, user)
-                    next = request.GET.get('next')
-                    if next:
-                        return redirect(next)
-                    return redirect('build_profile', user.pk)
-                else:
-                    return render(request, self.template_name, {'form': form, 'error': 'Invalid Password'})
+            if StaffProfile.objects.filter(id_number=email_or_id).exists():
+                staff = StaffProfile.objects.get(id_number=email_or_id)
+            elif StaffProfile.objects.filter(user__primary_email__email=email_or_id).exists():
+                staff = StaffProfile.objects.get(user__primary_email__email=email_or_id)
             else:
-                return render(request, self.template_name, {'form': form, 'error': 'Invalid ID Number'})
-        return render(request, self.template_name, {'form': form})
+                return render(request, self.template_name, {'form': form, 'error': 'Invalid ID Number or Email'})
+
+            user = authenticate(username=staff.user.pk, password=password)
+            if user is not None:
+                login(request, user)
+                next = request.GET.get('next')
+                if next:
+                    return redirect(next)
+                return redirect('build_profile', user.pk)
+            else:
+                return render(request, self.template_name, {'form': form, 'error': 'Invalid Password'})
+        else:
+            return render(request, self.template_name, {'form': form, 'error': 'Invalid Data'})
 
 
 @method_decorator(login_required, name="dispatch")

@@ -49,7 +49,7 @@ class StaffProfile(models.Model):
     ]
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='staff_profile')
-    id_number = models.CharField('ID Number', max_length=50, unique=True)
+    id_number = models.CharField('ID Number', max_length=50, blank=True, null=True, unique=True)
     qualification = models.CharField(
         max_length=6, choices=qualification_choices, default='others')
     designation = models.CharField(

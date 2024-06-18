@@ -9,8 +9,8 @@
         <form action="#student-signin-form" method="POST" class="py-3">
             {% csrf_token %}
             <div class="form-floating mb-3">
-                {{ form.id_number }}
-                {{ form.id_number.label_tag }}
+                {{ form.email_or_id }}
+                {{ form.email_or_id.label_tag }}
             </div>
             <div class="form-floating mb-3">
                 {{ form.password }}

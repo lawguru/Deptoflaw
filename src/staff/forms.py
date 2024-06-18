@@ -15,8 +15,10 @@ class StaffProfileForm(forms.ModelForm):
             visible.field.widget.attrs['class'] = 'form-control'
             visible.field.widget.attrs['placeholder'] = visible.field.label
 
+
 class StaffSignUpForm(forms.Form):
-    id_number = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ID Number'}))     
+    id_number = forms.CharField(max_length=50, widget=forms.TextInput(
+        attrs={'class': 'form-control', 'placeholder': 'ID Number'}))
     first_name = forms.CharField(max_length=50, widget=forms.TextInput(
         attrs={'class': 'form-control', 'placeholder': 'First Name'}))
     last_name = forms.CharField(max_length=50, widget=forms.TextInput(
@@ -36,12 +38,13 @@ class StaffSignUpForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.label_suffix = ''
 
+
 class StaffSigninForm(forms.Form):
-    id_number = forms.CharField(widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'ID number'}))
+    email_or_id = forms.CharField(label='Email or ID number', widget=forms.TextInput(
+        attrs={'class': 'form-control', 'placeholder': 'Email or ID number'}))
     password = forms.CharField(widget=forms.PasswordInput(
         attrs={'class': 'form-control', 'placeholder': 'Password'}))
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_suffix = ''

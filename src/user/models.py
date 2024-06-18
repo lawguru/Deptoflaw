@@ -5,30 +5,6 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, Permis
 # Create your models here.
 
 
-class UserManager(BaseUserManager):
-    def create_user(self, id, password=None):
-        if not id:
-            raise ValueError("Users must have an id")
-
-        user = self.model(
-            id=id
-        )
-
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, id, password=None):
-        user = self.create_user(
-            id=id,
-            password=password
-        )
-        user.is_staff = True
-        user.is_superuser = True
-        user.save(using=self._db)
-        return user
-
-
 class User(AbstractBaseUser, PermissionsMixin):
     role_choices = [
         ('staff', 'Staff'),
@@ -52,7 +28,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(
         max_length=20, choices=role_choices, default='staff')
 
-    objects = UserManager()
+    objects = BaseUserManager()
 
     USERNAME_FIELD = 'id'
 
