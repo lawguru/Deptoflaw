@@ -12,6 +12,7 @@ from django.views.generic.base import TemplateView
 
 # Create your views here.
 
+
 class StudentSignUp(TemplateView):
     template_name = 'student_sign_up.html'
 
@@ -53,19 +54,26 @@ class StudentSignIn(TemplateView):
             registration_number = form.cleaned_data['registration_number']
             password = form.cleaned_data['password']
             if StudentProfile.objects.filter(registration_number=int(registration_number)).exists():
-                student = StudentProfile.objects.get(
-                    registration_number=int(registration_number))
-                user = authenticate(
-                    username=student.user.pk, password=password)
-                if user is not None:
-                    login(request, user)
-                    next = request.GET.get('next')
-                    if next:
-                        return redirect(next)
-                    return redirect('build_profile', user.pk)
-                return render(request, self.template_name, {'form': form, 'error': 'Wrong Password'})
-            return render(request, self.template_name, {'form': form, 'error': 'Invalid Registration Number'})
-        return render(request, self.template_name, {'form': form})
+                user = StudentProfile.objects.get(
+                    registration_number=int(registration_number)).user
+            elif Email.objects.filter(email=registration_number).exists():
+                email = Email.objects.get(email=registration_number)
+                if email.user:
+                    user = email.user
+                else:
+                    return render(request, self.template_name, {'form': form, 'error': 'No User with this Email'})
+            else:
+                return render(request, self.template_name, {'form': form, 'error': 'Invalid Registration Number or Email'})
+            user = authenticate(
+                username=user.pk, password=password)
+            if user is not None:
+                login(request, user)
+                next = request.GET.get('next')
+                if next:
+                    return redirect(next)
+                return redirect('build_profile', user.pk)
+            return render(request, self.template_name, {'form': form, 'error': 'Wrong Password'})
+        return render(request, self.template_name, {'form': form, 'error': 'Invalid Form Data'})
 
 
 @method_decorator(login_required, name="dispatch")
@@ -87,13 +95,13 @@ class AcademicInfo(TemplateView):
         context['profile'] = profile
         context['semester_report_cards'] = [(semester_report_card, SemesterReportCardForm(instance=semester_report_card)) for semester_report_card in SemesterReportCard.objects.filter(
             student_profile=profile)[0:profile.semester]]
-        
+
         context['semester_report_card_empty_form'] = SemesterReportCardForm()
 
         if self.request.user in profile.edit_users:
             context['change_profile_form'] = StudentProfileForm(
                 instance=profile)
-        
+
         return context
 
 

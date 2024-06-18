@@ -30,8 +30,8 @@ class StudentSignUpForm(forms.Form):
 
 
 class StudentSigninForm(forms.Form):
-    registration_number = forms.CharField(widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'Registration number'}))
+    registration_number_or_email = forms.CharField(widget=forms.TextInput(
+        attrs={'class': 'form-control', 'placeholder': 'Registration number or Email'}))
     password = forms.CharField(widget=forms.PasswordInput(
         attrs={'class': 'form-control', 'placeholder': 'Password'}))
 

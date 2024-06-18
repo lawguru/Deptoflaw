@@ -51,20 +51,23 @@ class RecruiterSignIn(TemplateView):
     def post(self, request):
         form = RecruiterSigninForm(request.POST)
         if form.is_valid():
-            primary_email = form.cleaned_data['primary_email']
+            email = form.cleaned_data['email']
             password = form.cleaned_data['password']
-            if RecruiterProfile.objects.filter(user__primary_email__email=primary_email).exists():
-                recruiter = RecruiterProfile.objects.get(
-                    user__primary_email__email=primary_email)
+            if not Email.objects.filter(email=email).exists():
+                return render(request, self.template_name, {'form': form, 'error': 'Email does not exist'})
+            email = Email.objects.get(email=email)
+            if email.user:
                 user = authenticate(
-                    username=recruiter.user.pk, password=password)
+                    username=email.user.pk, password=password)
                 if user is not None:
                     login(request, user)
                     next = request.GET.get('next')
                     if next:
                         return redirect(next)
                     return redirect('build_profile', user.pk)
-        return render(request, self.template_name, {'form': form})
+                return render(request, self.template_name, {'form': form, 'error': 'Invalid password'})
+            return render(request, self.template_name, {'form': form, 'error': 'No user with this email'})
+        return render(request, self.template_name, {'form': form, 'error': 'Invalid form data'})
 
 
 @method_decorator(login_required, name="dispatch")
