@@ -289,6 +289,11 @@ class UserListView(ListView):
 class SignIn(TemplateView):
     template_name = 'sign_in.html'
 
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('build_profile', request.user.pk)
+        return super().get(request)
+
 
 @method_decorator(login_required, name="dispatch")
 class SignOut(View):
