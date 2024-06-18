@@ -168,12 +168,6 @@ class RecruitmentPost(models.Model):
         return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
 
     @property
-    def view_users(self):
-        if self.is_active:
-            return User.objects.all()
-        return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
-
-    @property
     def add_skill_users(self):
         return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
 
@@ -226,12 +220,6 @@ class RecruitmentPostUpdate(models.Model):
     @property
     def edit_users(self):
         return User.objects.filter(is_superuser=True).distinct()
-
-    @property
-    def view_users(self):
-        if self.recruitment_post.is_active:
-            return User.objects.all()
-        return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
 
 
 class RecruitmentApplication(models.Model):
@@ -294,32 +282,25 @@ class RecruitmentApplication(models.Model):
         max_length=1, choices=status_choices, default='P')
 
     @property
-    def view_users(self):
-        return User.objects.filter(
-            Q(is_superuser=True) | Q(is_coordinator=True) |
-            Q(pk=self.user.pk) | Q(pk=self.recruitment_post.user.pk)
-        ).distinct()
-
-    @property
     def select_users(self):
         if self.status == 'P':
-            return User.objects.filter(Q(is_superuser=True) | Q(pk=self.recruitment_post.user.pk)).distinct()
+            return self.recruitment_post.select_application_users
         return User.objects.none()
 
     @property
     def reject_users(self):
         if self.status == 'P':
-            return User.objects.filter(Q(is_superuser=True) | Q(pk=self.recruitment_post.user.pk)).distinct()
+            return self.recruitment_post.reject_application_users
         return User.objects.none()
 
     @property
     def shortlist_users(self):
         if self.status == 'P':
-            return User.objects.filter(Q(is_superuser=True) | Q(pk=self.recruitment_post.user.pk)).distinct()
+            return self.recruitment_post.shortlist_application_users
         return User.objects.none()
 
     @property
     def pending_users(self):
         if self.status != 'P':
-            return User.objects.filter(Q(is_superuser=True) | Q(pk=self.recruitment_post.user.pk)).distinct()
+            return self.recruitment_post.pending_application_users
         return User.objects.none()

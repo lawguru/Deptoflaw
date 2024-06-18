@@ -176,6 +176,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         self.full_name = self.get_full_name()
         self.short_name = self.get_short_name()
         self.is_doctor = self.check_if_doctor()
+        if self.is_superuser or self.is_coordinator:
+            self.is_approved = True 
         super().save(*args, **kwargs)
 
     def __str__(self):

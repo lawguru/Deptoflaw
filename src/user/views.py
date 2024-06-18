@@ -326,6 +326,19 @@ class RejectUser(View):
 
 
 @method_decorator(login_required, name="dispatch")
+class MakeSuperUser(View):
+    def post(self, request, pk):
+        if not User.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        user = User.objects.get(pk=pk)
+        if request.user not in user.make_superuser_users:
+            raise PermissionDenied()
+        user.is_superuser = True
+        user.save()
+        return redirect(reverse('user_list'))
+
+
+@method_decorator(login_required, name="dispatch")
 class MakeCoordinator(View):
     def post(self, request, pk):
         if not User.objects.filter(pk=pk).exists():

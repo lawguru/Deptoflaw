@@ -636,21 +636,22 @@
                 <div class="accordion-body">
                     <div class="d-flex align-items-center justify-content-between">
                         <small>Joined {{user.date_joined|naturaltime}}</small>
-                        {% if user.role != 'recruiter' or not user.is_approved %}
-                        {% if not user.staff_profile.is_hod or not user.staff_profile.is_tpc_head %}
-                        {% if request.user.is_coordinator or request.user.is_superuser %}
+
+                        {% if request.user in user.approve_users or request.user in user.delete_users or request.user in user.make_superuser_users or request.user in user.make_coordinator_users or request.user in user.remove_coordinator_users or request.user in user.staff_profile.make_hod_users or request.user in user.staff_profile.make_tpc_head_users %}
                         <div class="dropdown">
                             <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Action
                             </button>
                             <ul class="dropdown-menu">
-                                {% if not user.is_approved %}
+                                {% if request.user in user.approve_users %}
                                 <li>
                                     <form action="{% url 'approve_user' user.pk %}" method="POST">
                                         {% csrf_token %}
                                         <input type="submit" class="btn dropdown-item" value="Approve">
                                     </form>
                                 </li>
+                                {% endif %}
+                                {% if request.user in user.delete_users %}
                                 <li>
                                     <form action="{% url 'reject_user' user.pk %}" method="POST">
                                         {% csrf_token %}
@@ -658,17 +659,17 @@
                                     </form>
                                 </li>
                                 {% endif %}
-                                {% if request.user.is_superuser %}
-                                {% if user.role == 'student' or user.role == 'staff' %}
-                                {% if not user.staff_profile.is_hod and not user.staff_profile.is_tpc_head and not user.is_superuser %}
-                                {% if user.is_coordinator %}
+
+                                {% if request.user in user.make_superuser_users %}
                                 <li>
-                                    <form action="{% url 'remove_coordinator' user.pk %}" method="POST">
+                                    <form action="{% url 'make_superuser' user.pk %}" method="POST">
                                         {% csrf_token %}
-                                        <input type="submit" class="btn dropdown-item" value="Remove Coordinator">
+                                        <input type="submit" class="btn dropdown-item" value="Make Coordinator">
                                     </form>
                                 </li>
-                                {% else %}
+                                {% endif %}
+
+                                {% if request.user in user.make_coordinator_users %}
                                 <li>
                                     <form action="{% url 'make_coordinator' user.pk %}" method="POST">
                                         {% csrf_token %}
@@ -676,10 +677,17 @@
                                     </form>
                                 </li>
                                 {% endif %}
+
+                                {% if request.user in user.remove_coordinator_users %}
+                                <li>
+                                    <form action="{% url 'remove_coordinator' user.pk %}" method="POST">
+                                        {% csrf_token %}
+                                        <input type="submit" class="btn dropdown-item" value="Remove Coordinator">
+                                    </form>
+                                </li>
                                 {% endif %}
-                                {% endif %}
-                                {% if user.staff_profile %}
-                                {% if not user.staff_profile.is_hod %}
+
+                                {% if request.user in user.staff_profile.make_hod_users %}
                                 <li>
                                     <form action="{% url 'make_hod' user.staff_profile.pk %}" method="POST">
                                         {% csrf_token %}
@@ -687,7 +695,7 @@
                                     </form>
                                 </li>
                                 {% endif %}
-                                {% if not user.staff_profile.is_tpc_head %}
+                                {% if request.user in user.staff_profile.make_tpc_head_users %}
                                 <li>
                                     <form action="{% url 'make_tpc_head' user.staff_profile.pk %}" method="POST">
                                         {% csrf_token %}
@@ -695,12 +703,8 @@
                                     </form>
                                 </li>
                                 {% endif %}
-                                {% endif %}
-                                {% endif %}
                             </ul>
                         </div>
-                        {% endif %}
-                        {% endif %}
                         {% endif %}
                     </div>
                     <div class="d-flex flex-wrap align-items-center justify-content-start gap-2 mt-3 mb-3">
