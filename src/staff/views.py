@@ -59,7 +59,8 @@ class StaffSignIn(TemplateView):
                 email = Email.objects.get(email=email_or_id)
                 if email.user:
                     user = email.user
-                return render(request, self.template_name, {'form': form, 'error': 'No User with this Email'})
+                else:
+                    return render(request, self.template_name, {'form': form, 'error': 'No User with this Email'})
             else:
                 return render(request, self.template_name, {'form': form, 'error': 'Invalid ID Number or Email'})
 
