@@ -102,10 +102,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             return User.objects.filter(
                 Q(
                     Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.pk) |
-                    Q(
-                        Q(student_profile__year=self.student_profile.year) & Q(
-                            student_profile__course=self.student_profile.course) & Q(student_profile__is_cr=True)
-                    ) |
+                    # Q(
+                    #     Q(student_profile__year=self.student_profile.year) & Q(
+                    #         student_profile__course=self.student_profile.course) & Q(student_profile__is_cr=True)
+                    # ) |
                     Q(
                         Q(student_profile__registration_year=self.student_profile.registration_year) & Q(
                             student_profile__course=self.student_profile.course) & Q(student_profile__is_cr=True)
