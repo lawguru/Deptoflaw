@@ -98,7 +98,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def view_users(self):
         if self.is_superuser or self.is_coordinator or self.role == 'staff' or self.role == 'recruiter':
             return User.objects.all()
-        if self.role.is_student:
+        if self.role == 'student':
             return User.objects.filter(
                 Q(
                     Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.pk) |
