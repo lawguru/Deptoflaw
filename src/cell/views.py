@@ -24,7 +24,8 @@ class Index(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        random_quote = Quote.objects.order_by('?').first()
+        if Quote.objects.exists():
+            random_quote = Quote.objects.order_by('?').first()
         context['quote'] = random_quote
 
         message_from_hod, created = Setting.objects.get_or_create(
