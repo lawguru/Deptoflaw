@@ -53,15 +53,15 @@ class StudentSignIn(TemplateView):
         if form.is_valid():
             registration_number_or_email = form.cleaned_data['registration_number_or_email']
             password = form.cleaned_data['password']
-            if StudentProfile.objects.filter(registration_number=int(registration_number_or_email)).exists():
-                user = StudentProfile.objects.get(
-                    registration_number=int(registration_number_or_email)).user
-            elif Email.objects.filter(email=registration_number_or_email).exists():
+            if Email.objects.filter(email=registration_number_or_email).exists():
                 email = Email.objects.get(email=registration_number_or_email)
                 if email.user:
                     user = email.user
                 else:
                     return render(request, self.template_name, {'form': form, 'error': 'No User with this Email'})
+            elif StudentProfile.objects.filter(registration_number=int(registration_number_or_email)).exists():
+                user = StudentProfile.objects.get(
+                    registration_number=int(registration_number_or_email)).user
             else:
                 return render(request, self.template_name, {'form': form, 'error': 'Invalid Registration Number or Email'})
             user = authenticate(
