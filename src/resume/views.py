@@ -17,9 +17,6 @@ from .models import *
 class EducationInfo(TemplateView):
     template_name = 'education_info.html'
 
-    def check_write_permission(self, **kwargs):
-        return True if self.request.user.is_superuser or self.request.user.pk == self.kwargs['user'] else False
-
     def get(self, request, user):
         if not User.objects.filter(pk=user).exists():
             raise ObjectDoesNotExist()
@@ -38,23 +35,33 @@ class EducationInfo(TemplateView):
             instance=certification)) for certification in Certification.objects.filter(user=user)]
         context['skills'] = Skill.objects.filter(users__pk=user.pk)
         context['languages'] = Language.objects.filter(users__pk=user.pk)
-        if self.check_write_permission(**kwargs):
-            context['write_permission'] = True
+
+        if Skill.objects.get_add_permission(user, self.request.user):
             context['skill_form'] = SkillForm()
+        
+        if Language.objects.get_add_permission(user, self.request.user):
             context['language_form'] = LanguageForm()
+        
+        if OtherEducation.objects.get_create_permission(user, self.request.user):
             context['other_education_form'] = OtherEducationForm(
                 initial={'user': user.pk})
+        
+        if Certification.objects.get_create_permission(user, self.request.user):
             context['certification_form'] = CertificationForm(
                 initial={'user': user.pk})
+
+        if Skill.objects.get_remove_permission(user, self.request.user):
+            context['remove_skill_permission'] = True
+
+        if Language.objects.get_remove_permission(user, self.request.user):
+            context['remove_language_permission'] = True
+
         return context
 
 
 @method_decorator(login_required, name="dispatch")
 class ExperienceInfo(TemplateView):
     template_name = 'experience_info.html'
-
-    def check_write_permission(self, **kwargs):
-        return True if self.request.user.is_superuser or self.request.user.pk == self.kwargs['user'] else False
 
     def get(self, request, user):
         if not User.objects.filter(pk=user).exists():
@@ -72,20 +79,20 @@ class ExperienceInfo(TemplateView):
             instance=work_experiences)) for work_experiences in WorkExperience.objects.filter(user=user)]
         context['projects'] = [(project, ProjectForm(instance=project))
                                for project in Project.objects.filter(user=user)]
-        if self.check_write_permission(**kwargs):
-            context['write_permission'] = True
+        
+        if WorkExperience.objects.get_create_permission(user, self.request.user):
             context['work_experience_form'] = WorkExperienceForm(
                 initial={'user': user.pk})
+        
+        if Project.objects.get_create_permission(user, self.request.user):
             context['project_form'] = ProjectForm(initial={'user': user.pk})
+
         return context
 
 
 @method_decorator(login_required, name="dispatch")
 class IPInfo(TemplateView):
     template_name = 'ip_info.html'
-
-    def check_write_permission(self, **kwargs):
-        return True if self.request.user.is_superuser or self.request.user.pk == self.kwargs['user'] else False
 
     def get(self, request, user):
         if not User.objects.filter(pk=user).exists():
@@ -103,20 +110,20 @@ class IPInfo(TemplateView):
                               for patent in Patent.objects.filter(user=user)]
         context['publications'] = [(publication, PublicationForm(
             instance=publication)) for publication in Publication.objects.filter(user=user)]
-        if self.check_write_permission(**kwargs):
-            context['write_permission'] = True
+        
+        if Patent.objects.get_create_permission(user, self.request.user):
             context['patent_form'] = PatentForm(initial={'user': user.pk})
+        
+        if Publication.objects.get_create_permission(user, self.request.user):
             context['publication_form'] = PublicationForm(
                 initial={'user': user.pk})
+
         return context
 
 
 @method_decorator(login_required, name="dispatch")
 class OtherInfos(TemplateView):
     template_name = 'other_info.html'
-
-    def check_write_permission(self, **kwargs):
-        return True if self.request.user.is_superuser or self.request.user.pk == self.kwargs['user'] else False
 
     def get(self, request, user):
         if not User.objects.filter(pk=user).exists():
@@ -136,14 +143,19 @@ class OtherInfos(TemplateView):
             instance=presentation)) for presentation in Presentation.objects.filter(user=user)]
         context['other_infos'] = [(other_info, OtherInfoForm(
             instance=other_info)) for other_info in OtherInfo.objects.filter(user=user)]
-        if self.check_write_permission(**kwargs):
-            context['write_permission'] = True
+        
+        if Achievement.objects.get_create_permission(user, self.request.user):
             context['achievement_form'] = AchievementForm(
                 initial={'user': user.pk})
+        
+        if Presentation.objects.get_create_permission(user, self.request.user):
             context['presentation_form'] = PresentationForm(
                 initial={'user': user.pk})
+            
+        if OtherInfo.objects.get_create_permission(user, self.request.user):
             context['other_info_form'] = OtherInfoForm(
                 initial={'user': user.pk})
+        
         return context
 
 
@@ -215,18 +227,18 @@ class AddSkill(View):
         if not User.objects.filter(pk=user).exists():
             raise ObjectDoesNotExist()
         user = User.objects.get(pk=user)
-        if user != request.user and not request.user.is_superuser:
+        if not self.model.objects.get_add_permission(user, self.request.user):
             raise PermissionDenied()
         form = self.form(request.POST)
         if form.is_valid():
             if self.model.objects.filter(name__iexact=form.cleaned_data['name']).exists():
-                skill = self.model.objects.get(
+                obj = self.model.objects.get(
                     name__iexact=form.cleaned_data['name'])
             else:
-                skill = self.model.objects.create(
+                obj = self.model.objects.create(
                     name=form.cleaned_data['name'])
-            skill.users.add(user)
-            skill.save()
+            obj.users.add(user)
+            obj.save()
         else:
             raise BadRequest()
         return redirect(reverse(self.redirect_url_name, args=[user.pk]))
@@ -238,16 +250,16 @@ class DeleteSkill(View):
     redirect_url_name = 'skills'
 
     def post(self, request, user, pk, *args, **kwargs):
-        if not User.objects.filter(pk=user).exists() or not Skill.objects.filter(pk=pk).exists():
+        if not User.objects.filter(pk=user).exists() or not self.model.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         user = User.objects.get(pk=user)
-        if user != request.user and not request.user.is_superuser:
+        if not self.model.objects.get_remove_permission(user, self.request.user):
             raise PermissionDenied()
-        skill = Skill.objects.get(pk=pk)
-        if not skill.users.filter(pk=user.pk).exists():
+        obj = self.model.objects.get(pk=pk)
+        if not obj.users.filter(pk=user.pk).exists():
             raise BadRequest()
-        skill.users.remove(user)
-        skill.save()
+        obj.users.remove(user)
+        obj.save()
         return redirect(reverse(self.redirect_url_name, args=[user.pk]))
 
 
@@ -263,18 +275,18 @@ class AddLanguage(View):
         if not User.objects.filter(pk=user).exists():
             raise ObjectDoesNotExist()
         user = User.objects.get(pk=user)
-        if user != request.user and not request.user.is_superuser:
+        if not self.model.objects.get_add_permission(user, self.request.user):
             raise PermissionDenied()
         form = self.form(request.POST)
         if form.is_valid():
             if self.model.objects.filter(name__iexact=form.cleaned_data['name']).exists():
-                language = self.model.objects.get(
+                obj = self.model.objects.get(
                     name__iexact=form.cleaned_data['name'])
             else:
-                language = self.model.objects.create(
+                obj = self.model.objects.create(
                     name=form.cleaned_data['name'])
-            language.users.add(user)
-            language.save()
+            obj.users.add(user)
+            obj.save()
         else:
             raise BadRequest()
         return redirect(reverse(self.redirect_url_name, args=[user.pk]))
@@ -286,15 +298,16 @@ class DeleteLanguage(View):
     redirect_url_name = 'languages'
 
     def post(self, request, user, pk, *args, **kwargs):
-        if not User.objects.filter(pk=user).exists() or not Language.objects.filter(pk=pk).exists():
+        if not User.objects.filter(pk=user).exists() or not self.model.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         user = User.objects.get(pk=user)
-        if user != request.user and not request.user.is_superuser:
+        if not self.model.objects.get_remove_permission(user, self.request.user):
             raise PermissionDenied()
-        language = Language.objects.get(pk=pk)
-        if not language.users.filter(pk=user.pk).exists():
+        obj = self.model.objects.get(pk=pk)
+        if not obj.users.filter(pk=user.pk).exists():
             raise BadRequest()
-        language.users.remove(user)
+        obj.users.remove(user)
+        obj.save()
         return redirect(reverse(self.redirect_url_name, args=[user.pk]))
 
 

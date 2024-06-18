@@ -146,16 +146,17 @@
             </div>
         </div>
 
-        {% if skills or skill_form %}
+        {% if post.skills.all|length or skill_form %}
         <div id="skills" class="my-5">
             <h2 class="fw-bold text-body-emphasis lh-1 my-4">Skills Required</h2>
             <div class="d-flex flex-wrap align-items-center gap-2 my-3">
-                {% for skill in skills %}
-                <div class="badge d-flex align-items-center rounded-pill {% if request.user.role == 'student' and skill not in request.user.skills.all %} text-bg-danger {% else %} text-bg-accent {% endif %} gap-1">
+                {% for skill in post.skills.all %}
+                <div
+                    class="badge d-flex align-items-center rounded-pill {% if request.user.role == 'student' and skill not in request.user.skills.all %} text-bg-danger {% else %} text-bg-accent {% endif %} gap-1">
                     <h6 class="replace-abbreviation text-start fw-bold mb-0 lh-1">
                         {{ skill.name }}
                     </h6>
-                    {% if skill_form %}
+                    {% if request.user in post.remove_skill_users %}
                     <form action="{% url 'delete_recruitment_post_skill' post.pk skill.pk %}" method="POST">
                         {% csrf_token %}
                         <button type="submit" class="btn border border-0 m-0 p-0" data-bs-toggle="tooltip"
@@ -325,89 +326,48 @@
                                     <small class="d-block text-body-secondary lh-1">{{update.0.user.subtext}}</small>
                                 </div>
                             </div>
-                            {%if request.user.is_superuser or request.user == post.user or request.user == update.0.user%}
-                            <span class="d-flex gap-3">
-                                <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
-                                    data-bs-target="#change-update-{{ update.0.pk }}-modal">
-                                    <i class="bi bi-pen"></i>
-                                </a>
-                                <div class="modal fade" id="change-update-{{ update.0.pk }}-modal"
-                                    data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-                                    aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                                    <div
-                                        class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <strong class="modal-title fs-3 fw-bold text-body-emphasis">
-                                                    Edit Work Experience
-                                                </strong>
-                                                <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <form id="change-update-{{ update.0.pk }}-form"
-                                                    action="{% url 'change_recruitment_post_update' update.0.pk %}"
-                                                    method="POST">
-                                                    {% csrf_token %}
-                                                    <div class="form-floating mb-3">
-                                                        {{ update.1.title }}
-                                                        {{ update.1.title.label_tag }}
-                                                    </div>
-                                                    <div class="form-floating mb-3">
-                                                        {{ update.1.description }}
-                                                        {{ update.1.description.label_tag }}
-                                                    </div>
-                                                    <div class="form-text">
-                                                        Put full form of abbreviations in brackets. Eg. HTML (HyperText
-                                                        Markup
-                                                        Language)
-                                                    </div>
-                                                </form>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <input type="submit" form="change-update-{{ update.0.pk }}-form"
-                                                    class="btn btn-primary btn-lg w-100" value="Save"
-                                                    onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
-                                            </div>
+                            {% if request.user in update.0.edit_users %}
+                            <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                                data-bs-target="#change-update-{{ update.0.pk }}-modal">
+                                <i class="bi bi-pen"></i>
+                            </a>
+                            <div class="modal fade" id="change-update-{{ update.0.pk }}-modal" data-bs-backdrop="static"
+                                data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                                Edit Work Experience
+                                            </strong>
+                                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="change-update-{{ update.0.pk }}-form"
+                                                action="{% url 'change_recruitment_post_update' update.0.pk %}" method="POST">
+                                                {% csrf_token %}
+                                                <div class="form-floating mb-3">
+                                                    {{ update.1.title }}
+                                                    {{ update.1.title.label_tag }}
+                                                </div>
+                                                <div class="form-floating mb-3">
+                                                    {{ update.1.description }}
+                                                    {{ update.1.description.label_tag }}
+                                                </div>
+                                                <div class="form-text">
+                                                    Put full form of abbreviations in brackets. Eg. HTML (HyperText
+                                                    Markup
+                                                    Language)
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <input type="submit" form="change-update-{{ update.0.pk }}-form"
+                                                class="btn btn-primary btn-lg w-100" value="Save"
+                                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
                                         </div>
                                     </div>
                                 </div>
-                                <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
-                                    data-bs-target="#delete-update-{{ update.0.pk }}-modal">
-                                    <i class="bi bi-x-circle"></i>
-                                </a>
-                                <div class="modal fade" id="delete-update-{{ update.0.pk }}-modal"
-                                    data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-                                    aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                                    <div
-                                        class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <strong class="modal-title fs-3 fw-bold text-body-emphasis">
-                                                    Confirmation
-                                                </strong>
-                                                <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <p class="replace-abbreviation mb-0">
-                                                    Delete {{ update.0.title }}?
-                                                </p>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <form class="w-100 m-0"
-                                                    action="{% url 'delete_recruitment_post_update' update.0.pk %}"
-                                                    method="POST">
-                                                    {% csrf_token %}
-                                                    <input type="submit"
-                                                        class="btn btn-danger btn-lg border border-0 w-100 m-0"
-                                                        value="Delete">
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </span>
+                            </div>
                             {% endif %}
                         </div>
                     </div>
@@ -418,8 +378,7 @@
         </div>
 
         <ul class="list-group my-4">
-            {% if request.user.is_superuser or request.user.is_coordinator or request.user == post.user %}
-            {% if not post.is_active %}
+            {% if not post.is_active and edit_form %}
             <li class="list-group-item list-group-item-danger p-0">
                 <div class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
                     <div class="flex-fill">
@@ -433,19 +392,25 @@
                 </div>
             </li>
             {% endif %}
+            {% if edit_form %}
             <li class="list-group-item list-group-item-action list-group-item-accent p-0">
-                <a href="{% url 'recruitment_applications' post.pk %}" class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
+                <a href="{% url 'recruitment_applications' post.pk %}"
+                    class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
                     <div class="flex-fill">
                         <strong class="fs-4 fw-bold text-body-emphasis lh-1">
                             {{post.applications.all|length}} Applications Received
                         </strong>
                         <p class="fs-6 text-body-secondary mb-0">
-                            {{pending_applications_count}} pending, {{rejected_applications_count}} rejected, {{selected_applications_count}} selected, {{interview_applications_count}} shortlisted for interview. View all.
+                            {{pending_applications_count}} pending, {{rejected_applications_count}} rejected,
+                            {{selected_applications_count}} selected, {{interview_applications_count}} shortlisted for
+                            interview. View all.
                         </p>
                     </div>
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </li>
+            {% endif %}
+            {% if edit_form %}
             <li class="list-group-item list-group-item-action list-group-item-accent p-0" data-bs-toggle="modal"
                 data-bs-target="#edit-post-modal">
                 <a href="#" class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
@@ -460,6 +425,206 @@
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </li>
+            <div class="modal fade" id="edit-post-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div
+                    class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                Edit Recruitment Post
+                            </strong>
+                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="edit-post-form" action="{% url 'change_recruitment_post' post.pk %}"
+                                method="POST">
+                                {% csrf_token %}
+                                {{edit_form.user}}
+                                <div class="form-text">
+                                    <strong class="text-body-emphasis">Note:</strong>
+                                    <ul>
+                                        <li>
+                                            You can edit this post and add instructions for applicants.
+                                        </li>
+                                        <li>
+                                            You can also extend the Apply By date to receive more applications.
+                                        </li>
+                                        {% if not request.user.is_superuser and not request.user.is_coordinator %}
+                                        <li>
+                                            Some fields are uneditable after the post is published to avoid confusion
+                                            among
+                                            applicants. If you still need to make subtle changes to any of them, please
+                                            contact the
+                                            TPC.
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ edit_form.title }}
+                                    {{ edit_form.title.label_tag }}
+                                </div>
+                                <div class="row g-0 gap-3 mb-3">
+                                    <div class="col-12 col-md form-floating">
+                                        {{ edit_form.company }}
+                                        {{ edit_form.company.label_tag }}
+                                    </div>
+                                    <div class="col-12 col-md">
+                                        <div class="form-floating">
+                                            {{ edit_form.location }}
+                                            {{ edit_form.location.label_tag }}
+                                        </div>
+                                        {% if edit_form.location.help_text %}
+                                        <div class="form-text ms-3">
+                                            {{ edit_form.location.help_text }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="row g-0 gap-3 mb-3">
+                                    <div class="col-12 col-sm form-floating">
+                                        {{ edit_form.job_type }}
+                                        {{ edit_form.job_type.label_tag }}
+                                    </div>
+                                    <div class="col-12 col-sm form-floating">
+                                        {{ edit_form.workplace_type }}
+                                        {{ edit_form.workplace_type.label_tag }}
+                                    </div>
+                                    <div class="col-12 col-lg">
+                                        <div class="input-group">
+                                            <div class="form-floating">
+                                                {{ edit_form.experience_duration }}
+                                                {{ edit_form.experience_duration.label_tag }}
+                                            </div>
+                                            <div class="input-group-text bg-body">
+                                                Years
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-0 gap-3 mb-3">
+                                    <div class="col-12 col-xl">
+                                        <div class="input-group">
+                                            <div style="width: 13ch">
+                                                <div class="form-floating">
+                                                    {{ edit_form.salary_type}}
+                                                    {{ edit_form.salary_type.label_tag }}
+                                                </div>
+                                            </div>
+                                            <div class="input-group-text bg-transparent">
+                                                ₹
+                                            </div>
+                                            <div class="form-floating">
+                                                {{ edit_form.minimum_salary }}
+                                                {{ edit_form.minimum_salary.label_tag }}
+                                            </div>
+                                            <div class="form-floating">
+                                                {{ edit_form.maximum_salary }}
+                                                {{ edit_form.maximum_salary.label_tag }}
+                                            </div>
+                                            <div class="input-group-text bg-transparent">
+                                                per month
+                                            </div>
+                                        </div>
+                                        {% if edit_form.salary_type.help_text %}
+                                        <div class="form-text ms-3">
+                                            {{ edit_form.salary_type.help_text }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-12 col-lg">
+                                        <div class="input-group">
+                                            <div class="input-group-text bg-transparent">
+                                                ₹
+                                            </div>
+                                            <div class="form-floating">
+                                                {{ edit_form.fee }}
+                                                {{ edit_form.fee.label_tag }}
+                                            </div>
+                                        </div>
+                                        {% if edit_form.fee.help_text %}
+                                        <div class="form-text ms-3">
+                                            {{ edit_form.fee.help_text }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="row g-0 gap-3 mb-3">
+                                    <div class="col-12 col-sm">
+                                        <div class="input-group">
+                                            <div style="width: 13ch">
+                                                <div class="form-floating">
+                                                    {{ edit_form.start_date_type }}
+                                                    {{ edit_form.start_date_type.label_tag }}
+                                                </div>
+                                            </div>
+                                            <div class="form-floating">
+                                                {{ edit_form.start_date }}
+                                                {{ edit_form.start_date.label_tag }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-sm">
+                                        <div class="form-floating">
+                                            {{ edit_form.apply_by }}
+                                            {{ edit_form.apply_by.label_tag }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ edit_form.description }}
+                                    {{ edit_form.description.label_tag }}
+                                </div>
+                                <div class="form-floating">
+                                    {{ edit_form.requirements }}
+                                    {{ edit_form.requirements.label_tag }}
+                                </div>
+                                <div class="form-text ms-3 mb-3">
+                                    {{ edit_form.requirements.help_text }}
+                                </div>
+                                <div class="form-floating">
+                                    {{ edit_form.required_documents }}
+                                    {{ edit_form.required_documents.label_tag }}
+                                </div>
+                                <div class="form-text ms-3 mb-3">
+                                    {{ edit_form.required_documents.help_text }}
+                                </div>
+                                <div class="form-floating">
+                                    {{ edit_form.questionaires }}
+                                    {{ edit_form.questionaires.label_tag }}
+                                </div>
+                                <div class="form-text ms-3 mb-3">
+                                    {{ edit_form.questionaires.help_text }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ edit_form.pending_application_instructions }}
+                                    {{ edit_form.pending_application_instructions.label_tag }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ edit_form.rejected_application_instructions }}
+                                    {{ edit_form.rejected_application_instructions.label_tag }}
+                                </div>
+                                <div class="form-floating mb-3">
+                                    {{ edit_form.selected_application_instructions }}
+                                    {{ edit_form.selected_application_instructions.label_tag }}
+                                </div>
+                                <div class="form-floating">
+                                    {{ edit_form.shortlisted_application_instructions }}
+                                    {{ edit_form.shortlisted_application_instructions.label_tag }}
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" form="edit-post-form" class="btn btn-primary btn-lg w-100" value="Save"
+                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true; this.value='Saving...'; this.form.submit();">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% if update_form %}
             <li class="list-group-item list-group-item-action list-group-item-accent p-0" data-bs-toggle="modal"
                 data-bs-target="#share-update-modal">
                 <a href="#" class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
@@ -474,8 +639,38 @@
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </li>
+            <div class="modal fade" id="share-update-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                Share an Update
+                            </strong>
+                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="share-update-form" action="{% url 'add_recruitment_post_update' post.pk %}" method="POST">
+                                {% csrf_token %}
+                                <div class="form-floating mb-3">
+                                    {{ update_form.title }}
+                                    {{ update_form.title.label_tag }}
+                                </div>
+                                <div class="form-floating">
+                                    {{ update_form.description }}
+                                    {{ update_form.description.label_tag }}
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" form="share-update-form" class="btn btn-primary btn-lg w-100" value="Submit"
+                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true; this.value='Submitting...'; this.form.submit();">
+                        </div>
+                    </div>
+                </div>
+            </div>
             {% endif %}
-            {% if request.user.role == 'student' %}
+
             {% if application %}
             <li id="application" class="list-group-item list-group-item-action list-group-item-accent p-0"
                 data-bs-toggle="modal" data-bs-target="#view-application-modal">
@@ -491,7 +686,85 @@
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </li>
-            {% elif post.is_active %}
+            <div class="modal fade" id="view-application-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div
+                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                Your Application
+                            </strong>
+                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div>
+                                <h3>Cover Letter</h3>
+                                <p>
+                                    {{ application.cover_letter }}
+                                </p>
+                            </div>
+                            <div>
+                                <h3>questionaires</h3>
+                                <p>
+                                    {{ post.questionaires }}
+                                </p>
+                                <h5>Answers</h5>
+                                <p>
+                                    {{ application.answers }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div
+                                class="d-flex flex-wrap m-0 w-100 g-0 gap-2 align-items-center justify-content-between">
+                                <div class="d-flex flex-wrap g-0 gap-2 align-items-center justify-content-start">
+                                    <span
+                                        class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                        <div class="rounded-circle m-2">
+                                            <i class="bi bi-person-circle fs-5"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <strong class="fw-bold text-body-emphasis lh-1">
+                                                {{ application.user.full_name }}
+                                            </strong>
+                                            <small class="d-block text-body-secondary">Applicant</small>
+                                        </div>
+                                    </span>
+                                </div>
+                                <div class="d-flex flex-wrap g-0 gap-2 align-items-center justify-content-end">
+                                    <span
+                                        class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                        <div class="rounded-circle m-2">
+                                            <i class="bi bi-clock-history fs-5"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <strong class="fw-bold text-body-emphasis lh-1">
+                                                {{ application.applied_on|naturaltime }}
+                                            </strong>
+                                            <small class="d-block text-body-secondary">Applied</small>
+                                        </div>
+                                    </span>
+                                    <span
+                                        class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                        <div class="rounded-circle m-2">
+                                            <i class="bi bi-info-circle fs-5"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <strong class="fw-bold text-body-emphasis lh-1">
+                                                {{ application.get_status_display }}
+                                            </strong>
+                                            <small class="d-block text-body-secondary">Status</small>
+                                        </div>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% elif apply_form %}
             <li class="list-group-item list-group-item-action list-group-item-accent p-0" data-bs-toggle="modal"
                 data-bs-target="#apply-modal">
                 <a href="#" class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
@@ -506,7 +779,65 @@
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </li>
-            {% else %}
+            <div class="modal fade" id="apply-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div
+                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                Apply
+                            </strong>
+                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="apply-form" action="{% url 'apply_recruitment_post' post.pk %}" method="POST">
+                                {% csrf_token %}
+                                <div class="form-floating mb-3">
+                                    {{ apply_form.cover_letter }}
+                                    {{ apply_form.cover_letter.label_tag }}
+                                </div>
+                                {% if apply_form.cover_letter.help_text %}
+                                <div class="form-text ms-3">
+                                    {{ apply_form.cover_letter.help_text }}
+                                </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <h5 class="mt-5 text-body-emphasis">
+                                        Please Answer the following questions in the space provided
+                                    </h5>
+                                    <p>
+                                        {{ post.questionaires }}
+                                    </p>
+                                </div>
+                                <div class="form-floating">
+                                    {{ apply_form.answers }}
+                                    {{ apply_form.answers.label_tag }}
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" form="apply-form" class="btn btn-primary btn-lg w-100" value="Apply"
+                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true; this.value='Applying...'; this.form.submit();">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% elif request.user.role == 'student' and not request.user.is_approved %}
+            <li class="list-group-item list-group-item-action list-group-item-accent p-0">
+                <div class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
+                    <div class="flex-fill">
+                        <strong class="fs-4 fw-bold text-body-emphasis lh-1">
+                            Can't Apply
+                        </strong>
+                        <p class="fs-6 text-body-secondary mb-0">
+                            Your Profile is not approved. Contact an Administrator or Coordinator.
+                        </p>
+                    </div>
+                </div>
+            </li>
+            {% elif request.user.role == 'student' and not post.is_active %}
             <li class="list-group-item list-group-item-action list-group-item-accent p-0">
                 <div class="d-flex align-items-center gap-3 p-3 pe-4 m-0 icon-link icon-link-hover no-shadow">
                     <div class="flex-fill">
@@ -519,7 +850,6 @@
                     </div>
                 </div>
             </li>
-            {% endif %}
             {% endif %}
         </ul>
 
@@ -541,347 +871,7 @@
         </div>
     </div>
 </div>
-<div class="modal fade" id="view-application-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-    aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
-        <div class="modal-content">
-            <div class="modal-header">
-                <strong class="modal-title fs-3 fw-bold text-body-emphasis">
-                    Your Application
-                </strong>
-                <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div>
-                    <h3>Cover Letter</h3>
-                    <p>
-                        {{ application.cover_letter }}
-                    </p>
-                </div>
-                <div>
-                    <h3>questionaires</h3>
-                    <p>
-                        {{ post.questionaires }}
-                    </p>
-                    <h5>Answers</h5>
-                    <p>
-                        {{ application.answers }}
-                    </p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <div class="d-flex flex-wrap m-0 w-100 g-0 gap-2 align-items-center justify-content-between">
-                    <div class="d-flex flex-wrap g-0 gap-2 align-items-center justify-content-start">
-                        <span
-                            class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
-                            <div class="rounded-circle m-2">
-                                <i class="bi bi-person-circle fs-5"></i>
-                            </div>
-                            <div class="text-start">
-                                <strong class="fw-bold text-body-emphasis lh-1">
-                                    {{ application.user.full_name }}
-                                </strong>
-                                <small class="d-block text-body-secondary">Applicant</small>
-                            </div>
-                        </span>
-                    </div>
-                    <div class="d-flex flex-wrap g-0 gap-2 align-items-center justify-content-end">
-                        <span
-                            class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
-                            <div class="rounded-circle m-2">
-                                <i class="bi bi-clock-history fs-5"></i>
-                            </div>
-                            <div class="text-start">
-                                <strong class="fw-bold text-body-emphasis lh-1">
-                                    {{ application.applied_on|naturaltime }}
-                                </strong>
-                                <small class="d-block text-body-secondary">Applied</small>
-                            </div>
-                        </span>
-                        <span
-                            class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
-                            <div class="rounded-circle m-2">
-                                <i class="bi bi-info-circle fs-5"></i>
-                            </div>
-                            <div class="text-start">
-                                <strong class="fw-bold text-body-emphasis lh-1">
-                                    {{ application.get_status_display }}
-                                </strong>
-                                <small class="d-block text-body-secondary">Status</small>
-                            </div>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="edit-post-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-    aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-fullscreen-md-down">
-        <div class="modal-content">
-            <div class="modal-header">
-                <strong class="modal-title fs-3 fw-bold text-body-emphasis">
-                    Edit Recruitment Post
-                </strong>
-                <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="edit-post-form" action="{% url 'change_recruitment_post' post.pk %}" method="POST">
-                    {% csrf_token %}
-                    {{edit_form.user}}
-                    <div class="form-text">
-                        <strong class="text-body-emphasis">Note:</strong>
-                        <ul>
-                            <li>
-                                You can edit this post and add instructions for applicants.
-                            </li>
-                            <li>
-                                You can also extend the Apply By date to receive more applications.
-                            </li>
-                            {% if not request.user.is_superuser and not request.user.is_coordinator %}
-                            <li>
-                                Some fields are uneditable after the post is published to avoid confusion among
-                                applicants. If you still need to make subtle changes to any of them, please contact the
-                                TPC.
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                    <div class="form-floating mb-3">
-                        {{ edit_form.title }}
-                        {{ edit_form.title.label_tag }}
-                    </div>
-                    <div class="row g-0 gap-3 mb-3">
-                        <div class="col-12 col-md form-floating">
-                            {{ edit_form.company }}
-                            {{ edit_form.company.label_tag }}
-                        </div>
-                        <div class="col-12 col-md">
-                            <div class="form-floating">
-                                {{ edit_form.location }}
-                                {{ edit_form.location.label_tag }}
-                            </div>
-                            {% if edit_form.location.help_text %}
-                            <div class="form-text ms-3">
-                                {{ edit_form.location.help_text }}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="row g-0 gap-3 mb-3">
-                        <div class="col-12 col-sm form-floating">
-                            {{ edit_form.job_type }}
-                            {{ edit_form.job_type.label_tag }}
-                        </div>
-                        <div class="col-12 col-sm form-floating">
-                            {{ edit_form.workplace_type }}
-                            {{ edit_form.workplace_type.label_tag }}
-                        </div>
-                        <div class="col-12 col-lg">
-                            <div class="input-group">
-                                <div class="form-floating">
-                                    {{ edit_form.experience_duration }}
-                                    {{ edit_form.experience_duration.label_tag }}
-                                </div>
-                                <div class="input-group-text bg-body">
-                                    Years
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row g-0 gap-3 mb-3">
-                        <div class="col-12 col-xl">
-                            <div class="input-group">
-                                <div style="width: 13ch">
-                                    <div class="form-floating">
-                                        {{ edit_form.salary_type}}
-                                        {{ edit_form.salary_type.label_tag }}
-                                    </div>
-                                </div>
-                                <div class="input-group-text bg-transparent">
-                                    ₹
-                                </div>
-                                <div class="form-floating">
-                                    {{ edit_form.minimum_salary }}
-                                    {{ edit_form.minimum_salary.label_tag }}
-                                </div>
-                                <div class="form-floating">
-                                    {{ edit_form.maximum_salary }}
-                                    {{ edit_form.maximum_salary.label_tag }}
-                                </div>
-                                <div class="input-group-text bg-transparent">
-                                    per month
-                                </div>
-                            </div>
-                            {% if edit_form.salary_type.help_text %}
-                            <div class="form-text ms-3">
-                                {{ edit_form.salary_type.help_text }}
-                            </div>
-                            {% endif %}
-                        </div>
-                        <div class="col-12 col-lg">
-                            <div class="input-group">
-                                <div class="input-group-text bg-transparent">
-                                    ₹
-                                </div>
-                                <div class="form-floating">
-                                    {{ edit_form.fee }}
-                                    {{ edit_form.fee.label_tag }}
-                                </div>
-                            </div>
-                            {% if edit_form.fee.help_text %}
-                            <div class="form-text ms-3">
-                                {{ edit_form.fee.help_text }}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="row g-0 gap-3 mb-3">
-                        <div class="col-12 col-sm">
-                            <div class="input-group">
-                                <div style="width: 13ch">
-                                    <div class="form-floating">
-                                        {{ edit_form.start_date_type }}
-                                        {{ edit_form.start_date_type.label_tag }}
-                                    </div>
-                                </div>
-                                <div class="form-floating">
-                                    {{ edit_form.start_date }}
-                                    {{ edit_form.start_date.label_tag }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-sm">
-                            <div class="form-floating">
-                                {{ edit_form.apply_by }}
-                                {{ edit_form.apply_by.label_tag }}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-floating mb-3">
-                        {{ edit_form.description }}
-                        {{ edit_form.description.label_tag }}
-                    </div>
-                    <div class="form-floating">
-                        {{ edit_form.requirements }}
-                        {{ edit_form.requirements.label_tag }}
-                    </div>
-                    <div class="form-text ms-3 mb-3">
-                        {{ edit_form.requirements.help_text }}
-                    </div>
-                    <div class="form-floating">
-                        {{ edit_form.required_documents }}
-                        {{ edit_form.required_documents.label_tag }}
-                    </div>
-                    <div class="form-text ms-3 mb-3">
-                        {{ edit_form.required_documents.help_text }}
-                    </div>
-                    <div class="form-floating">
-                        {{ edit_form.questionaires }}
-                        {{ edit_form.questionaires.label_tag }}
-                    </div>
-                    <div class="form-text ms-3 mb-3">
-                        {{ edit_form.questionaires.help_text }}
-                    </div>
-                    <div class="form-floating mb-3">
-                        {{ edit_form.pending_application_instructions }}
-                        {{ edit_form.pending_application_instructions.label_tag }}
-                    </div>
-                    <div class="form-floating mb-3">
-                        {{ edit_form.rejected_application_instructions }}
-                        {{ edit_form.rejected_application_instructions.label_tag }}
-                    </div>
-                    <div class="form-floating mb-3">
-                        {{ edit_form.selected_application_instructions }}
-                        {{ edit_form.selected_application_instructions.label_tag }}
-                    </div>
-                    <div class="form-floating">
-                        {{ edit_form.shortlisted_application_instructions }}
-                        {{ edit_form.shortlisted_application_instructions.label_tag }}
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <input type="submit" form="edit-post-form" class="btn btn-primary btn-lg w-100" value="Save"
-                    onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true; this.value='Saving...'; this.form.submit();">
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="share-update-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-    aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
-        <div class="modal-content">
-            <div class="modal-header">
-                <strong class="modal-title fs-3 fw-bold text-body-emphasis">
-                    Share an Update
-                </strong>
-                <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="share-update-form" action="{% url 'add_recruitment_post_update' post.pk %}" method="POST">
-                    {% csrf_token %}
-                    <div class="form-floating mb-3">
-                        {{ update_form.title }}
-                        {{ update_form.title.label_tag }}
-                    </div>
-                    <div class="form-floating">
-                        {{ update_form.description }}
-                        {{ update_form.description.label_tag }}
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <input type="submit" form="share-update-form" class="btn btn-primary btn-lg w-100" value="Submit"
-                    onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true; this.value='Submitting...'; this.form.submit();">
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="apply-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-    aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
-        <div class="modal-content">
-            <div class="modal-header">
-                <strong class="modal-title fs-3 fw-bold text-body-emphasis">
-                    Apply
-                </strong>
-                <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="apply-form" action="{% url 'apply_recruitment_post' post.pk %}" method="POST">
-                    {% csrf_token %}
-                    <div class="form-floating mb-3">
-                        {{ apply_form.cover_letter }}
-                        {{ apply_form.cover_letter.label_tag }}
-                    </div>
-                    {% if apply_form.cover_letter.help_text %}
-                    <div class="form-text ms-3">
-                        {{ apply_form.cover_letter.help_text }}
-                    </div>
-                    {% endif %}
-                    <div class="form-text">
-                        <h5 class="mt-5 text-body-emphasis">
-                            Please Answer the following questions in the space provided
-                        </h5>
-                        <p>
-                            {{ post.questionaires }}
-                        </p>
-                    </div>
-                    <div class="form-floating">
-                        {{ apply_form.answers }}
-                        {{ apply_form.answers.label_tag }}
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <input type="submit" form="apply-form" class="btn btn-primary btn-lg w-100" value="Apply"
-                    onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true; this.value='Applying...'; this.form.submit();">
-            </div>
-        </div>
-    </div>
-</div>
+
 <script>
     skill_name = document.getElementById('id-skill-name')
     skill_options = document.getElementById('skill-data-list')

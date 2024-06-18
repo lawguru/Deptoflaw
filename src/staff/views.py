@@ -73,11 +73,11 @@ class StaffSignIn(TemplateView):
 @method_decorator(login_required, name="dispatch")
 class MakeHOD(View):
     def post(self, request, pk):
-        if not request.user.is_superuser and not request.user.staff_profile and not request.user.staff_profile.is_hod:
-            raise PermissionDenied()
         if not StaffProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         staff = StaffProfile.objects.get(pk=pk)
+        if request.user not in staff.make_hod_users:
+            raise PermissionDenied()
         staff.is_hod = True
         staff.save()
         return redirect('staff_list')
@@ -86,48 +86,25 @@ class MakeHOD(View):
 @method_decorator(login_required, name="dispatch")
 class MakeTPCHead(View):
     def post(self, request, pk):
-        if not request.user.is_superuser and not request.user.staff_profile and not request.user.staff_profile.is_hod and not request.user.staff_profile.is_tpc_head:
-            raise PermissionDenied()
         if not StaffProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         staff = StaffProfile.objects.get(pk=pk)
+        if request.user not in staff.make_tpc_head_users:
+            raise PermissionDenied()
         staff.is_tpc_head = True
         staff.save()
         return redirect('staff_list')
 
 
 @method_decorator(login_required, name="dispatch")
-class StaffProfileDetail(TemplateView):
-    template_name = 'staff_profile_detail.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['staff'] = StaffProfile.objects.get(
-            pk=self.kwargs['pk'])
-        return context
-
-    def get(self, request, pk):
-        if not StaffProfile.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        staff_profile = StaffProfile.objects.get(pk=pk)
-        if staff_profile.user != request.user and not request.user.is_superuser and not request.user.is_coordinator():
-            raise PermissionDenied()
-        if staff_profile.user == request.user and not staff_profile.user.is_approved:
-            return redirect('build_profile', staff_profile.user.pk)
-        return super().get(request, pk)
-
-
-@method_decorator(login_required, name="dispatch")
 class StaffInfo(TemplateView):
     template_name = 'staff_info.html'
 
-    def check_write_permission(self, **kwargs):
-        return True if self.request.user.is_superuser or self.request.user == StaffProfile.objects.get(pk=self.kwargs['pk']).user else False
-
     def get(self, request, pk):
         if not StaffProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
-        elif StaffProfile.objects.get(pk=pk).user != request.user and not request.user.is_superuser:
+        staff = StaffProfile.objects.get(pk=pk)
+        if request.user not in staff.view_users:
             raise PermissionDenied()
         return super().get(request, pk)
 
@@ -136,8 +113,7 @@ class StaffInfo(TemplateView):
         context = super().get_context_data(**kwargs)
         context['user'] = profile.user
         context['profile'] = profile
-        if self.check_write_permission(**kwargs):
-            context['write_permission'] = True
+        if self.request.user in profile.edit_users:
             context['change_profile_form'] = StaffProfileForm(
                 instance=profile)
         return context

@@ -109,6 +109,7 @@
                                 Semester
                             </strong>
                         </div>
+                        {% if request.user in semester_report_card_template.edit_users %}
                         <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                             data-bs-target="#edit-semester-report-card-template-modal"
                             onclick="populateDynamicForm('semester-report-card-template-{{ forloop.counter }}-form', '{{semester_report_card_template.0.course}}', '{{ forloop.counter }}')">
@@ -119,6 +120,7 @@
                             method="POST" id="semester-report-card-template-{{ forloop.counter }}-form" class="d-none">
                             {{semester_report_card_template.1}}
                         </form>
+                        {% endif %}
                     </div>
                     {% if semester_report_card_template.2.subjects|length %}
                     <div class="table-responsive">

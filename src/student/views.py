@@ -69,37 +69,14 @@ class StudentSignIn(TemplateView):
 
 
 @method_decorator(login_required, name="dispatch")
-class StudentProfileDetail(TemplateView):
-    template_name = 'student_profile_detail.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['student'] = StudentProfile.objects.get(
-            pk=self.kwargs['pk'])
-        return context
-
-    def get(self, request, pk):
-        if not StudentProfile.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        student_profile = StudentProfile.objects.get(pk=pk)
-        if student_profile.user != request.user and not request.user.is_superuser and not request.user.is_coordinator:
-            raise PermissionDenied()
-        if student_profile.user == request.user and not student_profile.user.is_approved:
-            return redirect('build_profile', student_profile.user.pk)
-        return super().get(request, pk)
-
-
-@method_decorator(login_required, name="dispatch")
 class AcademicInfo(TemplateView):
     template_name = 'academic_info.html'
 
-    def check_write_permission(self, **kwargs):
-        return True if self.request.user.is_superuser or self.request.user == StudentProfile.objects.get(pk=self.kwargs['pk']).user else False
-
     def get(self, request, pk):
         if not StudentProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
-        elif StudentProfile.objects.get(pk=pk).user != request.user and not request.user.is_superuser:
+        profile = StudentProfile.objects.get(pk=self.kwargs['pk'])
+        if request.user not in profile.edit_users:
             raise PermissionDenied()
         return super().get(request, pk)
 
@@ -110,11 +87,13 @@ class AcademicInfo(TemplateView):
         context['profile'] = profile
         context['semester_report_cards'] = [(semester_report_card, SemesterReportCardForm(instance=semester_report_card)) for semester_report_card in SemesterReportCard.objects.filter(
             student_profile=profile)[0:profile.semester]]
-        if self.check_write_permission(**kwargs):
-            context['write_permission'] = True
-            context['semester_report_card_empty_form'] = SemesterReportCardForm()
+        
+        context['semester_report_card_empty_form'] = SemesterReportCardForm()
+
+        if self.request.user in profile.edit_users:
             context['change_profile_form'] = StudentProfileForm(
                 instance=profile)
+        
         return context
 
 
@@ -139,7 +118,7 @@ class ChangeSemesterReportCard(ChangeObject):
     redirect_url_params = '#semester-report-cards'
 
     def check_permission(self, request, pk, *args, **kwargs):
-        if self.model.objects.get(pk=pk).student_profile.user != request.user and not request.user.is_superuser:
+        if request.user not in self.model.objects.get(pk=pk).edit_users:
             return False
         return super().check_permission(request, pk, *args, **kwargs)
 
@@ -158,12 +137,8 @@ class SemesterReportCardTemplateListView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['empty_form'] = SemesterReportCardTemplateForm()
-        if self.request.user.is_superuser or self.request.user.is_coordinator: 
-            queryset = SemesterReportCardTemplate.objects.all()
-        elif self.request.user.student_profile.is_cr:
-            queryset = SemesterReportCardTemplate.objects.filter(course=self.request.user.student_profile.course, semester=self.request.user.student_profile.semester)
-        else:
-            queryset = []
+        queryset = SemesterReportCardTemplate.objects.all()
+
         context['semester_report_card_templates'] = [
             (semester_report_card_template,
                 SemesterReportCardTemplateForm(
@@ -197,7 +172,7 @@ class ChangeSemesterReportCardTemplate(ChangeObject):
     redirect_url_name = 'semester_report_card_template'
 
     def check_permission(self, request, pk, *args, **kwargs):
-        if not request.user.is_superuser and not request.user.is_coordinator:
+        if not request.user in self.model.objects.get(pk=pk).edit_users:
             return False
         return super().check_permission(request, pk, *args, **kwargs)
 

@@ -194,19 +194,19 @@
                     <div class="d-flex flex-fill flex-column flex-lg-row">
                         <div>
                             <strong class="fw-bold lead text-body-emphasis lh-1">
-                                {{ notice.title }}
+                                {{ notice.0.title }}
                             </strong>
                             <small class="d-block text-body-secondary lh-1">
-                                {% if notice.recruitment_post %}
-                                For {{ notice.recruitment_post.get_workplace_type_display }} {{
-                                notice.recruitment_post.get_job_type_display }} {{ notice.recruitment_post.title }} at
-                                {{ notice.recruitment_post.company }}
+                                {% if notice.0.recruitment_post %}
+                                For {{ notice.0.recruitment_post.get_workplace_type_display }}
+                                {{ notice.0.recruitment_post.get_job_type_display }} {{ notice.0.recruitment_post.title }} at
+                                {{ notice.0.recruitment_post.company }}
                                 {% else %}
-                                By {{ notice.user.full_name }}
+                                By {{ notice.0.user.full_name }}
                                 {% endif %}
                             </small>
                             <small class="d-block badge p-0 text-start text-body-secondary lh-1">
-                                Posted {{ notice.date|naturaltime }}
+                                Posted {{ notice.0.date|naturaltime }}
                             </small>
                         </div>
                     </div>
@@ -216,16 +216,55 @@
                 aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#post-accordion">
                 <div class="accordion-body">
                     <div class="text-body-secondary mb-3">
-                        {% if notice.recruitment_post %}
-                        <strong>By {{ notice.user.full_name }}</strong>
+                        {% if notice.0.recruitment_post %}
+                        <strong>By {{ notice.0.user.full_name }}</strong>
                         <small class="d-block">
-                            <a href="{% url 'view_recruitment_post' notice.recruitment_post.pk %}#update-{{notice.pk}}">View
+                            <a href="{% url 'view_recruitment_post' notice.0.recruitment_post.pk %}#update-{{notice.0.pk}}">View
                                 in Recruitment Post</a>
                         </small>
+                        {% elif request.user in notice.0.edit_users %}
+                        <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                            data-bs-target="#change-notice-{{ notice.0.pk }}-modal">
+                            <i class="bi bi-pen"></i>
+                        </a>
+                        <div class="modal fade" id="change-notice-{{ notice.0.pk }}-modal" data-bs-backdrop="static"
+                            data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                            <div
+                                class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                            Edit Notice
+                                        </strong>
+                                        <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="change-notice-{{ notice.0.pk }}-form"
+                                            action="{% url 'change_notice' notice.0.pk %}" method="POST">
+                                            {% csrf_token %}
+                                            <div class="form-floating mb-3">
+                                                {{notice.1.title }}
+                                                {{notice.1.title.label_tag }}
+                                            </div>
+                                            <div class="form-floating">
+                                                {{notice.1.description }}
+                                                {{notice.1.description.label_tag }}
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <input type="submit" form="change-notice-{{ notice.0.pk }}-form"
+                                            class="btn btn-primary btn-lg w-100 m-0" value="Save"
+                                            onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         {% endif %}
                     </div>
                     <div>
-                        {{notice.description}}
+                        {{notice.0.description}}
                     </div>
                 </div>
             </div>

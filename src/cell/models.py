@@ -5,17 +5,33 @@ from datetime import timedelta, datetime
 from user.models import User
 from resume.models import Skill
 from django.db.models import OuterRef, Subquery, Func
+from django.db.models import Q
 
 # Create your models here.
 
 
 class Notice(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user):
+            if user.is_superuser or user.is_coordinator or (user.role == 'staff' and user.is_approved):
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     title = models.CharField(max_length=150)
     description = models.TextField()
     date = models.DateTimeField(auto_now_add=True, editable=False)
     date_edited = models.DateTimeField(auto_now=True, editable=False)
     user = models.ForeignKey(
         'user.User', null=True, on_delete=models.SET_NULL, related_name='notices')
+
+    @property
+    def edit_users(self):
+        return User.objects.filter(is_superuser=True)
 
     def __str__(self):
         return self.title
@@ -31,15 +47,32 @@ class Message(models.Model):
     date = models.DateTimeField(auto_now_add=True, editable=False)
     date_edited = models.DateTimeField(auto_now=True, editable=False)
 
+    def view_users(self):
+        return User.objects.filter(is_superuser=True, is_coordinator=True)
+
     def __str__(self):
         return self.sender
 
 
 class Quote(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user):
+            if user.is_superuser:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     quote = models.TextField()
     author = models.CharField(max_length=150)
     source = models.CharField(max_length=150, blank=True, null=True)
     fictional = models.BooleanField(default=False)
+
+    def edit_users(self):
+        return User.objects.filter(is_superuser=True)
 
     def __str__(self):
         return self.quote + ' - ' + self.author
@@ -55,6 +88,17 @@ class Quote(models.Model):
 
 
 class RecruitmentPost(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user):
+            if user.is_superuser or user.is_coordinator or (user.role == 'recruiter' and user.is_approved):
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     job_type_choices = [
         ('FT', 'Full Time'),
         ('PT', 'Part Time'),
@@ -88,7 +132,7 @@ class RecruitmentPost(models.Model):
     workplace_type = models.CharField('Workplace',
                                       max_length=1, choices=workplace_type_choices, default='S')
     salary_type = models.CharField('Paycheck type',
-                                    max_length=1, choices=salary_type_choices, default='S', help_text='Performance based or Specify a range')
+                                   max_length=1, choices=salary_type_choices, default='S', help_text='Performance based or Specify a range')
     minimum_salary = models.FloatField('Minimum', default=0)
     maximum_salary = models.FloatField('Maximum', default=0)
     fee = models.FloatField(validators=[MinValueValidator(
@@ -116,11 +160,60 @@ class RecruitmentPost(models.Model):
     shortlisted_application_instructions = models.TextField(blank=True)
 
     @property
+    def edit_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(is_superuser=True)
+        if self.user.is_coordinator:
+            return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True)).distinct()
+        return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
+
+    @property
+    def view_users(self):
+        if self.is_active:
+            return User.objects.all()
+        return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
+
+    @property
+    def add_skill_users(self):
+        return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
+
+    @property
+    def remove_skill_users(self):
+        return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
+
+    @property
+    def select_application_users(self):
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
+
+    @property
+    def reject_application_users(self):
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
+
+    @property
+    def shortlist_application_users(self):
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
+
+    @property
+    def pending_application_users(self):
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
+
+    @property
     def is_active(self):
         return self.apply_by >= datetime.now().date()
 
 
 class RecruitmentPostUpdate(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, post, user):
+            if user.is_superuser or user.is_coordinator or (user.role == 'recruiter' and user == post.user):
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     title = models.CharField(max_length=150)
     description = models.TextField()
     recruitment_post = models.ForeignKey(
@@ -130,9 +223,24 @@ class RecruitmentPostUpdate(models.Model):
     date = models.DateTimeField(auto_now_add=True, editable=False)
     date_edited = models.DateTimeField(auto_now=True, editable=False)
 
+    @property
+    def edit_users(self):
+        return User.objects.filter(is_superuser=True).distinct()
+
+    @property
+    def view_users(self):
+        if self.recruitment_post.is_active:
+            return User.objects.all()
+        return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
+
 
 class RecruitmentApplication(models.Model):
     class DefaultManager(models.Manager):
+        def get_create_permission(self, post, user):
+            if (user.role == 'student' and user.is_approved) and post.is_active and not post.applications.filter(user=user).exists():
+                return True
+            return False
+
         def get_queryset(self):
             skill_matches = Skill.objects.filter(
                 users__id__exact=OuterRef('user_id'),
@@ -184,3 +292,34 @@ class RecruitmentApplication(models.Model):
     applied_on = models.DateTimeField(auto_now_add=True, editable=False)
     status = models.CharField(
         max_length=1, choices=status_choices, default='P')
+
+    @property
+    def view_users(self):
+        return User.objects.filter(
+            Q(is_superuser=True) | Q(is_coordinator=True) |
+            Q(pk=self.user.pk) | Q(pk=self.recruitment_post.user.pk)
+        ).distinct()
+
+    @property
+    def select_users(self):
+        if self.status == 'P':
+            return User.objects.filter(Q(is_superuser=True) | Q(pk=self.recruitment_post.user.pk)).distinct()
+        return User.objects.none()
+
+    @property
+    def reject_users(self):
+        if self.status == 'P':
+            return User.objects.filter(Q(is_superuser=True) | Q(pk=self.recruitment_post.user.pk)).distinct()
+        return User.objects.none()
+
+    @property
+    def shortlist_users(self):
+        if self.status == 'P':
+            return User.objects.filter(Q(is_superuser=True) | Q(pk=self.recruitment_post.user.pk)).distinct()
+        return User.objects.none()
+
+    @property
+    def pending_users(self):
+        if self.status != 'P':
+            return User.objects.filter(Q(is_superuser=True) | Q(pk=self.recruitment_post.user.pk)).distinct()
+        return User.objects.none()

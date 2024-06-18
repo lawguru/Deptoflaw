@@ -71,9 +71,6 @@ class RecruiterSignIn(TemplateView):
 class RecruiterInfo(TemplateView):
     template_name = 'recruiter_info.html'
 
-    def check_write_permission(self, **kwargs):
-        return True if self.request.user.is_superuser or self.request.user == RecruiterProfile.objects.get(pk=self.kwargs['pk']).user else False
-
     def get(self, request, pk):
         if not RecruiterProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
@@ -86,8 +83,8 @@ class RecruiterInfo(TemplateView):
         context = super().get_context_data(**kwargs)
         context['user'] = profile.user
         context['profile'] = profile
-        if self.check_write_permission(**kwargs):
-            context['write_permission'] = True
+        
+        if self.request.user in profile.edit_users:
             context['change_profile_form'] = RecruiterProfileForm(
                 instance=profile)
         return context

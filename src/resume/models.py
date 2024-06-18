@@ -1,12 +1,24 @@
-import re
 from django.db import models
 from django.db.models.functions import Lower
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db.models import Q
+from user.models import User
 
 # Create your models here.
 
 
 class OtherEducation(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     education_choices = [
         ('Schooling', (
             ('HSLC', 'High School Leaving Certificate'),
@@ -113,6 +125,20 @@ class OtherEducation(models.Model):
     duration = models.PositiveSmallIntegerField(
         help_text='Duration in years', default=3, validators=[MinValueValidator(1), MaxValueValidator(20)])
 
+    @property
+    def edit_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def delete_users(self):
+        if self == self.user.primary_address:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
     def save(self, *args, **kwargs):
         self.user.save()
         super().save(*args, **kwargs)
@@ -125,11 +151,36 @@ class OtherEducation(models.Model):
 
 
 class Certification(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     user = models.ForeignKey('user.User', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     issuer = models.CharField(max_length=100)
     issue_date = models.DateField()
     description = models.TextField()
+
+    @property
+    def edit_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def delete_users(self):
+        if self == self.user.primary_address:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
     def __str__(self):
         return f'{self.title} from {self.issuer}'
@@ -142,6 +193,22 @@ class Certification(models.Model):
 
 
 class Skill(models.Model):
+    class Manager(models.Manager):
+        def get_add_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+        
+        def get_remove_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     users = models.ManyToManyField('user.User', related_name='skills')
     name = models.CharField('I am skilled in', max_length=100)
 
@@ -156,6 +223,22 @@ class Skill(models.Model):
 
 
 class Language(models.Model):
+    class Manager(models.Manager):
+        def get_add_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+        def get_remove_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     users = models.ManyToManyField('user.User', related_name='languages')
     name = models.CharField('I can speak', max_length=100)
 
@@ -170,6 +253,17 @@ class Language(models.Model):
 
 
 class WorkExperience(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     user = models.ForeignKey('user.User', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     company = models.CharField(max_length=100)
@@ -177,6 +271,20 @@ class WorkExperience(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     description = models.TextField()
+
+    @property
+    def edit_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def delete_users(self):
+        if self == self.user.primary_address:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
     def __str__(self):
         return f'{self.title} at {self.company}'
@@ -188,12 +296,37 @@ class WorkExperience(models.Model):
 
 
 class Project(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     user = models.ForeignKey('user.User', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     description = models.TextField()
     urls = models.TextField('Related URLs', default='', blank=True, help_text='Comma \',\' separated list of URLs in brackets following names. Eg. GitHub Repository (https://github.com/user/repo/), Website (https://example.com/), etc.')
     start_date = models.DateField()
     end_date = models.DateField()
+
+    @property
+    def edit_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def delete_users(self):
+        if self == self.user.primary_address:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
     def get_name_url_tuple(self):
         urls = self.urls.split(',')
@@ -215,12 +348,37 @@ class Project(models.Model):
 
 
 class Patent(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     user = models.ForeignKey('user.User', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     patent_office = models.CharField(max_length=100)
     patent_number = models.CharField(max_length=100)
     issue_date = models.DateField()
     description = models.TextField()
+
+    @property
+    def edit_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def delete_users(self):
+        if self == self.user.primary_address:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
     def __str__(self):
         return self.title
@@ -230,11 +388,36 @@ class Patent(models.Model):
 
 
 class Publication(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     user = models.ForeignKey('user.User', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     publisher = models.CharField(max_length=100)
     publication_date = models.DateField()
     description = models.TextField()
+
+    @property
+    def edit_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def delete_users(self):
+        if self == self.user.primary_address:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
     def __str__(self):
         return self.title
@@ -244,10 +427,35 @@ class Publication(models.Model):
 
 
 class Achievement(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     user = models.ForeignKey('user.User', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     date = models.DateField()
     description = models.TextField()
+
+    @property
+    def edit_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def delete_users(self):
+        if self == self.user.primary_address:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
     def __str__(self):
         return self.title
@@ -257,20 +465,70 @@ class Achievement(models.Model):
 
 
 class Presentation(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     user = models.ForeignKey('user.User', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     location = models.CharField(max_length=100)
     date = models.DateField()
     description = models.TextField()
 
+    @property
+    def edit_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def delete_users(self):
+        if self == self.user.primary_address:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
     def __str__(self):
         return self.title
 
 
 class OtherInfo(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     user = models.ForeignKey('user.User', on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     description = models.TextField()
+
+    @property
+    def edit_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def delete_users(self):
+        if self == self.user.primary_address:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
     def __str__(self):
         return self.title

@@ -424,13 +424,13 @@
             <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse"
                 aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#post-accordion">
                 <div class="accordion-body">
-                    {% if request.user == application.recruitment_post.user or request.user.is_superuser %}
+                    {% if request.user in post.select_application_users or request.user in post.reject_application_users or request.user in post.shortlist_application_users or request.user in post.pending_application_users %}
                     <div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Action
                         </button>
                         <ul class="dropdown-menu">
-                            {% if application.status == 'P' %}
+                            {% if request.user in application.select_users or request.user in application.reject_users or request.user in application.shortlist_users %}
                             <li>
                                 <form action="{% url 'select_recruitment_application' application.pk %}" method="POST">
                                     {% csrf_token %}
@@ -449,7 +449,7 @@
                                     <input type="submit" class="btn dropdown-item" value="Shortlist for Interview">
                                 </form>
                             </li>
-                            {% else %}
+                            {% if request.user in application.pending_users %}
                             <li>
                                 <form action="{% url 'pending_recruitment_application' application.pk %}" method="POST">
                                     {% csrf_token %}

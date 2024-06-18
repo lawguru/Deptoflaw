@@ -6,11 +6,11 @@
 {% block content %}
 <div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
     <h1 class="fw-bold display-5 text-body-emphasis lh-1 mb-5">Your Education, Certification, Skills etc.</h1>
-    {% if othereducations|length or write_permission %}
+    {% if othereducations|length or other_education_form %}
     <div id="other-educations" class="my-5">
         <div class="d-flex align-items-center justify-content-between">
             <h2 class="fw-bold text-body-emphasis lh-1 my-4">Past Education</h2>
-            {% if write_permission %}
+            {% if other_education_form %}
             <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                 data-bs-target="#add-other-education-modal">
                 <i class="bi bi-plus-circle"></i>
@@ -105,8 +105,8 @@
                 <p class="mb-0">from <strong class="replace-abbreviation">{{ education.0.institution }}</strong></p>
                 <p class="mb-0">with <strong>{{ education.0.grade_point }} points</strong> out of 10</p>
                 <p>on <strong>{{ education.0.year }}</strong> in <strong>{{ education.0.duration }} years</strong></p>
-                {% if write_permission %}
                 <span class="d-flex gap-3">
+                    {% if request.user in education.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#change-other-education-{{ education.0.pk }}-modal">
                         <i class="bi bi-pen"></i>
@@ -187,6 +187,8 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
+                    {% if request.user in education.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#delete-other-education-{{  education.0.pk }}-modal">
                         <i class="bi bi-x-circle"></i>
@@ -220,18 +222,18 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 </span>
-                {% endif %}
             </li>
             {% endfor %}
         </ul>
     </div>
     {% endif %}
-    {% if certifications|length or write_permission %}
+    {% if certifications|length or certification_form %}
     <div id="certifications" class="my-5">
         <div class="d-flex align-items-center justify-content-between">
             <h2 class="fw-bold text-body-emphasis lh-1 my-4">Certifications</h2>
-            {% if write_permission %}
+            {% if certification_form %}
             <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                 data-bs-target="#add-certification-modal">
                 <i class="bi bi-plus-circle"></i>
@@ -300,8 +302,8 @@
                     <p class="text-body-emphasis mb-2">{{ certification.0.issue_date }}</p>
                 </div>
                 <p class="replace-abbreviation">{{ certification.0.description }}</p>
-                {% if write_permission %}
                 <span class="d-flex gap-3">
+                    {% if request.user in certification.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#change-certification-{{ certification.0.pk }}-modal">
                         <i class="bi bi-pen"></i>
@@ -358,6 +360,8 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
+                    {% if request.user in certification.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#delete-certification-{{ certification.0.pk }}-modal">
                         <i class="bi bi-x-circle"></i>
@@ -391,14 +395,14 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 </span>
-                {% endif %}
             </li>
             {% endfor %}
         </ul>
     </div>
     {% endif %}
-    {% if skills|length or write_permission %}
+    {% if skills|length or skill_form %}
     <div id="skills" class="my-5">
         <h2 class="fw-bold text-body-emphasis lh-1 my-4">Your expertise</h2>
         <div class="d-flex flex-wrap align-items-center gap-2 my-3">
@@ -407,6 +411,7 @@
                 <h6 class="replace-abbreviation text-start fw-bold mb-0 lh-1">
                     {{ skill.name }}
                 </h6>
+                {% if remove_skill_permission %}
                 <form action="{% url 'delete_skill' user.pk skill.pk %}" method="POST">
                     {% csrf_token %}
                     <button type="submit" class="btn border border-0 m-0 p-0" data-bs-toggle="tooltip"
@@ -414,9 +419,11 @@
                         <i class="bi bi-x-circle fs-6"></i>
                     </button>
                 </form>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
+        {% if skill_form %}
         <form id="skill-form" action="{% url 'add_skill' user.pk %}" method="POST">
             {% csrf_token %}
             <div class="d-none">
@@ -447,9 +454,10 @@
                 </ul>
             </div>
         </form>
+        {% endif %}
     </div>
     {% endif %}
-    {% if languages|length or write_permission %}
+    {% if languages|length or language_form %}
     <div id="languages" class="my-5">
         <h2 class="fw-bold text-body-emphasis lh-1 my-4">What do you speak?</h2>
         <div class="d-flex flex-wrap align-items-center gap-2 my-3">
@@ -458,6 +466,7 @@
                 <h6 class="text-start fw-bold mb-0 lh-1">
                     {{ language.name }}
                 </h6>
+                {% if remove_language_permission %}
                 <form action="{% url 'delete_language' user.pk language.pk %}" method="POST">
                     {% csrf_token %}
                     <button type="submit" class="btn border border-0 m-0 p-0" data-bs-toggle="tooltip"
@@ -465,9 +474,11 @@
                         <i class="bi bi-x-circle fs-6"></i>
                     </button>
                 </form>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
+        {% if language_form %}
         <form id="language-form" action="{% url 'add_language' user.pk %}" method="POST">
             {% csrf_token %}
             <div class="d-none">
@@ -485,9 +496,12 @@
             <datalist id="language-data-list">
             </datalist>
         </form>
+        {% endif %}
     </div>
     {% endif %}
+    {% if request.user in user.edit_users %}
     <a class="btn btn-primary btn-lg w-100 my-3" href="{% url 'build_profile' user.pk %}">Done</a>
+    {% endif %}
 </div>
 <script>
     document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {

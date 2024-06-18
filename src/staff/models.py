@@ -1,7 +1,10 @@
 from django.db import models
+from django.db.models import Q
 from user.models import User
 
 # Create your models here.
+
+
 class StaffProfile(models.Model):
     qualification_choices = [
         ('PhD', 'Doctor of Philosophy'),
@@ -44,22 +47,44 @@ class StaffProfile(models.Model):
         ('Non-Teaching Staff', 'Non-Teaching Staff'),
         ('Others', 'Others'),
     ]
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='staff_profile')
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='staff_profile')
     id_number = models.CharField('ID Number', max_length=50, unique=True)
-    qualification = models.CharField(max_length=6, choices=qualification_choices, default='others')
-    designation = models.CharField(max_length=20, choices=designation_choices, default='others')
+    qualification = models.CharField(
+        max_length=6, choices=qualification_choices, default='others')
+    designation = models.CharField(
+        max_length=20, choices=designation_choices, default='others')
     is_hod = models.BooleanField(default=False)
     is_tpc_head = models.BooleanField(default=False)
+
+    @property
+    def edit_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def view_users(self):
+        return User.objects.all()
+
+    @property
+    def make_hod_users(self):
+        return User.objects.filter(Q(is_superuser=True) | Q(staff_profile__is_hod=True)).distinct()
+
+    @property
+    def make_tpc_head_users(self):
+        return User.objects.filter(Q(is_superuser=True) | Q(staff_profile__is_hod=True) | Q(staff_profile__is_tpc_head=True)).distinct()
 
     def save(self, *args, **kwargs):
         if self.is_hod:
             StaffProfile.objects.filter(is_hod=True).update(is_hod=False)
             self.user.is_coordinator = True
         if self.is_tpc_head:
-            StaffProfile.objects.filter(is_tpc_head=True).update(is_tpc_head=False)
+            StaffProfile.objects.filter(
+                is_tpc_head=True).update(is_tpc_head=False)
             self.user.is_coordinator = True
         super().save(*args, **kwargs)
         self.user.save()
-    
+
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name

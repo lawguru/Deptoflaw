@@ -8,6 +8,33 @@
     <h1 class="display-5 fw-bold text-body-emphasis lh-1">Welcome to your Dashboard</h1>
     <div class="my-5">
         <ul class="list-group list-group-flush my-5">
+            {% if not request.user.is_approved %}
+            <li class="list-group-item list-group-item-danger p-4">
+                <div
+                    class="d-flex align-items-center justify-content-between m-0 icon-link icon-link-hover no-shadow">
+                    <div class="d-flex align-items-start gap-4">
+                        <i class="bi bi-person-x display-5"></i>
+                        <div class="flex-fill">
+                            <h2 class="fw-bold text-danger-emphasis lh-1">Unapproved Profile</h2>
+                            <div class="font-monospace" style="width: fit-content;">
+                                <span>Many features will be unavailable.</span>
+                                <div class="d-flex align-items-start flex-column my-3">
+                                    <span>
+                                        Make sure your profile information is complete and accurate.
+                                    </span>
+                                    <span>
+                                        If still not approved, contact an Administrator or Coordinator.
+                                    </span>
+                                </div>
+                                <a class="btn btn-link rounded-pill m-0 p-0" href="{% url 'build_profile' request.user.pk %}">
+                                    View Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {% endif %}
             <li class="list-group-item list-group-item-accent p-4">
                 <div
                     class="d-flex align-items-center justify-content-between m-0 icon-link icon-link-hover no-shadow">
@@ -155,7 +182,7 @@
             {% endif %}
             <li class="list-group-item list-group-item-accent p-4">
                 <div class="d-flex align-items-start gap-4">
-                    <i class="bi bi-person-check display-5"></i>
+                    <i class="bi bi-person-workspace display-5"></i>
                     <div class="flex-fill">
                         <div class="d-flex align-items-center justify-content-between w-100">
                             <div>
@@ -390,7 +417,7 @@
             {% if request.user.role == 'student' or request.user.role == 'recruiter' or request.user.is_superuser or request.user.is_coordinator %}
             <li class="list-group-item list-group-item-accent p-4">
                 <div class="d-flex align-items-start gap-4">
-                    <i class="bi bi-person-check display-5"></i>
+                    <i class="bi bi-person-up display-5"></i>
                     <div class="flex-fill">
                         <h2 class="fw-bold text-body-emphasis lh-1">Applications</h2>
                         <div class="mb-3">Applications received from Students.</div>

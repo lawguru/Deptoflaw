@@ -303,11 +303,11 @@ class SignOut(View):
 @method_decorator(login_required, name="dispatch")
 class ApproveUser(View):
     def post(self, request, pk):
-        if not request.user.is_superuser and not request.user.is_coordinator:
-            raise PermissionDenied()
         if not User.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         user = User.objects.get(pk=pk)
+        if request.user not in user.approve_users:
+            raise PermissionDenied()
         user.is_approved = True
         user.save()
         return redirect(reverse('user_list') + f'?is-approved-filter=False')
@@ -316,12 +316,11 @@ class ApproveUser(View):
 @method_decorator(login_required, name="dispatch")
 class RejectUser(View):
     def post(self, request, pk):
-        if not request.user.is_superuser and not request.user.is_coordinator:
-            raise PermissionDenied()
         if not User.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         user = User.objects.get(pk=pk)
-        user.is_approved = False
+        if request.user not in user.delete_users:
+            raise PermissionDenied()
         user.delete()
         return redirect(reverse('user_list') + f'?is-approved-filter=True')
 
@@ -329,11 +328,11 @@ class RejectUser(View):
 @method_decorator(login_required, name="dispatch")
 class MakeCoordinator(View):
     def post(self, request, pk):
-        if not request.user.is_superuser:
-            raise PermissionDenied()
         if not User.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         user = User.objects.get(pk=pk)
+        if request.user not in user.make_coordinator_users:
+            raise PermissionDenied()
         user.is_coordinator = True
         user.save()
         return redirect(reverse('user_list'))
@@ -342,12 +341,10 @@ class MakeCoordinator(View):
 @method_decorator(login_required, name="dispatch")
 class RemoveCoordinator(View):
     def post(self, request, pk):
-        if not request.user.is_superuser:
-            raise PermissionDenied()
         if not User.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         user = User.objects.get(pk=pk)
-        if user.staff_profile and (user.staff_profile.is_hod or user.staff_profile.is_tpc_head):
+        if request.user not in user.remove_coordinator_users:
             raise PermissionDenied()
         user.is_coordinator = False
         user.save()
@@ -361,7 +358,8 @@ class BuildProfile(TemplateView):
     def get(self, request, pk):
         if not User.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
-        elif request.user.pk != pk and not request.user.is_superuser:
+        user = User.objects.get(pk=pk)
+        if request.user not in user.edit_users:
             raise PermissionDenied()
         return super().get(request, pk)
 
@@ -391,13 +389,11 @@ class SelfUser(View):
 class PersonalContactInfo(TemplateView):
     template_name = 'personal_contact_info.html'
 
-    def check_write_permission(self, **kwargs):
-        return True if self.request.user.is_superuser or self.request.user.pk == self.kwargs['pk'] else False
-
     def get(self, request, pk):
         if not User.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
-        elif request.user.pk != pk and not request.user.is_superuser and not request.user.is_coordinator:
+        user = User.objects.get(pk=pk)
+        if request.user not in user.view_users:
             raise PermissionDenied()
         return super().get(request, pk)
 
@@ -412,14 +408,21 @@ class PersonalContactInfo(TemplateView):
                                 for address in Address.objects.filter(user=user)]
         context['links'] = Link.objects.filter(user=user)
 
-        if self.check_write_permission(**kwargs):
-            context['write_permission'] = True
-            context['phone_number_form'] = PhoneNumberForm(
-                initial={'user': user.pk})
+        if PhoneNumber.objects.get_create_permission(user, self.request.user):
+            context['phone_number_form'] = PhoneNumberForm(initial={'user': user.pk})
+        
+        if Email.objects.get_create_permission(user, self.request.user):
             context['email_form'] = EmailForm(initial={'user': user.pk})
+
+        if Address.objects.get_create_permission(user, self.request.user):
             context['address_form'] = AddressForm(initial={'user': user.pk})
+        
+        if Link.objects.get_create_permission(user, self.request.user):
             context['link_form'] = LinkForm(initial={'user': user.pk})
+        
+        if self.request.user in user.edit_users:
             context['change_user_form'] = UserForm(instance=user)
+
         return context
 
 

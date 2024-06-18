@@ -6,11 +6,11 @@
 {% block content %}
 <div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
     <h1 class="fw-bold display-5 text-body-emphasis lh-1 mb-5">Where have you applied your skills?</h1>
-    {% if work_experiences|length or write_permission %}
+    {% if work_experiences|length or work_experience_form %}
     <div id="work-experiences" class="my-5">
         <div class="d-flex align-items-center justify-content-between">
             <h2 class="fw-bold text-body-emphasis lh-1 my-4">Work Experience</h2>
-            {% if write_permission %}
+            {% if work_experience_form %}
             <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                 data-bs-target="#add-work-experience-modal">
                 <i class="bi bi-plus-circle"></i>
@@ -94,8 +94,8 @@
                     </p>
                 </div>
                 <p class="replace-abbreviation">{{ work_experience.0.description }}</p>
-                {% if write_permission %}
                 <span class="d-flex gap-3">
+                    {% request.user in work_experience.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#change-work-experience-{{ work_experience.0.pk }}-modal">
                         <i class="bi bi-pen"></i>
@@ -159,6 +159,8 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
+                    {% if request.user in work_experience.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#delete-work-experience-{{ work_experience.0.pk }}-modal">
                         <i class="bi bi-x-circle"></i>
@@ -192,18 +194,18 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 </span>
-                {% endif %}
             </li>
             {% endfor %}
         </ul>
     </div>
     {% endif %}
-    {% if projects|length or write_permission %}
+    {% if projects|length or project_form %}
     <div id="projects" class="my-5">
         <div class="d-flex align-items-center justify-content-between">
             <h2 class="fw-bold text-body-emphasis lh-1 my-4">Projects</h2>
-            {% if write_permission %}
+            {% if project_form %}
             <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-project-modal">
                 <i class="bi bi-plus-circle"></i>
             </a>
@@ -283,8 +285,8 @@
                     {% endif %}
                 </div>
                 <p class="replace-abbreviation">{{ project.0.description }}</p>
-                {% if write_permission %}
                 <span class="d-flex gap-3">
+                    {% if request.user in project.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#change-project-{{ project.0.pk }}-modal">
                         <i class="bi bi-pen"></i>
@@ -344,6 +346,8 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
+                    {% if request.user in project.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#delete-project-{{ project.0.pk }}-modal">
                         <i class="bi bi-x-circle"></i>
@@ -374,14 +378,17 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 </span>
-                {% endif %}
             </li>
             {% endfor %}
         </ul>
     </div>
     {% endif %}
+
+    {% if request.user in user.edit_users %}
     <a class="btn btn-primary btn-lg w-100 my-3" href="{% url 'build_profile' user.pk %}">Done</a>
+    {% endif %}
 </div>
 <script>
     document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {

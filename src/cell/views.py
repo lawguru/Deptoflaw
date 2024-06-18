@@ -63,17 +63,113 @@ class Contact(View):
 
 
 @method_decorator(login_required, name="dispatch")
-class AddNotice(View):
-    def post(self, request):
-        if not (self.request.user.is_approved and self.request.user.role == 'staff') and not self.request.user.is_superuser and not self.request.user.is_coordinator:
-            raise PermissionDenied()
-        form = NoticeForm(request.POST)
-        if form.is_valid():
-            notice = Notice.objects.create(
-                title=form.cleaned_data['title'], description=form.cleaned_data['description'], user=request.user)
-            return redirect(reverse('notices') + f'#notice-{notice.id}')
-        else:
-            raise BadRequest()
+class Dashboard(TemplateView):
+    template_name = 'dashboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+
+        if RecruitmentPost.objects.get_create_permission(user):
+            context['add_post_form'] = AddRecruitmentPostForm(initial={'user': user})
+
+        if Notice.objects.get_create_permission(user):
+            context['add_notice_form'] = NoticeForm()
+
+        if user.role == 'student':
+            self.add_student_context(context, user)
+
+        if user.is_superuser or user.is_coordinator or user.role == 'recruiter':
+            self.add_recruiter_context(context, user)
+
+        if user.is_superuser or user.is_coordinator:
+            self.add_admin_context(context)
+
+        context.update(self.add_general_context())
+
+        return context
+
+    def add_student_context(self, context, user):
+        user_applications = RecruitmentApplication.objects.filter(user=user)
+        context.update({
+            'user_application_count': user_applications.count(),
+            'pending_user_application_count': user_applications.filter(status='P').count(),
+            'selected_user_application_count': user_applications.filter(status='S').count(),
+            'rejected_user_application_count': user_applications.filter(status='R').count(),
+            'shortlisted_user_application_count': user_applications.filter(status='I').count(),
+        })
+
+    def add_recruiter_context(self, context, user):
+        user_posts = RecruitmentPost.objects.filter(user=user)
+        active_user_posts = user_posts.filter(
+            apply_by__gte=datetime.today().date())
+        user_applicants = RecruitmentApplication.objects.filter(
+            recruitment_post__in=user_posts)
+        active_user_applicants = user_applicants.filter(
+            recruitment_post__in=active_user_posts)
+
+        context.update({
+            'user_post_count': user_posts.count(),
+            'user_active_post_count': active_user_posts.count(),
+            'user_applicant_count': user_applicants.count(),
+            'pending_user_applicant_count': user_applicants.filter(status='P').count(),
+            'selected_user_applicant_count': user_applicants.filter(status='S').count(),
+            'rejected_user_applicant_count': user_applicants.filter(status='R').count(),
+            'shortlisted_user_applicant_count': user_applicants.filter(status='I').count(),
+            'user_active_applicant_count': active_user_applicants.count(),
+            'pending_user_active_applicant_count': active_user_applicants.filter(status='P').count(),
+            'selected_user_active_applicant_count': active_user_applicants.filter(status='S').count(),
+            'rejected_user_active_applicant_count': active_user_applicants.filter(status='R').count(),
+            'shortlisted_user_active_applicant_count': active_user_applicants.filter(status='I').count(),
+        })
+
+    def add_admin_context(self, context):
+        unapproved_users = User.objects.filter(is_approved=False)
+        students = StudentProfile.objects.filter()
+        applicants = RecruitmentApplication.objects.all()
+        active_applicants = RecruitmentApplication.objects.filter(
+            recruitment_post__in=RecruitmentPost.objects.filter(
+                apply_by__gte=datetime.today().date())
+        )
+
+        context.update({
+            'unapproved_user_count': unapproved_users.count(),
+            'unapproved_student_count': unapproved_users.filter(role='student').count(),
+            'unapproved_staff_count': unapproved_users.filter(role='staff').count(),
+            'unapproved_recruiter_count': unapproved_users.filter(role='recruiter').count(),
+            'student_count': students.count(),
+            'current_student_count': students.filter(is_current=True).count(),
+            'alumni_count': students.filter(passed_out=True).count(),
+            'applicant_count': applicants.count(),
+            'pending_applicant_count': applicants.filter(status='P').count(),
+            'selected_applicant_count': applicants.filter(status='S').count(),
+            'rejected_applicant_count': applicants.filter(status='R').count(),
+            'shortlisted_applicant_count': applicants.filter(status='I').count(),
+            'active_applicant_count': active_applicants.count(),
+            'pending_active_applicant_count': active_applicants.filter(status='P').count(),
+            'selected_active_applicant_count': active_applicants.filter(status='S').count(),
+            'rejected_active_applicant_count': active_applicants.filter(status='R').count(),
+            'shortlisted_active_applicant_count': active_applicants.filter(status='I').count(),
+        })
+
+    def add_general_context(self):
+        active_posts = RecruitmentPost.objects.filter(
+            apply_by__gte=datetime.today().date())
+        user_notices = list(chain(
+            Notice.objects.filter(user=self.request.user),
+            RecruitmentPostUpdate.objects.filter(user=self.request.user)
+        ))
+        all_notices = list(chain(
+            Notice.objects.all(),
+            RecruitmentPostUpdate.objects.all()
+        ))
+
+        return {
+            'post_count': RecruitmentPost.objects.count(),
+            'active_post_count': active_posts.count(),
+            'user_notice_count': len(user_notices),
+            'total_notice_count': len(all_notices),
+        }
 
 
 class ListNotice(ListView):
@@ -116,6 +212,10 @@ class ListNotice(ListView):
             return queryset
         if type_filter == 'post-update':
             return queryset2
+        
+        queryset = [(notice, NoticeForm(instance=notice)) for notice in queryset]
+        queryset2 = [(update, None) for update in queryset2]
+
         return list(chain(queryset, queryset2))
 
     def apply_user_filter(self, queryset):
@@ -272,7 +372,7 @@ class ListRecruitmentPost(ListView):
             return queryset
         elif self.request.user.is_authenticated and not self.request.user.is_superuser and not self.request.user.is_coordinator:
             return queryset
-        
+
         applications_filter_lower_limit = self.request.GET.get(
             'applications-filter-lower-limit', 0)
         queryset = queryset.annotate(application_count=Count('applications')).filter(
@@ -336,278 +436,56 @@ class ListRecruitmentPost(ListView):
 
 
 @method_decorator(login_required, name="dispatch")
-class AddRecruitmentPost(AddUserKeyObject):
-    model = RecruitmentPost
-    form = AddRecruitmentPostForm
-    redirect_url_name = 'recruitment_posts'
-
-    def check_permission(self, request, *args, **kwargs):
-        if not (User.objects.get(pk=kwargs['user']) == request.user and request.user.role == 'recruiter' and request.user.is_approved) and not request.user.is_coordinator and not request.user.is_superuser:
-            return False
-        return super().check_permission(request, kwargs['user'], *args, **kwargs)
-
-    def get_redirect_url_params(self, request, *args, **kwargs):
-        return f'?user-filter={kwargs["user"]}'
-
-
-@method_decorator(login_required, name="dispatch")
 class ViewRecruitmentPost(TemplateView):
     template_name = 'recruitment_post.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['post'] = RecruitmentPost.objects.get(pk=kwargs['pk'])
-        context['skills'] = context['post'].skills.all()
+        post = RecruitmentPost.objects.get(pk=kwargs['pk'])
+        context['post'] = post
         context['updates'] = [(update, RecruitmentPostUpdateForm(
-            instance=update)) for update in context['post'].updates.all()]
-        if context['post'].user == self.request.user or self.request.user.is_superuser or self.request.user.is_coordinator:
+            instance=update)) for update in post.updates.all()]
+
+        if RecruitmentPostUpdate.objects.get_create_permission(post, self.request.user):
             context['update_form'] = RecruitmentPostUpdateForm()
+
+        if self.request.user in post.add_skill_users:
             context['skill_form'] = SkillForm()
-            context['pending_applications_count'] = context['post'].applications.filter(
+
+        if self.request.user in post.select_application_users or \
+                self.request.user in post.reject_application_users or \
+                self.request.user in post.shortlist_application_users:
+            context['pending_applications_count'] = post.applications.filter(
                 status='P').count()
-            context['rejected_applications_count'] = context['post'].applications.filter(
+
+        if self.request.user in post.pending_application_users:
+            context['rejected_applications_count'] = post.applications.filter(
                 status='R').count()
-            context['selected_applications_count'] = context['post'].applications.filter(
+            context['selected_applications_count'] = post.applications.filter(
                 status='S').count()
-            context['interview_applications_count'] = context['post'].applications.filter(
+            context['interview_applications_count'] = post.applications.filter(
                 status='I').count()
-        if self.request.user == context['post'].user:
+
+        if self.request.user in post.edit_users:
             context['edit_form'] = RecruiterChangeRecruitmentPostForm(
-                instance=context['post'])
-        if self.request.user.is_superuser or self.request.user.is_coordinator:
-            context['edit_form'] = TPCChangeRecruitmentPostForm(
-                instance=context['post'])
-        if self.request.user.role == 'student':
-            if context['post'].applications.filter(user=self.request.user).exists():
-                context['application'] = context['post'].applications.get(
-                    user=self.request.user)
-            if context['post'].is_active:
-                context['apply_form'] = RecruitmentApplicationForm()
+                instance=post)
+            if self.request.user.is_superuser or self.request.user.is_coordinator:
+                context['edit_form'] = TPCChangeRecruitmentPostForm(
+                    instance=post)
+
+
+        if RecruitmentApplication.objects.get_create_permission(post, self.request.user):
+            context['apply_form'] = RecruitmentApplicationForm()
+
+        if post.applications.filter(user=self.request.user).exists():
+            context['application'] = post.applications.get(
+                user=self.request.user)
         return context
 
     def get(self, request, pk):
         if not RecruitmentPost.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         return super().get(request, pk=pk)
-
-
-@method_decorator(login_required, name="dispatch")
-class RecruiterChangeRecruitmentPost(ChangeUserKeyObject):
-    model = RecruitmentPost
-    form = RecruiterChangeRecruitmentPostForm
-    redirect_url_name = 'view_recruitment_post'
-
-    def get_redirect_url_args(self, request, pk, *args, **kwargs):
-        return [pk]
-
-    def get(self, request, pk):
-        raise BadRequest()
-
-
-@method_decorator(login_required, name="dispatch")
-class TPCChangeRecruitmentPost(RecruiterChangeRecruitmentPost):
-    form = TPCChangeRecruitmentPostForm
-
-    def check_permission(self, request, pk, *args, **kwargs):
-        if request.user.is_superuser or request.user.is_coordinator:
-            return True
-        return RecruiterChangeRecruitmentPost.check_permission(self, request, pk, *args, **kwargs)
-
-
-@method_decorator(login_required, name="dispatch")
-class ChangeRecruitmentPost(TPCChangeRecruitmentPost):
-    def post(self, request, pk, *args, **kwargs):
-        if request.user.is_superuser or request.user.is_coordinator:
-            self.form = TPCChangeRecruitmentPost.form
-            return TPCChangeRecruitmentPost.post(self, request, pk, *args, **kwargs)
-        self.form = RecruiterChangeRecruitmentPost.form
-        return RecruiterChangeRecruitmentPost.post(self, request, pk, *args, **kwargs)
-
-
-@method_decorator(login_required, name="dispatch")
-class AddRecruitmentPostUpdate(AddObject):
-    model = RecruitmentPostUpdate
-    form = RecruitmentPostUpdateForm
-    redirect_url_name = 'view_recruitment_post'
-
-    def check_permission(self, request, *args, **kwargs):
-        if kwargs['recruitment_post'].user == request.user or request.user.is_superuser or request.user.is_coordinator:
-            return True
-        return super().check_permission(request, *args, **kwargs)
-
-    def get_redirect_url_params(self, request, *args, **kwargs):
-        return f'#updates-last'
-
-    def get_redirect_url_args(self, request, *args, **kwargs):
-        return [kwargs['recruitment_post'].pk]
-
-    def get(self, request, pk):
-        raise BadRequest()
-
-    def post(self, request, pk):
-        if not RecruitmentPost.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        return super().post(request, recruitment_post=RecruitmentPost.objects.get(pk=pk), user=request.user)
-
-
-@method_decorator(login_required, name="dispatch")
-class ChangeRecruitmentPostUpdate(ChangeUserKeyObject):
-    model = RecruitmentPostUpdate
-    form = RecruitmentPostUpdateForm
-    redirect_url_name = 'view_recruitment_post'
-
-    def check_permission(self, request, pk, *args, **kwargs):
-        obj = self.model.objects.get(pk=pk)
-        if obj.user == request.user or obj.recruitment_post.user == request.user or request.user.is_superuser:
-            return True
-        return super().check_permission(request, *args, **kwargs)
-
-    def get_redirect_url_params(self, request, pk, *args, **kwargs):
-        return f'#update-{pk}'
-
-    def get_redirect_url_args(self, request, pk, *args, **kwargs):
-        return [self.model.objects.get(pk=pk).recruitment_post.pk]
-
-    def get(self, request, pk):
-        raise BadRequest()
-
-
-@method_decorator(login_required, name="dispatch")
-class DeleteRecruitmentPostUpdate(DeleteUserKeyObject):
-    model = RecruitmentPostUpdate
-    redirect_url_name = 'view_recruitment_post'
-
-    def check_permission(self, request, pk, *args, **kwargs):
-        obj = self.model.objects.get(pk=pk)
-        if obj.user == request.user or obj.recruitment_post.user == request.user or request.user.is_superuser:
-            return True
-        return super().check_permission(request, *args, **kwargs)
-
-    def get_redirect_url_params(self, request, pk, *args, **kwargs):
-        return '#updates'
-
-    def get_redirect_url_args(self, request, pk, *args, **kwargs):
-        return [self.model.objects.get(pk=pk).recruitment_post.pk]
-
-    def get(self, request, pk):
-        raise BadRequest()
-
-
-@method_decorator(login_required, name="dispatch")
-class AddRecruitmentSkill(View):
-    model = Skill
-    form = SkillForm
-    redirect_url_name = 'view_recruitment_post'
-
-    def post(self, request, pk):
-        if not RecruitmentPost.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        post = RecruitmentPost.objects.get(pk=pk)
-        if request.user != post.user and not request.user.is_superuser and not request.user.is_coordinator():
-            raise PermissionDenied()
-        form = self.form(request.POST)
-        if form.is_valid():
-            if self.model.objects.filter(name__iexact=form.cleaned_data['name']).exists():
-                skill = self.model.objects.get(
-                    name__iexact=form.cleaned_data['name'])
-            else:
-                skill = self.model.objects.create(
-                    name=form.cleaned_data['name'])
-            post.skills.add(skill)
-            post.save()
-        else:
-            print(form.errors)
-            raise BadRequest()
-        return redirect(reverse('view_recruitment_post', args=[pk]) + '#skills')
-
-
-@method_decorator(login_required, name="dispatch")
-class DeleteRecruitmentSkill(View):
-    model = Skill
-    redirect_url_name = 'view_recruitment_post'
-
-    def post(self, request, pk, skill):
-        if not RecruitmentPost.objects.filter(pk=pk).exists() or not self.model.objects.filter(pk=skill).exists():
-            raise ObjectDoesNotExist()
-        post = RecruitmentPost.objects.get(pk=pk)
-        if request.user != post.user and not request.user.is_superuser and not request.user.is_coordinator():
-            raise PermissionDenied()
-        post.skills.remove(self.model.objects.get(pk=skill))
-        post.save()
-        return redirect(reverse('view_recruitment_post', args=[pk]) + '#skills')
-
-
-@method_decorator(login_required, name="dispatch")
-class AddRecruitmentApplication(AddObject):
-    model = RecruitmentApplication
-    form = RecruitmentApplicationForm
-    redirect_url_name = 'recruitment_application'
-
-    def check_permission(self, request, *args, **kwargs):
-        if not kwargs['recruitment_post'].is_active or kwargs['recruitment_post'].applications.filter(user=request.user).exists() or request.user.role != 'student':
-            return False
-
-        return super().check_permission(request, *args, **kwargs)
-
-    def get(self, request, pk):
-        raise BadRequest()
-
-    def post(self, request, pk):
-        if not RecruitmentPost.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        return super().post(request, recruitment_post=RecruitmentPost.objects.get(pk=pk), user=request.user)
-
-
-@method_decorator(login_required, name="dispatch")
-class SelectRecruitmentApplication(View):
-    def post(self, request, pk):
-        if not RecruitmentApplication.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        application = RecruitmentApplication.objects.get(pk=pk)
-        if request.user != application.recruitment_post.user and not request.user.is_superuser:
-            raise PermissionDenied()
-        application.status = 'S'
-        application.save()
-        return redirect(reverse('recruitment_applications', args=[pk]))
-
-
-@method_decorator(login_required, name="dispatch")
-class RejectRecruitmentApplication(View):
-    def post(self, request, pk):
-        if not RecruitmentApplication.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        application = RecruitmentApplication.objects.get(pk=pk)
-        if request.user != application.recruitment_post.user and not request.user.is_superuser:
-            raise PermissionDenied()
-        application.status = 'R'
-        application.save()
-        return redirect(reverse('recruitment_applications', args=[pk]))
-
-
-@method_decorator(login_required, name="dispatch")
-class ShortlistRecruitmentApplication(View):
-    def post(self, request, pk):
-        if not RecruitmentApplication.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        application = RecruitmentApplication.objects.get(pk=pk)
-        if request.user != application.recruitment_post.user and not request.user.is_superuser:
-            raise PermissionDenied()
-        application.status = 'I'
-        application.save()
-        return redirect(reverse('recruitment_applications', args=[pk]))
-
-
-@method_decorator(login_required, name="dispatch")
-class PendingRecruitmentApplication(View):
-    def post(self, request, pk):
-        if not RecruitmentApplication.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        application = RecruitmentApplication.objects.get(pk=pk)
-        if request.user != application.recruitment_post.user and not request.user.is_superuser:
-            raise PermissionDenied()
-        application.status = 'P'
-        application.save()
-        return redirect(reverse('recruitment_applications', args=[pk]))
 
 
 @method_decorator(login_required, name="dispatch")
@@ -744,120 +622,238 @@ class RecruitmentApplications(ListView):
         return context
 
 
+@method_decorator(login_required, name="dispatch")
+class AddNotice(View):
+    def post(self, request):
+        if not Notice.objects.get_create_permission(request.user):
+            raise PermissionDenied()
+        form = NoticeForm(request.POST)
+        if form.is_valid():
+            notice = Notice.objects.create(
+                title=form.cleaned_data['title'], description=form.cleaned_data['description'], user=request.user)
+            return redirect(reverse('notices') + f'#notice-{notice.id}')
+        else:
+            raise BadRequest()
+
+
+@method_decorator(login_required, name="dispatch")
+class ChangeNotice(View):
+    def post(self, request, pk):
+        if not Notice.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        notice = Notice.objects.get(pk=pk)
+        if request.user not in notice.edit_users:
+            raise PermissionDenied()
+        form = NoticeForm(request.POST)
+        if form.is_valid():
+            notice.title = form.cleaned_data['title']
+            notice.description = form.cleaned_data['description']
+            notice.save()
+            return redirect(reverse('notices') + f'#notice-{notice.id}')
+        else:
+            raise BadRequest()
+
+
+@method_decorator(login_required, name="dispatch")
+class AddRecruitmentPost(AddUserKeyObject):
+    model = RecruitmentPost
+    form = AddRecruitmentPostForm
+    redirect_url_name = 'recruitment_posts'
+
+    def get_redirect_url_params(self, request, *args, **kwargs):
+        return f'?user-filter={kwargs["user"]}'
+
+
+@method_decorator(login_required, name="dispatch")
+class RecruiterChangeRecruitmentPost(ChangeUserKeyObject):
+    model = RecruitmentPost
+    form = RecruiterChangeRecruitmentPostForm
+    redirect_url_name = 'view_recruitment_post'
+
+    def get_redirect_url_args(self, request, pk, *args, **kwargs):
+        return [pk]
+
+    def get(self, request, pk):
+        raise BadRequest()
+
+
+@method_decorator(login_required, name="dispatch")
+class TPCChangeRecruitmentPost(RecruiterChangeRecruitmentPost):
+    form = TPCChangeRecruitmentPostForm
+
+
+@method_decorator(login_required, name="dispatch")
+class ChangeRecruitmentPost(TPCChangeRecruitmentPost):
+    def post(self, request, pk, *args, **kwargs):
+        if request.user.is_superuser or request.user.is_coordinator:
+            self.form = TPCChangeRecruitmentPost.form
+            return TPCChangeRecruitmentPost.post(self, request, pk, *args, **kwargs)
+        self.form = RecruiterChangeRecruitmentPost.form
+        return RecruiterChangeRecruitmentPost.post(self, request, pk, *args, **kwargs)
+
+
+@method_decorator(login_required, name="dispatch")
+class AddRecruitmentPostUpdate(AddObject):
+    model = RecruitmentPostUpdate
+    form = RecruitmentPostUpdateForm
+    redirect_url_name = 'view_recruitment_post'
+
+    def check_permission(self, request, *args, **kwargs):
+        if self.model.objects.get_create_permission(kwargs['recruitment_post'], request.user):
+            return True
+        return super().check_permission(request, *args, **kwargs)
+
+    def get_redirect_url_params(self, request, *args, **kwargs):
+        return f'#updates-last'
+
+    def get_redirect_url_args(self, request, *args, **kwargs):
+        return [kwargs['recruitment_post'].pk]
+
+    def get(self, request, pk):
+        raise BadRequest()
+
+    def post(self, request, pk):
+        if not RecruitmentPost.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        return super().post(request, recruitment_post=RecruitmentPost.objects.get(pk=pk), user=request.user)
+
+
+@method_decorator(login_required, name="dispatch")
+class ChangeRecruitmentPostUpdate(ChangeUserKeyObject):
+    model = RecruitmentPostUpdate
+    form = RecruitmentPostUpdateForm
+    redirect_url_name = 'view_recruitment_post'
+
+    def get_redirect_url_params(self, request, pk, *args, **kwargs):
+        return f'#update-{pk}'
+
+    def get_redirect_url_args(self, request, pk, *args, **kwargs):
+        return [self.model.objects.get(pk=pk).recruitment_post.pk]
+
+    def get(self, request, pk):
+        raise BadRequest()
+
+
+@method_decorator(login_required, name="dispatch")
+class AddRecruitmentSkill(View):
+    model = Skill
+    form = SkillForm
+    redirect_url_name = 'view_recruitment_post'
+
+    def post(self, request, pk):
+        if not RecruitmentPost.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        post = RecruitmentPost.objects.get(pk=pk)
+        if request.user not in post.add_skill_users:
+            raise PermissionDenied()
+        form = self.form(request.POST)
+        if form.is_valid():
+            if self.model.objects.filter(name__iexact=form.cleaned_data['name']).exists():
+                skill = self.model.objects.get(
+                    name__iexact=form.cleaned_data['name'])
+            else:
+                skill = self.model.objects.create(
+                    name=form.cleaned_data['name'])
+            post.skills.add(skill)
+            post.save()
+        else:
+            print(form.errors)
+            raise BadRequest()
+        return redirect(reverse('view_recruitment_post', args=[pk]) + '#skills')
+
+
+@method_decorator(login_required, name="dispatch")
+class DeleteRecruitmentSkill(View):
+    model = Skill
+    redirect_url_name = 'view_recruitment_post'
+
+    def post(self, request, pk, skill):
+        if not RecruitmentPost.objects.filter(pk=pk).exists() or not self.model.objects.filter(pk=skill).exists():
+            raise ObjectDoesNotExist()
+        post = RecruitmentPost.objects.get(pk=pk)
+        if request.user not in post.remove_skill_users:
+            raise PermissionDenied()
+        post.skills.remove(self.model.objects.get(pk=skill))
+        post.save()
+        return redirect(reverse('view_recruitment_post', args=[pk]) + '#skills')
+
+
+@method_decorator(login_required, name="dispatch")
+class AddRecruitmentApplication(AddObject):
+    model = RecruitmentApplication
+    form = RecruitmentApplicationForm
+    redirect_url_name = 'recruitment_application'
+
+    def check_permission(self, request, *args, **kwargs):
+        if not self.model.objects.get_create_permission(kwargs['recruitment_post'], request.user):
+            return False
+
+        return super().check_permission(request, *args, **kwargs)
+
+    def get(self, request, pk):
+        raise BadRequest()
+
+    def post(self, request, pk):
+        if not RecruitmentPost.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        return super().post(request, recruitment_post=RecruitmentPost.objects.get(pk=pk), user=request.user)
+
+
+@method_decorator(login_required, name="dispatch")
+class SelectRecruitmentApplication(View):
+    def post(self, request, pk):
+        if not RecruitmentApplication.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        application = RecruitmentApplication.objects.get(pk=pk)
+        if request.user not in application.select_users:
+            raise PermissionDenied()
+        application.status = 'S'
+        application.save()
+        return redirect(reverse('recruitment_applications', args=[pk]))
+
+
+@method_decorator(login_required, name="dispatch")
+class RejectRecruitmentApplication(View):
+    def post(self, request, pk):
+        if not RecruitmentApplication.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        application = RecruitmentApplication.objects.get(pk=pk)
+        if request.user not in application.reject_users:
+            raise PermissionDenied()
+        application.status = 'R'
+        application.save()
+        return redirect(reverse('recruitment_applications', args=[pk]))
+
+
+@method_decorator(login_required, name="dispatch")
+class ShortlistRecruitmentApplication(View):
+    def post(self, request, pk):
+        if not RecruitmentApplication.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        application = RecruitmentApplication.objects.get(pk=pk)
+        if request.user not in application.shortlist_users:
+            raise PermissionDenied()
+        application.status = 'I'
+        application.save()
+        return redirect(reverse('recruitment_applications', args=[pk]))
+
+
+@method_decorator(login_required, name="dispatch")
+class PendingRecruitmentApplication(View):
+    def post(self, request, pk):
+        if not RecruitmentApplication.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        application = RecruitmentApplication.objects.get(pk=pk)
+        if request.user not in application.pending_users:
+            raise PermissionDenied()
+        application.status = 'P'
+        application.save()
+        return redirect(reverse('recruitment_applications', args=[pk]))
+
+
 class SkillAutocomplete(View):
     def get(self, request, pk, *args, **kwargs):
         query = request.GET.get('q')
         li = [(obj.name, f'{obj.pk}') for obj in Skill.objects.filter(
             jobs__id=pk, name__icontains=query)]
         return JsonResponse(li, safe=False)
-
-
-@method_decorator(login_required, name="dispatch")
-class Dashboard(TemplateView):
-    template_name = 'dashboard.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-
-        if (user.role == 'recruiter' and user.is_approved) or user.is_superuser or user.is_coordinator:
-            context['add_post_form'] = AddRecruitmentPostForm(
-                initial={'user': user})
-
-        if (user.role == 'staff' and user.is_approved) or user.is_superuser or user.is_coordinator:
-            context['add_notice_form'] = NoticeForm()
-
-        if user.role == 'student':
-            self.add_student_context(context, user)
-
-        if user.is_superuser or user.is_coordinator or user.role == 'recruiter':
-            self.add_recruiter_context(context, user)
-
-        if user.is_superuser or user.is_coordinator:
-            self.add_admin_context(context)
-
-        context.update(self.add_general_context())
-
-        return context
-
-    def add_student_context(self, context, user):
-        user_applications = RecruitmentApplication.objects.filter(user=user)
-        context.update({
-            'user_application_count': user_applications.count(),
-            'pending_user_application_count': user_applications.filter(status='P').count(),
-            'selected_user_application_count': user_applications.filter(status='S').count(),
-            'rejected_user_application_count': user_applications.filter(status='R').count(),
-            'shortlisted_user_application_count': user_applications.filter(status='I').count(),
-        })
-
-    def add_recruiter_context(self, context, user):
-        user_posts = RecruitmentPost.objects.filter(user=user)
-        active_user_posts = user_posts.filter(
-            apply_by__gte=datetime.today().date())
-        user_applicants = RecruitmentApplication.objects.filter(
-            recruitment_post__in=user_posts)
-        active_user_applicants = user_applicants.filter(
-            recruitment_post__in=active_user_posts)
-
-        context.update({
-            'user_post_count': user_posts.count(),
-            'user_active_post_count': active_user_posts.count(),
-            'user_applicant_count': user_applicants.count(),
-            'pending_user_applicant_count': user_applicants.filter(status='P').count(),
-            'selected_user_applicant_count': user_applicants.filter(status='S').count(),
-            'rejected_user_applicant_count': user_applicants.filter(status='R').count(),
-            'shortlisted_user_applicant_count': user_applicants.filter(status='I').count(),
-            'user_active_applicant_count': active_user_applicants.count(),
-            'pending_user_active_applicant_count': active_user_applicants.filter(status='P').count(),
-            'selected_user_active_applicant_count': active_user_applicants.filter(status='S').count(),
-            'rejected_user_active_applicant_count': active_user_applicants.filter(status='R').count(),
-            'shortlisted_user_active_applicant_count': active_user_applicants.filter(status='I').count(),
-        })
-
-    def add_admin_context(self, context):
-        unapproved_users = User.objects.filter(is_approved=False)
-        students = StudentProfile.objects.filter()
-        applicants = RecruitmentApplication.objects.all()
-        active_applicants = RecruitmentApplication.objects.filter(
-            recruitment_post__in=RecruitmentPost.objects.filter(
-                apply_by__gte=datetime.today().date())
-        )
-
-        context.update({
-            'unapproved_user_count': unapproved_users.count(),
-            'unapproved_student_count': unapproved_users.filter(role='student').count(),
-            'unapproved_staff_count': unapproved_users.filter(role='staff').count(),
-            'unapproved_recruiter_count': unapproved_users.filter(role='recruiter').count(),
-            'student_count': students.count(),
-            'current_student_count': students.filter(is_current=True).count(),
-            'alumni_count': students.filter(passed_out=True).count(),
-            'applicant_count': applicants.count(),
-            'pending_applicant_count': applicants.filter(status='P').count(),
-            'selected_applicant_count': applicants.filter(status='S').count(),
-            'rejected_applicant_count': applicants.filter(status='R').count(),
-            'shortlisted_applicant_count': applicants.filter(status='I').count(),
-            'active_applicant_count': active_applicants.count(),
-            'pending_active_applicant_count': active_applicants.filter(status='P').count(),
-            'selected_active_applicant_count': active_applicants.filter(status='S').count(),
-            'rejected_active_applicant_count': active_applicants.filter(status='R').count(),
-            'shortlisted_active_applicant_count': active_applicants.filter(status='I').count(),
-        })
-
-    def add_general_context(self):
-        active_posts = RecruitmentPost.objects.filter(
-            apply_by__gte=datetime.today().date())
-        user_notices = list(chain(
-            Notice.objects.filter(user=self.request.user),
-            RecruitmentPostUpdate.objects.filter(user=self.request.user)
-        ))
-        all_notices = list(chain(
-            Notice.objects.all(),
-            RecruitmentPostUpdate.objects.all()
-        ))
-
-        return {
-            'post_count': RecruitmentPost.objects.count(),
-            'active_post_count': active_posts.count(),
-            'user_notice_count': len(user_notices),
-            'total_notice_count': len(all_notices),
-        }

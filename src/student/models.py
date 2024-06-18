@@ -1,6 +1,7 @@
 import random
 from datetime import datetime
 from django.db import models
+from django.db.models import Q
 from user.models import User
 from settings.models import Setting
 
@@ -11,9 +12,11 @@ class StudentProfile(models.Model):
     class StudentProfileManager(models.Manager):
 
         def get_queryset(self):
-            current_academic_half = Setting.objects.get(key='current_academic_half').value
+            current_academic_half = Setting.objects.get(
+                key='current_academic_half').value
             return super().get_queryset().annotate(
-                academic_half=models.Value(current_academic_half, output_field=models.CharField()),
+                academic_half=models.Value(
+                    current_academic_half, output_field=models.CharField()),
                 course_duration=models.Case(
                     models.When(course='B.Tech', then=4),
                     models.When(course='M.Tech', then=2),
@@ -52,7 +55,8 @@ class StudentProfile(models.Model):
                         then=models.ExpressionWrapper(models.functions.Concat(models.F('semester'), datetime.now(
                         ).year % 100, models.F('registration_year') % 100), output_field=models.CharField())
                     ),
-                    default=models.Value('SSYYRR', output_field=models.CharField()),
+                    default=models.Value(
+                        'SSYYRR', output_field=models.CharField()),
                     output_field=models.CharField()
                 )
             )
@@ -110,6 +114,57 @@ class StudentProfile(models.Model):
     passed_semesters = models.PositiveSmallIntegerField(
         editable=False, default=0)
     cgpa = models.FloatField(editable=False, default=0)
+
+    @property
+    def edit_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def view_users(self):
+        if self.user.is_superuser or self.user.is_coordinator or self.is_cr:
+            return User.objects.all()
+        # To be able to access annotations in the default manager's get_queryset
+        self_annotated = StudentProfile.objects.get(pk=self.pk)
+        return User.objects.filter(
+            Q(
+                Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.pk) |
+                Q(
+                    Q(student_profile__year=self_annotated.year) & Q(
+                        student_profile__course=self.course) & Q(student_profile__is_cr=True)
+                ) |
+                Q(
+                    Q(student_profile__registration_year=self.registration_year) & Q(
+                        student_profile__course=self.course) & Q(student_profile__is_cr=True)
+                ) |
+                Q(
+                    Q(student_profile__pass_out_year=self.pass_out_year) & Q(
+                        student_profile__course=self.course) & Q(student_profile__is_cr=True)
+                )
+            )
+        ).distinct()
+
+    @property
+    def make_cr_users(self):
+        if self.user.is_cr:
+            return User.objects.none()
+        self_annotated = StudentProfile.objects.get(pk=self.pk)
+        return User.objects.filter(
+            Q(
+                Q(is_superuser=True) | Q(is_coordinator=True) |
+                Q(
+                    Q(student_profile__year=self_annotated.year) & Q(
+                        student_profile__course=self.course) & Q(student_profile__is_cr=True)
+                )
+            )
+        ).distinct()
+
+    @property
+    def remove_cr_users(self):
+        return User.objects.filter(
+            Q(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.pk))
+        )
 
     @property
     def year_suffix(self):
@@ -211,7 +266,8 @@ class SemesterReportCard(models.Model):
 
         def get_queryset(self):
             return super().get_queryset().annotate(
-                semester=models.Window(expression=models.functions.RowNumber()),
+                semester=models.Window(
+                    expression=models.functions.RowNumber()),
                 roll=models.ExpressionWrapper(models.functions.Concat(models.F('semester'), datetime.now(
                 ).year % 100, models.F('student_profile__registration_year') % 100), output_field=models.CharField()),
             )
@@ -235,6 +291,12 @@ class SemesterReportCard(models.Model):
     earned_credits = models.FloatField(default=0)
     sgpa = models.FloatField(default=0)
     is_complete = models.BooleanField(default=False)
+
+    @property
+    def edit_users(self):
+        if self.student_profile.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.student_profile.user.pk))).distinct()
 
     def get_sgpa(self):
         sgpa = 0
@@ -292,6 +354,23 @@ class SemesterReportCardTemplate(models.Model):
     subject_credits = models.JSONField(default=list, blank=True, null=True)
     subject_passing_grade_points = models.JSONField(
         default=list, blank=True, null=True)
+
+    @property
+    def view_users(self):
+        return User.objects.all()
+
+    @property
+    def edit_users(self):
+        return User.objects.filter(
+            Q(
+                Q(is_superuser=True) | Q(is_coordinator=True) |
+                Q(
+                    Q(student_profile__is_cr=True)
+                    & Q(student_profile__course=self.course)
+                    & Q(student_profile__semester=self.semester)
+                )
+            )
+        )
 
     class Meta:
         unique_together = [['course', 'semester']]

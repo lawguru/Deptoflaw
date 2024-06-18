@@ -6,11 +6,11 @@
 {% block content %}
 <div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
     <h1 class="fw-bold display-5 text-body-emphasis lh-1 mb-5">Your Intellectual Properties</h1>
-    {% if patents|length or write_permission %}
+    {% if patents|length or patent_form %}
     <div id="patents" class="my-5">
         <div class="d-flex align-items-center justify-content-between">
             <h2 class="fw-bold text-body-emphasis lh-1 my-4">Patents</h2>
-            {% if write_permission %}
+            {% if patent_form %}
             <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-patent-modal">
                 <i class="bi bi-plus-circle"></i>
             </a>
@@ -88,8 +88,8 @@
                     </p>
                 </div>
                 <p class="replace-abbreviation">{{ patent.0.description }}</p>
-                {% if write_permission %}
                 <span class="d-flex gap-3">
+                    {% if request.user in patent.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#change-patent-{{ patent.0.pk }}-modal">
                         <i class="bi bi-pen"></i>
@@ -146,6 +146,8 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
+                    {% if request.user in patent.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#delete-patent-{{ patent.0.pk }}-modal">
                         <i class="bi bi-x-circle"></i>
@@ -177,18 +179,18 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 </span>
-                {% endif %}
             </li>
             {% endfor %}
         </ul>
     </div>
     {% endif %}
-    {% if publications|length or write_permission %}
+    {% if publications|length or publication_form %}
     <div id="publications" class="my-5">
         <div class="d-flex align-items-center justify-content-between">
             <h2 class="fw-bold text-body-emphasis lh-1 my-4">Research Papers and Publications</h2>
-            {% if write_permission %}
+            {% if publication_form %}
             <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-publication-modal">
                 <i class="bi bi-plus-circle"></i>
             </a>
@@ -258,8 +260,8 @@
                     </p>
                 </div>
                 <p class="replace-abbreviation">{{ publication.0.description }}</p>
-                {% if write_permission %}
                 <span class="d-flex gap-3">
+                    {% if request.user in publication.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#change-publication-{{ publication.0.pk }}-modal">
                         <i class="bi bi-pen"></i>
@@ -311,6 +313,8 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
+                    {% if request.user in publication.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#delete-publication-{{ publication.0.pk }}-modal">
                         <i class="bi bi-x-circle"></i>
@@ -343,14 +347,17 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 </span>
-                {% endif %}
             </li>
             {% endfor %}
         </ul>
     </div>
     {% endif %}
+
+    {% if request.user in user.edit_users %}
     <a class="btn btn-primary btn-lg w-100 my-3" href="{% url 'build_profile' user.pk %}">Done</a>
+    {% endif %}
 </div>
 <script>
     document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {

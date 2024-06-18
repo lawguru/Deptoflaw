@@ -1,6 +1,6 @@
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
-import datetime
 
 # Create your models here.
 
@@ -81,10 +81,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             elif self.student_profile.passed_out:
                 subtext = self.student_profile.course + ' ' + 'Alumni'
         if self.role == 'staff':
-            subtext = (self.staff_profile.designation + \
-                (', Coordinator' if self.is_coordinator and not self.staff_profile.is_tpc_head and not self.staff_profile.is_hod else '') + \
-                (', TPC Head' if self.staff_profile.is_tpc_head else '') + \
-                (', HOD' if self.staff_profile.is_hod else ''))[::-1].replace(',', 'dna ', 1)[::-1]
+            subtext = (self.staff_profile.designation +
+                       (', Coordinator' if self.is_coordinator and not self.staff_profile.is_tpc_head and not self.staff_profile.is_hod else '') +
+                       (', TPC Head' if self.staff_profile.is_tpc_head else '') +
+                       (', HOD' if self.staff_profile.is_hod else ''))[::-1].replace(',', 'dna ', 1)[::-1]
         if self.role == 'recruiter':
             subtext = self.recruiter_profile.designation + \
                 ' at ' + self.recruiter_profile.company_name
@@ -112,6 +112,66 @@ class User(AbstractBaseUser, PermissionsMixin):
         else:
             return self.first_name
 
+    @property
+    def edit_users(self):
+        if self.is_superuser:
+            return User.objects.filter(pk=self.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.pk))).distinct()
+
+    @property
+    def view_users(self):
+        if self.is_superuser or self.is_coordinator or self.role == 'staff' or self.role == 'recruiter':
+            return User.objects.all()
+        if self.role.is_student:
+            return User.objects.filter(
+                Q(
+                    Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.pk) |
+                    Q(
+                        Q(student_profile__year=self.student_profile.year) & Q(
+                            student_profile__course=self.student_profile.course) & Q(student_profile__is_cr=True)
+                    ) |
+                    Q(
+                        Q(student_profile__registration_year=self.student_profile.registration_year) & Q(
+                            student_profile__course=self.student_profile.course) & Q(student_profile__is_cr=True)
+                    ) |
+                    Q(
+                        Q(student_profile__pass_out_year=self.student_profile.pass_out_year) & Q(
+                            student_profile__course=self.student_profile.course) & Q(student_profile__is_cr=True)
+                    )
+                )
+            ).distinct()
+
+    @property
+    def approve_users(self):
+        if self.is_approved:
+            return User.objects.none()
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(is_coordinator=True))).distinct()
+
+    @property
+    def delete_users(self):
+        if self.is_approved:
+            return User.objects.none()
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(is_coordinator=True))).distinct()
+
+    @property
+    def make_superuser_users(self):
+        if self.is_superuser:
+            return User.objects.none()
+        return User.objects.filter(is_superuser=True)
+
+    @property
+    def make_coordinator_users(self):
+        if self.is_coordinator:
+            return User.objects.none()
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(is_coordinator=True))).distinct()
+
+    @property
+    def remove_coordinator_users(self):
+        if self.is_superuser:
+            return User.objects.none()
+        if self.is_coordinator:
+            return User.objects.filter(is_superuser=True)
+
     def save(self, *args, **kwargs):
         self.full_name = self.get_full_name()
         self.short_name = self.get_short_name()
@@ -123,10 +183,37 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class PhoneNumber(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     country_code = models.PositiveSmallIntegerField(default=91)
     phone_number = models.PositiveBigIntegerField()
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, null=True, blank=True, related_name='phone_numbers')
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             null=True, blank=True, related_name='phone_numbers')
+
+    @property
+    def set_primary_users(self):
+        if self == self.user.primary_phone_number:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def delete_users(self):
+        if self == self.user.primary_phone_number:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
     def save(self, *args, **kwargs):
         if not PhoneNumber.objects.filter(user=self.user).exists() and self.user != None:
@@ -142,9 +229,36 @@ class PhoneNumber(models.Model):
 
 
 class Email(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     email = models.EmailField(unique=True)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True, blank=True, related_name='emails')
+
+    @property
+    def set_primary_users(self):
+        if self == self.user.primary_email:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def delete_users(self):
+        if self == self.user.primary_email:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
     def save(self, *args, **kwargs):
         if not Email.objects.filter(user=self.user).exists() and self.user:
@@ -160,6 +274,17 @@ class Email(models.Model):
 
 
 class Address(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True, blank=True, related_name='addresses')
     address = models.TextField()
@@ -167,6 +292,28 @@ class Address(models.Model):
     state = models.CharField(max_length=150)
     country = models.CharField(max_length=150)
     pincode = models.PositiveIntegerField('PIN/ZIP Code')
+
+    @property
+    def edit_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def set_primary_users(self):
+        if self == self.user.primary_address:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def delete_users(self):
+        if self == self.user.primary_address:
+            return User.objects.none()
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
     def save(self, *args, **kwargs):
         if not Address.objects.filter(user=self.user).exists() and self.user != None:
@@ -182,6 +329,17 @@ class Address(models.Model):
 
 
 class Link(models.Model):
+    class Manager(models.Manager):
+        def get_create_permission(self, user, current_user):
+            if current_user.is_superuser or user == current_user:
+                return True
+            return False
+
+    objects = Manager()
+
+    class Meta:
+        base_manager_name = 'objects'
+
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='links')
     url = models.URLField()
@@ -219,6 +377,18 @@ class Link(models.Model):
             if key in self.url.split('.')[0]:
                 return value
         return 'bi bi-link-45deg'
+
+    @property
+    def set_primary_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def delete_users(self):
+        if self.user.is_superuser:
+            return User.objects.filter(pk=self.user.pk)
+        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
     def __str__(self):
         return self.title + ' : ' + self.url

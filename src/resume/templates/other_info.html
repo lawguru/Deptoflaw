@@ -6,11 +6,11 @@
 {% block content %}
 <div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
     <h1 class="fw-bold display-5 text-body-emphasis lh-1 mb-5">What else did you achieve?</h1>
-    {% if achievements|length or write_permission %}
+    {% if achievements|length or achievement_form %}
     <div id="achievements" class="my-5">
         <div class="d-flex align-items-center justify-content-between">
             <h2 class="fw-bold text-body-emphasis lh-1 my-4">Achievements</h2>
-            {% if write_permission %}
+            {% if achievement_form %}
             <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-achievement-modal">
                 <i class="bi bi-plus-circle"></i>
             </a>
@@ -74,8 +74,8 @@
                     </p>
                 </div>
                 <p class="replace-abbreviation">{{ achievement.0.description }}</p>
-                {% if write_permission %}
                 <span class="d-flex gap-3">
+                    {% if request.user in achievement.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#change-achievement-{{ achievement.0.pk }}-modal">
                         <i class="bi bi-pen"></i>
@@ -126,6 +126,8 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
+                    {% if request.user in achievement.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#delete-achievement-{{ achievement.0.pk }}-modal">
                         <i class="bi bi-x-circle"></i>
@@ -160,18 +162,18 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 </span>
-                {% endif %}
             </li>
             {% endfor %}
         </ul>
     </div>
     {% endif %}
-    {% if presentations|length or write_permission %}
+    {% if presentations|length or presentation_form %}
     <div id="presentations" class="my-5">
         <div class="d-flex align-items-center justify-content-between">
             <h2 class="fw-bold text-body-emphasis lh-1 my-4">Conferences/Events You Conducted or Presented at</h2>
-            {% if write_permission %}
+            {% if presentation_form %}
             <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-presentation-modal">
                 <i class="bi bi-plus-circle"></i>
             </a>
@@ -245,8 +247,8 @@
                     </p>
                 </div>
                 <p class="replace-abbreviation">{{ presentation.0.description }}</p>
-                {% if write_permission %}
                 <span class="d-flex gap-3">
+                    {% if request.user in presentation.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#change-presentation-{{ presentation.0.pk }}-modal">
                         <i class="bi bi-pen"></i>
@@ -301,6 +303,8 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
+                    {% if request.user in presentation.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#delete-presentation-{{ presentation.0.pk }}-modal">
                         <i class="bi bi-x-circle"></i>
@@ -337,18 +341,18 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 </span>
-                {% endif %}
             </li>
             {% endfor %}
         </ul>
     </div>
     {% endif %}
-    {% if other_infos|length or write_permission %}
+    {% if other_infos|length or other_info_form %}
     <div id="other-infos" class="my-5">
         <div class="d-flex align-items-center justify-content-between">
             <h2 class="fw-bold text-body-emphasis lh-1 my-4">Anything Else you want to mention?</h2>
-            {% if write_permission %}
+            {% if other_info_form %}
             <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal" data-bs-target="#add-other-info-modal">
                 <i class="bi bi-plus-circle"></i>
             </a>
@@ -402,8 +406,8 @@
                     </h4>
                 </div>
                 <p class="replace-abbreviation">{{ other_info.0.description }}</p>
-                {% if write_permission %}
                 <span class="d-flex gap-3">
+                    {% if request.user in other_info.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#change-other-info-{{ other_info.0.pk }}-modal">
                         <i class="bi bi-pen"></i>
@@ -449,6 +453,8 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
+                    {% if request.user in other_info.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                         data-bs-target="#delete-other-info-{{ other_info.0.pk }}-modal">
                         <i class="bi bi-x-circle"></i>
@@ -479,14 +485,17 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 </span>
-                {% endif %}
             </li>
             {% endfor %}
         </ul>
     </div>
     {% endif %}
+
+    {% if request.user in user.edit_users %}
     <a class="btn btn-primary btn-lg w-100 my-3" href="{% url 'build_profile' user.pk %}">Done</a>
+    {% endif %}
 </div>
 <script>
     document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {

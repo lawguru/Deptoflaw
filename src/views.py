@@ -100,7 +100,7 @@ class DeleteObject(ObjectView):
 @method_decorator(login_required, name="dispatch")
 class AddUserKeyObject(AddObject):
     def check_permission(self, request, *args, **kwargs):
-        if User.objects.get(pk=kwargs['user']) != request.user and not request.user.is_superuser:
+        if not self.model.objects.get_create_permission(User.objects.get(pk=kwargs['user']), request.user):
             return False
         return super().check_permission(request, kwargs['user'], *args, **kwargs)
 
@@ -121,7 +121,7 @@ class AddUserKeyObject(AddObject):
 @method_decorator(login_required, name="dispatch")
 class ChangeUserKeyObject(ChangeObject):
     def check_permission(self, request, pk, *args, **kwargs):
-        if self.model.objects.get(pk=pk).user != request.user and not request.user.is_superuser:
+        if request.user not in self.model.objects.get(pk=pk).edit_users:
             return False
         return super().check_permission(request, pk, *args, **kwargs)
 
@@ -132,7 +132,7 @@ class ChangeUserKeyObject(ChangeObject):
 @method_decorator(login_required, name="dispatch")
 class DeleteUserKeyObject(DeleteObject):
     def check_permission(self, request, pk, *args, **kwargs):
-        if self.model.objects.get(pk=pk).user != request.user and not request.user.is_superuser:
+        if request.user not in self.model.objects.get(pk=pk).delete_users:
             return False
         return super().check_permission(request, pk, *args, **kwargs)
 

@@ -11,7 +11,7 @@
                 <strong class="display-5 fw-bold text-body-emphasis lh-1">{{ user.full_name }}</strong>
                 <p class="fs-5 text-body-secondary mb-0">{{ user.subtext }}</p>
             </div>
-            {% if write_permission %}
+            {% if change_profile_form %}
             <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                 data-bs-target="#edit-recruiter-info-modal">
                 <i class="bi bi-pen"></i>
@@ -74,9 +74,13 @@
             </li>
         </ul>
     </div>
+
+    {% if request.user in user.edit_users %}
     <a class="btn btn-primary btn-lg w-100 m-0" href="{% url 'build_profile' user.pk %}">
         Proceed
     </a>
+    {% endif %}
+
     {% if success %}
     <div class="alert alert-success" role="alert">
         <i class="bi bi-check-circle"></i>
