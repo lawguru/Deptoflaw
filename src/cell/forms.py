@@ -58,13 +58,13 @@ class RecruitmentPostForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_suffix = ''
+        for field in self.Meta.readonly_widgets:
+            self.fields[field].widget = self.Meta.readonly_widgets[field]
         for visible in self.visible_fields():
             visible.field.widget.attrs['class'] = 'form-control'
             visible.field.widget.attrs['placeholder'] = visible.field.label
             if isinstance(visible.field.widget, forms.Textarea):
                 visible.field.widget.attrs['style'] = 'height: 8rem'
-        for field in self.Meta.readonly_widgets:
-            self.fields[field].widget = self.Meta.readonly_widgets[field]
 
 
 class AddRecruitmentPostForm(RecruitmentPostForm):
