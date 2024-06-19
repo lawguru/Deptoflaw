@@ -440,6 +440,7 @@
                             {% endif %}
                             {% endfor %}
                         </div>
+                        {% if post.skills.all|length %}
                         <div id="skills" class="mt-4">
                             <strong class="fw-bold text-body-emphasis lh-1 my-4">Skills Required</strong>
                             <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
@@ -453,6 +454,7 @@
                                 {% endfor %}
                             </div>
                         </div>
+                        {% endif }
                     </div>
                 </div>
                 <i class="bi bi-chevron-right h3"></i>
