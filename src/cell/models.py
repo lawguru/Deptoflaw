@@ -90,7 +90,7 @@ class Quote(models.Model):
 class RecruitmentPost(models.Model):
     class Manager(models.Manager):
         def get_create_permission(self, user, current_user):
-            if current_user.is_superuser or current_user.is_coordinator or (current_user.role == 'recruiter' and current_user.is_approved and current_user.pk == user):
+            if current_user.is_superuser or current_user.is_coordinator or (current_user.role == 'recruiter' and current_user.is_approved and current_user == user):
                 return True
             return False
 
