@@ -54,6 +54,8 @@
                 </div>
             </div>
         </div>
+        <p class="form-text ms-2 mb-1">Already have an Account? <a href="{% url 'recruiter_sign_in' %}?next={{ request.GET.next }}">Sign Up</a></p>
+        <p class="form-text ms-2">Not a Recruiter member? <a href="{% url 'sign_in' %}?next={{ request.GET.next }}">Click here</a></p>
         <input type="submit" class="btn btn-primary btn-lg w-100 mb-3" value="Submit">
         {% if success %}
         <div class="alert alert-success" role="alert">
