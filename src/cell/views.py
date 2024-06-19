@@ -667,6 +667,9 @@ class AddRecruitmentPost(AddUserKeyObject):
     form = AddRecruitmentPostForm
     redirect_url_name = 'recruitment_posts'
 
+    def get_redirect_url_args(self, request, *args, **kwargs):
+        return []
+
     def get_redirect_url_params(self, request, *args, **kwargs):
         return f'?user-filter={kwargs["user"]}'
 
