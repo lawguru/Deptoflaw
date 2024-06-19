@@ -361,13 +361,11 @@ class SemesterReportCardTemplate(models.Model):
     @property
     def edit_users(self):
         return User.objects.filter(
+            Q(is_superuser=True) | Q(is_coordinator=True) |
             Q(
-                Q(is_superuser=True) | Q(is_coordinator=True) |
-                Q(
-                    Q(student_profile__is_cr=True)
-                    & Q(student_profile__course=self.course)
-                    & Q(student_profile__semester=self.semester)
-                )
+                Q(student_profile__is_cr=True)
+                & Q(student_profile__course=self.course)
+                & Q(student_profile__semester=self.semester)
             )
         )
 
