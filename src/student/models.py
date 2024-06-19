@@ -365,7 +365,7 @@ class SemesterReportCardTemplate(models.Model):
             Q(
                 Q(student_profile__is_cr=True)
                 & Q(student_profile__course=self.course)
-                & Q(student_profile__semester=self.semester)
+                # & Q(student_profile__semester=self.semester)
             )
         )
 
