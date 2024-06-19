@@ -22,6 +22,7 @@
             <img src="{% static 'assets/homeimage.png' %}" class="rounded-lg-3" width="720" alt="">
         </div>
     </div>
+    {% if quote %}
     <div class="container-sm my-5 py-5 d-flex justify-content-center">
         <figure>
             <blockquote class="blockquote">
@@ -36,6 +37,7 @@
             </figcaption>
         </figure>
     </div>
+    {% endif %}
     <div class="row align-items-center gap-4 g-0">
         {% if hod %}
         <div class="card col-12 col-lg rounded-4 border shadow-lg">
