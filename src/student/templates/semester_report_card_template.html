@@ -109,7 +109,7 @@
                                 Semester
                             </strong>
                         </div>
-                        {% if request.user in semester_report_card_template.edit_users %}
+                        {% if request.user in semester_report_card_template.0.edit_users %}
                         <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                             data-bs-target="#edit-semester-report-card-template-modal"
                             onclick="populateDynamicForm('semester-report-card-template-{{ forloop.counter }}-form', '{{semester_report_card_template.0.course}}', '{{ forloop.counter }}')">
