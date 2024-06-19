@@ -5,9 +5,10 @@ from .models import *
 class OtherEducationForm(forms.ModelForm):
     class Meta:
         model = OtherEducation
-        fields = ['education', 'specialization',
+        fields = ['user', 'education', 'specialization',
                   'institution', 'grade_point', 'year', 'duration']
         widgets = {
+            'user': forms.HiddenInput(),
             'education': forms.Select(choices=model.education_choices, attrs={'class': 'form-select', 'placeholder': 'Education'}),
             'specialization': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Specialization'}),
             'institution': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Institution'}),
