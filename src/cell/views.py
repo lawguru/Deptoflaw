@@ -39,6 +39,12 @@ class Index(TemplateView):
         if message_from_tpc_head.value == None:
             message_from_tpc_head.value = 'Welcome to the Training and Placement Cell (TPC) of the Department of Computer Science'
             message_from_tpc_head.save()
+        
+        current_academic_half = Setting.objects.get_or_create(
+            key='current_academic_half')
+        if current_academic_half.value == None:
+            current_academic_half.value = 'odd'
+            current_academic_half.save()
 
         context['message_from_hod'] = message_from_hod.value
         context['message_from_tpc_head'] = message_from_tpc_head.value
