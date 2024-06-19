@@ -132,7 +132,7 @@ class Dashboard(TemplateView):
 
     def add_admin_context(self, context):
         unapproved_users = User.objects.filter(is_approved=False)
-        students = StudentProfile.objects.filter()
+        students = StudentProfile.objects.filter(user__is_approved=True)
         applicants = RecruitmentApplication.objects.all()
         active_applicants = RecruitmentApplication.objects.filter(
             recruitment_post__in=RecruitmentPost.objects.filter(
