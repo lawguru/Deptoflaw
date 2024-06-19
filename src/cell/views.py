@@ -77,7 +77,7 @@ class Dashboard(TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        if RecruitmentPost.objects.get_create_permission(user):
+        if RecruitmentPost.objects.get_create_permission(user.pk, user):
             context['add_post_form'] = AddRecruitmentPostForm(initial={'user': user})
 
         if Notice.objects.get_create_permission(user):
