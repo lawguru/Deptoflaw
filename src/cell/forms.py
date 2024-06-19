@@ -89,6 +89,10 @@ class AddRecruitmentPostForm(RecruitmentPostForm):
 
 class RecruiterChangeRecruitmentPostForm(RecruitmentPostForm):
     class Meta(RecruitmentPostForm.Meta):
+        fields = '__all__'
+        widgets = {
+            'apply_by': forms.DateInput(attrs={'type': 'date'}),
+        }
         readonly_widgets = {
             'user': forms.HiddenInput(),
             'title': forms.TextInput(),
