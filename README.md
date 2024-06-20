@@ -1,6 +1,12 @@
-# Training and Placement Cell WebSite
+### Website of the Training and Placement Cell,
+##### Department of Computer Science and Engineering, Assam University, Silchar
 
-## Prerequisites
+
+[**Visit Production Branch**](https://github.com/HimDek/TPC-WebSite/tree/production)
+
+[**Visit Website**](https://tpc-cse-aus.vercel.app/)
+
+#### Prerequisites
 
 1. python and pip and git should be installed on the system
 
@@ -12,7 +18,7 @@
       git --version
       ```
 
-## Installation
+#### Installation
 
 1. Clone the repository:
 
@@ -67,7 +73,7 @@
     python manage.py migrate
     ```
 
-## Usage
+#### Usage
 
 1. Start the development server:
 
