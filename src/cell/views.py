@@ -792,13 +792,16 @@ class DeleteRecruitmentSkill(View):
 class AddRecruitmentApplication(AddObject):
     model = RecruitmentApplication
     form = RecruitmentApplicationForm
-    redirect_url_name = 'recruitment_application'
+    redirect_url_name = 'view_recruitment_post'
 
     def check_permission(self, request, *args, **kwargs):
         if not self.model.objects.get_create_permission(kwargs['recruitment_post'], request.user):
             return False
 
         return super().check_permission(request, *args, **kwargs)
+
+    def get_redirect_url_args(self, request, *args, **kwargs):
+        return [kwargs['recruitment_post'].pk]
 
     def get(self, request, pk):
         raise BadRequest()
