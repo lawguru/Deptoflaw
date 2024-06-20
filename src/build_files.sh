@@ -1,5 +1,5 @@
-python3.11 -m venv venv
+python3.12 -m venv venv
 source venv/bin/activate
 
 pip install -r requirements.txt 
-python3.11 manage.py collectstatic
+python3.12 manage.py collectstatic
