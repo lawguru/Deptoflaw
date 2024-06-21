@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, reverse
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, BadRequest
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, BadRequest, ValidationError
 from django.views import View
 from user.models import User
 
@@ -28,7 +28,9 @@ class AddObject(ObjectView):
     template_name = None
 
     def form_unvalid(self, request, form, *args, **kwargs):
-        raise BadRequest(form.errors)
+        raise ValidationError(
+            {field: error for field, error in form.errors.items() if field != 'id'}
+        )
 
     def get(self, request, *args, **kwargs):
         if not self.check_permission(request, *args, **kwargs):
@@ -56,7 +58,9 @@ class ChangeObject(ObjectView):
     template_name = None
 
     def form_unvalid(self, request, form, *args, **kwargs):
-        raise BadRequest(form.errors)
+        raise ValidationError(
+            {field: error for field, error in form.errors.items() if field != 'id'}
+        )
 
     def get(self, request, pk, *args, **kwargs):
         if not self.model.objects.filter(pk=pk, **kwargs).exists():

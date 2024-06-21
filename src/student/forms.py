@@ -90,6 +90,15 @@ class StudentProfileForm(forms.ModelForm):
         for visible in self.visible_fields():
             visible.field.widget.attrs['class'] = 'form-control'
             visible.field.widget.attrs['placeholder'] = visible.field.label
+            if visible.name == 'id_number':
+                visible.field.widget.attrs['min'] = 1
+                visible.field.widget.attrs['max'] = 999
+            if visible.name == 'number':
+                visible.field.widget.attrs['min'] = 1000000000
+                visible.field.widget.attrs['max'] = 9999999999
+            if visible.name == 'registration_number':
+                visible.field.widget.attrs['min'] = 20000000001
+                visible.field.widget.attrs['max'] = 99999999999
 
 
 class SemesterReportCardForm(forms.ModelForm):
