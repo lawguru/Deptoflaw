@@ -4,10 +4,11 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, reverse
 from views import ChangeUserKeyObject
+from django.views.generic.base import TemplateView, View
 from user.models import Email, User
+from user.views import UserPerformAction
 from .models import StaffProfile
 from .forms import *
-from django.views.generic.base import TemplateView, View
 
 # Create your views here.
 
@@ -68,32 +69,6 @@ class StaffSignIn(TemplateView):
                 return redirect('build_profile', user.pk)
             
         return render(request, self.template_name, {'form': form})
-
-
-@method_decorator(login_required, name="dispatch")
-class MakeHOD(View):
-    def post(self, request, pk):
-        if not StaffProfile.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        staff = StaffProfile.objects.get(pk=pk)
-        if request.user not in staff.make_hod_users:
-            raise PermissionDenied()
-        staff.is_hod = True
-        staff.save()
-        return redirect('staff_list')
-
-
-@method_decorator(login_required, name="dispatch")
-class MakeTPCHead(View):
-    def post(self, request, pk):
-        if not StaffProfile.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        staff = StaffProfile.objects.get(pk=pk)
-        if request.user not in staff.make_tpc_head_users:
-            raise PermissionDenied()
-        staff.is_tpc_head = True
-        staff.save()
-        return redirect('staff_list')
 
 
 @method_decorator(login_required, name="dispatch")

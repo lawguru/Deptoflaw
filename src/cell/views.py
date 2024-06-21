@@ -39,7 +39,7 @@ class Index(TemplateView):
         if message_from_tpc_head.value == None:
             message_from_tpc_head.value = 'Welcome to the Training and Placement Cell (TPC) of the Department of Computer Science'
             message_from_tpc_head.save()
-        
+
         current_academic_half, created = Setting.objects.get_or_create(
             key='current_academic_half')
         if current_academic_half.value == None:
@@ -78,7 +78,8 @@ class Dashboard(TemplateView):
         user = self.request.user
 
         if RecruitmentPost.objects.get_create_permission(user, user):
-            context['add_post_form'] = AddRecruitmentPostForm(initial={'user': user})
+            context['add_post_form'] = AddRecruitmentPostForm(
+                initial={'user': user})
 
         if Notice.objects.get_create_permission(user):
             context['add_notice_form'] = NoticeForm()
@@ -219,8 +220,9 @@ class ListNotice(ListView):
             return queryset
         if type_filter == 'post-update':
             return queryset2
-        
-        queryset = [(notice, NoticeForm(instance=notice)) for notice in queryset]
+
+        queryset = [(notice, NoticeForm(instance=notice))
+                    for notice in queryset]
         queryset2 = [(update, None) for update in queryset2]
 
         return list(chain(queryset, queryset2))
@@ -479,7 +481,6 @@ class ViewRecruitmentPost(TemplateView):
             if self.request.user.is_superuser or self.request.user.is_coordinator:
                 context['edit_form'] = TPCChangeRecruitmentPostForm(
                     instance=post)
-
 
         if RecruitmentApplication.objects.get_create_permission(post, self.request.user):
             context['apply_form'] = RecruitmentApplicationForm()
@@ -813,55 +814,86 @@ class AddRecruitmentApplication(AddObject):
 
 
 @method_decorator(login_required, name="dispatch")
-class SelectRecruitmentApplication(View):
-    def post(self, request, pk):
+class ApplicationPerformAction(View):
+    def post(self, request, pk, action):
         if not RecruitmentApplication.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         application = RecruitmentApplication.objects.get(pk=pk)
-        if request.user not in application.select_users:
-            raise PermissionDenied()
-        application.status = 'S'
+
+        if action == 'S':
+            if request.user not in application.select_users:
+                raise PermissionDenied()
+            application.status = 'S'
+        elif action == 'R':
+            if request.user not in application.reject_users:
+                raise PermissionDenied()
+            application.status = 'R'
+        elif action == 'I':
+            if request.user not in application.shortlist_users:
+                raise PermissionDenied()
+            application.status = 'I'
+        elif action == 'P':
+            if request.user not in application.pending_users:
+                raise PermissionDenied()
+            application.status = 'P'
+
         application.save()
-        return redirect(reverse('recruitment_applications', args=[pk]))
+
+        actions = []
+        if request.user in application.select_users:
+            actions.append(
+                {
+                    'name': 'Select',
+                    'url': reverse('select_recruitment_application', args=[pk])
+                }
+            )
+        if request.user in application.reject_users:
+            actions.append(
+                {
+                    'name': 'Reject',
+                    'url': reverse('reject_recruitment_application', args=[pk])
+                }
+            )
+        if request.user in application.shortlist_users:
+            actions.append(
+                {
+                    'name': 'Shortlist',
+                    'url': reverse('shortlist_recruitment_application', args=[pk])
+                }
+            )
+        if request.user in application.pending_users:
+            actions.append(
+                {
+                    'name': 'Set as Pending',
+                    'url': reverse('pending_recruitment_application', args=[pk])
+                }
+            )
+
+        return JsonResponse({'actions': actions, 'status': application.status, 'status_text': application.get_status_display()})
 
 
 @method_decorator(login_required, name="dispatch")
-class RejectRecruitmentApplication(View):
+class SelectRecruitmentApplication(ApplicationPerformAction):
     def post(self, request, pk):
-        if not RecruitmentApplication.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        application = RecruitmentApplication.objects.get(pk=pk)
-        if request.user not in application.reject_users:
-            raise PermissionDenied()
-        application.status = 'R'
-        application.save()
-        return redirect(reverse('recruitment_applications', args=[pk]))
+        return super().post(request, pk, 'S')
 
 
 @method_decorator(login_required, name="dispatch")
-class ShortlistRecruitmentApplication(View):
+class RejectRecruitmentApplication(ApplicationPerformAction):
     def post(self, request, pk):
-        if not RecruitmentApplication.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        application = RecruitmentApplication.objects.get(pk=pk)
-        if request.user not in application.shortlist_users:
-            raise PermissionDenied()
-        application.status = 'I'
-        application.save()
-        return redirect(reverse('recruitment_applications', args=[pk]))
+        return super().post(request, pk, 'R')
 
 
 @method_decorator(login_required, name="dispatch")
-class PendingRecruitmentApplication(View):
+class ShortlistRecruitmentApplication(ApplicationPerformAction):
     def post(self, request, pk):
-        if not RecruitmentApplication.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        application = RecruitmentApplication.objects.get(pk=pk)
-        if request.user not in application.pending_users:
-            raise PermissionDenied()
-        application.status = 'P'
-        application.save()
-        return redirect(reverse('recruitment_applications', args=[pk]))
+        return super().post(request, pk, 'I')
+
+
+@method_decorator(login_required, name="dispatch")
+class PendingRecruitmentApplication(ApplicationPerformAction):
+    def post(self, request, pk):
+        return super().post(request, pk, 'P')
 
 
 class SkillAutocomplete(View):

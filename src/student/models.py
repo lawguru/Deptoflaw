@@ -147,27 +147,6 @@ class StudentProfile(models.Model):
         ).distinct()
 
     @property
-    def make_cr_users(self):
-        if self.user.is_cr:
-            return User.objects.none()
-        self_annotated = StudentProfile.objects.get(pk=self.pk)
-        return User.objects.filter(
-            Q(
-                Q(is_superuser=True) | Q(is_coordinator=True) |
-                Q(
-                    Q(student_profile__year=self_annotated.year) & Q(
-                        student_profile__course=self.course) & Q(student_profile__is_cr=True)
-                )
-            )
-        ).distinct()
-
-    @property
-    def remove_cr_users(self):
-        return User.objects.filter(
-            Q(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.pk))
-        )
-
-    @property
     def year_suffix(self):
         return 'st' if self.year == 1 else 'nd' if self.year == 2 else 'rd' if self.year == 3 else 'th'
 
@@ -327,7 +306,7 @@ class SemesterReportCard(models.Model):
     def semester(self):
         return self.getsemester()
 
-    def reset(self):
+    def reset(self, save=True):
         if SemesterReportCardTemplate.objects.filter(course=self.student_profile.course, semester=self.getsemester()).exists():
             template = SemesterReportCardTemplate.objects.get(
                 course=self.student_profile.course, semester=self.getsemester())
@@ -338,11 +317,12 @@ class SemesterReportCard(models.Model):
             self.subject_letter_grades = ['S' for _ in template.subjects]
             self.subject_grade_points = [0 for _ in template.subjects]
 
-        self.save()
+            if save:
+                self.save()
 
     def save(self, *args, **kwargs):
         if not self.pk or self.subjects in [None, []]:
-            self.reset()
+            self.reset(False)
         else:
             self.backlogs = self.subject_letter_grades.count('F')
             self.passed = True if 'F' not in self.subject_letter_grades else False

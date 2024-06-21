@@ -642,11 +642,10 @@
                             <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Action
                             </button>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu user-actions" id="{{user.pk}}-actions" data-user-pk="{{user.pk}}">
                                 {% if request.user in user.approve_users %}
                                 <li>
                                     <form action="{% url 'approve_user' user.pk %}" method="POST">
-                                        {% csrf_token %}
                                         <input type="submit" class="btn dropdown-item" value="Approve">
                                     </form>
                                 </li>
@@ -654,7 +653,6 @@
                                 {% if request.user in user.delete_users %}
                                 <li>
                                     <form action="{% url 'reject_user' user.pk %}" method="POST">
-                                        {% csrf_token %}
                                         <input type="submit" class="btn dropdown-item" value="Reject">
                                     </form>
                                 </li>
@@ -663,7 +661,6 @@
                                 {% if request.user in user.make_superuser_users %}
                                 <li>
                                     <form action="{% url 'make_superuser' user.pk %}" method="POST">
-                                        {% csrf_token %}
                                         <input type="submit" class="btn dropdown-item" value="Make Superuser">
                                     </form>
                                 </li>
@@ -672,7 +669,6 @@
                                 {% if request.user in user.make_coordinator_users %}
                                 <li>
                                     <form action="{% url 'make_coordinator' user.pk %}" method="POST">
-                                        {% csrf_token %}
                                         <input type="submit" class="btn dropdown-item" value="Make Coordinator">
                                     </form>
                                 </li>
@@ -681,24 +677,37 @@
                                 {% if request.user in user.remove_coordinator_users %}
                                 <li>
                                     <form action="{% url 'remove_coordinator' user.pk %}" method="POST">
-                                        {% csrf_token %}
                                         <input type="submit" class="btn dropdown-item" value="Remove Coordinator">
                                     </form>
                                 </li>
                                 {% endif %}
 
-                                {% if request.user in user.staff_profile.make_hod_users %}
+                                {% if request.user in user.make_cr_users %}
                                 <li>
-                                    <form action="{% url 'make_hod' user.staff_profile.pk %}" method="POST">
-                                        {% csrf_token %}
+                                    <form action="{% url 'make_cr' user.pk %}" method="POST">
+                                        <input type="submit" class="btn dropdown-item" value="Make CR">
+                                    </form>
+                                </li>
+                                {% endif %}
+
+                                {% if request.user in user.remove_cr_users %}
+                                <li>
+                                    <form action="{% url 'remove_cr' user.pk %}" method="POST">
+                                        <input type="submit" class="btn dropdown-item" value="Remove CR">
+                                    </form>
+                                </li>
+                                {% endif %}
+
+                                {% if request.user in user.make_hod_users %}
+                                <li>
+                                    <form action="{% url 'make_hod' user.pk %}" method="POST">
                                         <input type="submit" class="btn dropdown-item" value="Make HOD">
                                     </form>
                                 </li>
                                 {% endif %}
-                                {% if request.user in user.staff_profile.make_tpc_head_users %}
+                                {% if request.user in user.make_tpc_head_users %}
                                 <li>
-                                    <form action="{% url 'make_tpc_head' user.staff_profile.pk %}" method="POST">
-                                        {% csrf_token %}
+                                    <form action="{% url 'make_tpc_head' user.pk %}" method="POST">
                                         <input type="submit" class="btn dropdown-item" value="Make Head of TPC">
                                     </form>
                                 </li>
@@ -1038,6 +1047,59 @@
         }
     }
     window.onload = addHiddenInputs();
+
+    function handleActions() {
+        document.querySelectorAll('.user-actions').forEach((element) => {
+            element.querySelectorAll('form').forEach((form) => {
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    form.getElementsByTagName('input')[0].disabled = true;
+                    form.getElementsByTagName('input')[0].value = 'Loading...';
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    }).then(response => {
+                        user_pk = element.getAttribute('data-user-pk')
+                        dropdown = document.getElementById(`${user_pk}-actions`)
+                        if (response.status == 200) {
+                            response.json().then(data => {
+                                if (data.length == 0) {
+                                    dropdown.parentElement.remove();
+                                    return;
+                                }
+                                dropdown.innerHTML = ''
+                                data.forEach((option) => {
+                                    input = document.createElement('input')
+                                    input.classList.add('btn')
+                                    input.classList.add('dropdown-item')
+                                    input.value = option.name
+                                    input.type = 'submit'
+
+                                    form = document.createElement('form')
+                                    form.action = option.url
+                                    form.method = 'POST'
+                                    form.appendChild(input)
+
+                                    li = document.createElement('li')
+                                    li.appendChild(form)
+
+                                    dropdown.appendChild(li)
+                                });
+                                handleActions();
+                            });
+                        }
+                        else {
+                            dropdown.innerHTML = 'An error occurred. Please try again later.';
+                        }
+                    });
+                });
+            });
+        });
+    }
+
+    handleActions();
 </script>
 
 {% endblock %}

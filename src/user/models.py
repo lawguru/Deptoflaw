@@ -77,13 +77,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         return yes
 
     def get_full_name(self):
-        if self.check_if_doctor():
+        if self.is_doctor:
             return f'Dr. {self.first_name} {self.last_name}'
         else:
             return f'{self.first_name} {self.last_name}'
 
     def get_short_name(self):
-        if self.check_if_doctor():
+        if self.is_doctor:
             return f'Dr. {self.last_name}'
         else:
             return self.first_name
@@ -143,17 +143,51 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def remove_coordinator_users(self):
-        if self.is_superuser:
+        if self.is_superuser or not self.is_coordinator:
             return User.objects.none()
         if self.is_coordinator:
             return User.objects.filter(is_superuser=True)
+        
+
+    @property
+    def make_cr_users(self):
+        if not hasattr(self, 'student_profile') or self.student_profile.is_cr:
+            return User.objects.none()
+        return User.objects.filter(
+            Q(is_superuser=True) | Q(is_coordinator=True) |
+            Q(
+                Q(student_profile__registration_year=self.student_profile.registration_year) &
+                Q(student_profile__course=self.student_profile.course) &
+                Q(student_profile__is_cr=True)
+            )
+        ).distinct()
+
+    @property
+    def remove_cr_users(self):
+        if not hasattr(self, 'student_profile') or not self.student_profile.is_cr:
+            return User.objects.none()
+        return User.objects.filter(
+            Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.pk)
+        )
+
+    @property
+    def make_hod_users(self):
+        if not hasattr(self, 'staff_profile') or self.staff_profile.is_hod:
+            return User.objects.none()
+        return User.objects.filter(Q(is_superuser=True) | Q(staff_profile__is_hod=True)).distinct()
+
+    @property
+    def make_tpc_head_users(self):
+        if not hasattr(self, 'staff_profile') or self.staff_profile.is_tpc_head:
+            return User.objects.none()
+        return User.objects.filter(Q(is_superuser=True) | Q(staff_profile__is_hod=True) | Q(staff_profile__is_tpc_head=True)).distinct()
 
     def save(self, *args, **kwargs):
+        self.is_doctor = self.check_if_doctor()
         self.full_name = self.get_full_name()
         self.short_name = self.get_short_name()
-        self.is_doctor = self.check_if_doctor()
         if self.is_superuser or self.is_coordinator:
-            self.is_approved = True 
+            self.is_approved = True
         super().save(*args, **kwargs)
 
     def __str__(self):

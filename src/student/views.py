@@ -4,11 +4,11 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, reverse
 from views import ChangeObject, ChangeUserKeyObject
+from django.views.generic.base import TemplateView
 from user.models import Email
+from user.views import UserPerformAction
 from .models import *
 from .forms import *
-from django.views.generic import ListView
-from django.views.generic.base import TemplateView
 
 # Create your views here.
 
