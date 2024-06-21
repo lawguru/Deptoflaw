@@ -1,9 +1,10 @@
-import random
+from django.core.validators import MaxValueValidator, MinValueValidator
 from datetime import datetime
 from django.db import models
 from django.db.models import Q
 from user.models import User
 from settings.models import Setting
+
 
 # Create your models here.
 
@@ -95,12 +96,12 @@ class StudentProfile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='student_profile')
     registration_number = models.PositiveBigIntegerField(
-        unique=True, help_text='YYYYXXXXXXX', validators=[models.validators.MinValueValidator(20000000001), models.validators.MaxValueValidator(99999999999)])
+        unique=True, help_text='YYYYXXXXXXX', validators=[MinValueValidator(20000000001), MaxValueValidator(99999999999)])
     course = models.CharField(max_length=6, choices=course_choices)
     number = models.PositiveBigIntegerField(
-        help_text='10 digit number from Exam Roll no.', validators=[models.validators.MinValueValidator(1000000000), models.validators.MaxValueValidator(9999999999)])
+        help_text='10 digit number from Exam Roll no.', validators=[MinValueValidator(1000000000), MaxValueValidator(9999999999)])
     id_number = models.PositiveSmallIntegerField('ID Number',
-                                                 help_text='Number at the end of ID Card', validators=[models.validators.MinValueValidator(1), models.validators.MaxValueValidator(999)])
+                                                 help_text='Number at the end of ID Card', validators=[MinValueValidator(1), MaxValueValidator(999)])
     dropped_out = models.BooleanField(default=False)
     is_cr = models.BooleanField(default=False)
 

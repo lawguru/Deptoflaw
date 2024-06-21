@@ -46,6 +46,14 @@
                                                 {{ change_profile_form.registration_number.help_text }}
                                             </div>
                                         </div>
+                                        {% if change_profile_form.registration_number.errors %}
+                                        <div class="alert alert-danger" role="alert">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            {% for error in change_profile_form.registration_number.errors %}
+                                            <span>{{ error|escape }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     <div class="col-12 col-sm">
                                         <div class="input-group">
@@ -56,6 +64,14 @@
                                                 {{ change_profile_form.id_number.label_tag }}
                                             </div>
                                         </div>
+                                        {% if change_profile_form.id_number.errors %}
+                                        <div class="alert alert-danger" role="alert">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            {% for error in change_profile_form.id_number.errors %}
+                                            <span>{{ error|escape }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     <div class="col-12 col-lg">
                                         <div class="">
@@ -69,6 +85,14 @@
                                         <div class="form-text ms-3">
                                             {{ change_profile_form.number.help_text }}
                                         </div>
+                                        {% if change_profile_form.number.errors %}
+                                        <div class="alert alert-danger" role="alert">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            {% for error in change_profile_form.number.errors %}
+                                            <span>{{ error|escape }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </form>
