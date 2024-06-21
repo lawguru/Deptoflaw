@@ -299,8 +299,8 @@ class SemesterReportCard(models.Model):
     @property
     def edit_users(self):
         if self.student_profile.user.is_superuser:
-            return User.objects.filter(pk=self.user.pk)
-        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.student_profile.user.pk))).distinct()
+            return User.objects.filter(pk=self.student_profile.user.pk)
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.student_profile.user.pk)).distinct()
 
     def get_sgpa(self):
         sgpa = 0
