@@ -100,7 +100,7 @@ class StudentProfile(models.Model):
     number = models.PositiveBigIntegerField(
         help_text='10 digit number from Exam Roll no.', validators=[models.validators.MinValueValidator(1000000000), models.validators.MaxValueValidator(9999999999)])
     id_number = models.PositiveSmallIntegerField('ID Number',
-                                                 help_text='Number at the end of ID Card', default=0)
+                                                 help_text='Number at the end of ID Card', validators=[models.validators.MinValueValidator(1), models.validators.MaxValueValidator(999)])
     dropped_out = models.BooleanField(default=False)
     is_cr = models.BooleanField(default=False)
 
