@@ -12,10 +12,26 @@
                 {{ form.registration_number_or_email }}
                 {{ form.registration_number_or_email.label_tag }}
             </div>
+            {% if form.registration_number_or_email.errors %}
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-triangle"></i>
+                {% for error in form.registration_number_or_email.errors %}
+                <span>{{ error|escape }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
             <div class="form-floating mb-3">
                 {{ form.password }}
                 {{ form.password.label_tag }}
             </div>
+            {% if form.password.errors %}
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-triangle"></i>
+                {% for error in form.password.errors %}
+                <span>{{ error|escape }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
             <p class="form-text ms-2 mb-1">Don't have an Account? <a href="{% url 'student_sign_up' %}?next={{ request.GET.next }}">Sign Up</a></p>
             <p class="form-text ms-2">Not a Student or Alumni? <a href="{% url 'sign_in' %}?next={{ request.GET.next }}">Click here</a></p>
             <input type="submit" class="btn btn-primary btn-lg mb-3 w-100" value="Submit">

@@ -28,6 +28,9 @@ class StaffSignUp(TemplateView):
             if email.user:
                 return render(request, self.template_name, {'form': form, 'error': 'Email already in use'})
             user = User.objects.create(role='staff', primary_email=email)
+            if StaffProfile.objects.filter(id_number=form.cleaned_data['id_number']).exists():
+                user.delete()
+                return render(request, self.template_name, {'form': form, 'error': 'Staff with that ID number already exists'})
             staff = StaffProfile.objects.create(user=user,
                                                 id_number=form.cleaned_data['id_number'], qualification=form.cleaned_data['qualification'], designation=form.cleaned_data['designation'])
             staff.user.first_name = form.cleaned_data['first_name']
@@ -52,27 +55,19 @@ class StaffSignIn(TemplateView):
         form = StaffSigninForm(request.POST)
         if form.is_valid():
             email_or_id = form.cleaned_data['email_or_id']
-            password = form.cleaned_data['password']
             if StaffProfile.objects.filter(id_number=email_or_id).exists():
                 user = StaffProfile.objects.get(id_number=email_or_id).user
             elif Email.objects.filter(email=email_or_id).exists():
-                email = Email.objects.get(email=email_or_id)
-                if email.user:
-                    user = email.user
-                else:
-                    return render(request, self.template_name, {'form': form, 'error': 'No User with this Email'})
-            else:
-                return render(request, self.template_name, {'form': form, 'error': 'Invalid ID Number or Email'})
+                user = Email.objects.get(email=email_or_id).user
 
-            user = authenticate(username=user.pk, password=password)
             if user is not None:
                 login(request, user)
                 next = request.GET.get('next')
                 if next:
                     return redirect(next)
                 return redirect('build_profile', user.pk)
-            return render(request, self.template_name, {'form': form, 'error': 'Invalid Password'})
-        return render(request, self.template_name, {'form': form, 'error': 'Invalid Form Data'})
+            
+        return render(request, self.template_name, {'form': form})
 
 
 @method_decorator(login_required, name="dispatch")

@@ -1,4 +1,6 @@
+from django.contrib.auth import authenticate
 from django import forms
+from user.models import Email
 from .models import StaffProfile
 
 
@@ -38,6 +40,17 @@ class StaffSignUpForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.label_suffix = ''
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('password') != cleaned_data.get('confirm_password'):
+            self.add_error('confirm_password', 'Passwords do not match')
+        if StaffProfile.objects.filter(id_number=cleaned_data.get('id_number')).exists():
+            self.add_error('id_number', 'Staff with that ID number already exists')
+        if Email.objects.filter(email=cleaned_data.get('email')).exists():
+            if Email.objects.get(email=cleaned_data.get('email')).user:
+                self.add_error('email', 'Email already in use')
+        return cleaned_data
+
 
 class StaffSigninForm(forms.Form):
     email_or_id = forms.CharField(label='Email or ID number', widget=forms.TextInput(
@@ -48,3 +61,24 @@ class StaffSigninForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_suffix = ''
+
+    def clean(self):
+        cleaned_data = super().clean()
+        user = None
+        if Email.objects.filter(email=cleaned_data.get('email_or_id')).exists():
+            email = Email.objects.get(email=cleaned_data.get('email_or_id'))
+            if not email.user:
+                self.add_error('email_or_id', 'No User with this Email')
+            else:
+                user = email.user
+        elif StaffProfile.objects.filter(id_number=cleaned_data.get('email_or_id')).exists():
+            user = StaffProfile.objects.get(id_number=cleaned_data.get('email_or_id')).user
+        else:
+            self.add_error('email_or_id', 'Invalid ID Number or Email')
+        
+        if user is not None:
+            user = authenticate(username=user.pk, password=cleaned_data.get('password'))
+            if user is None:
+                self.add_error('password', 'Invalid Password')
+
+        return cleaned_data

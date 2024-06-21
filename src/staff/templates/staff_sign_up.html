@@ -25,18 +25,42 @@
             {{ form.email }}
             {{ form.email.label_tag }}
         </div>
+        {% if form.email.errors %}
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle"></i>
+            {% for error in form.email.errors %}
+            <span>{{ error|escape }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
         <div class="row g-0 gap-3">
             <div class="col-12 col-sm">
                 <div class="form-floating mb-3">
                     {{ form.password }}
                     {{ form.password.label_tag }}
                 </div>
+                {% if form.password.errors %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {% for error in form.password.errors %}
+                    <span>{{ error|escape }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
             <div class="col-12 col-sm">
                 <div class="form-floating mb-3">
                     {{ form.confirm_password }}
                     {{ form.confirm_password.label_tag }}
                 </div>
+                {% if form.confirm_password.errors %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {% for error in form.confirm_password.errors %}
+                    <span>{{ error|escape }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
         </div>
         <div class="row g-0 gap-3">
@@ -45,6 +69,14 @@
                     {{ form.id_number }}
                     {{ form.id_number.label_tag }}
                 </div>
+                {% if form.id_number.errors %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {% for error in form.id_number.errors %}
+                    <span>{{ error|escape }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
             <div class="col-12 col-sm">
                 <div class="form-floating mb-3">
