@@ -172,16 +172,18 @@ class StudentProfile(models.Model):
 
     @property
     def year_name(self):
-        return {
-            1: 'First',
-            2: 'Second',
-            3: 'Third',
-            4: 'Fourth',
-            5: 'Fifth',
-            6: 'Sixth',
-            7: 'Seventh',
-            8: 'Eighth',
-        }[self.year]
+        if self.year in range(1, 8):
+            return {
+                1: 'First',
+                2: 'Second',
+                3: 'Third',
+                4: 'Fourth',
+                5: 'Fifth',
+                6: 'Sixth',
+                7: 'Seventh',
+                8: 'Eighth',
+            }[self.year]
+        return f'{self.year}th'
 
     @property
     def semester_suffix(self):
@@ -189,16 +191,18 @@ class StudentProfile(models.Model):
 
     @property
     def semester_name(self):
-        return {
-            1: 'First',
-            2: 'Second',
-            3: 'Third',
-            4: 'Fourth',
-            5: 'Fifth',
-            6: 'Sixth',
-            7: 'Seventh',
-            8: 'Eighth',
-        }[self.semester]
+        if self.semester in range(1, 8):
+            return {
+                1: 'First',
+                2: 'Second',
+                3: 'Third',
+                4: 'Fourth',
+                5: 'Fifth',
+                6: 'Sixth',
+                7: 'Seventh',
+                8: 'Eighth',
+            }[self.semester]
+        return f'{self.semester}th'
 
     def calculate_cgpa(self):
         cgpa = 0
