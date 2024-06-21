@@ -271,7 +271,10 @@ class SemesterReportCard(models.Model):
         def get_queryset(self):
             return super().get_queryset().annotate(
                 semester=models.Window(
-                    expression=models.functions.RowNumber()),
+                    expression=models.functions.RowNumber(),
+                    partition_by=[models.F('student_profile')],
+                    order_by=models.F('id').asc()
+                ),
                 roll=models.ExpressionWrapper(models.functions.Concat(models.F('semester'), datetime.now(
                 ).year % 100, models.F('student_profile__registration_year') % 100), output_field=models.CharField()),
             )
@@ -315,27 +318,36 @@ class SemesterReportCard(models.Model):
                     float(self.subject_grade_points[i])
         return (sgpa / self.total_credits) if self.total_credits > 0 else 0
 
-    def semester(self):
+    def getsemester(self):
         try:
             return list(self.student_profile.semester_report_cards.all()).index(self) + 1
         except:
             return self.student_profile.semester_report_cards.count() + 1
 
-    def save(self, *args, **kwargs):
-        if self.pk:
-            self.backlogs = self.subject_letter_grades.count('F')
-            self.passed = True if 'F' not in self.subject_letter_grades else False
-            self.earned_credits = round(sum([(float(tuple[0]) * float(tuple[1]) / 10)
-                                        for tuple in list(zip(self.subject_credits, self.subject_grade_points))]), 2)
-        elif SemesterReportCardTemplate.objects.filter(course=self.student_profile.course, semester=self.semester()).exists():
+    def semester(self):
+        return self.getsemester()
+
+    def reset(self):
+        if SemesterReportCardTemplate.objects.filter(course=self.student_profile.course, semester=self.getsemester()).exists():
             template = SemesterReportCardTemplate.objects.get(
-                course=self.student_profile.course, semester=self.semester())
+                course=self.student_profile.course, semester=self.getsemester())
             self.subjects = template.subjects
             self.subject_codes = template.subject_codes
             self.subject_credits = template.subject_credits
             self.subject_passing_grade_points = template.subject_passing_grade_points
             self.subject_letter_grades = ['S' for _ in template.subjects]
             self.subject_grade_points = [0 for _ in template.subjects]
+
+        self.save()
+
+    def save(self, *args, **kwargs):
+        if not self.pk or self.subjects in [None, []]:
+            self.reset()
+        else:
+            self.backlogs = self.subject_letter_grades.count('F')
+            self.passed = True if 'F' not in self.subject_letter_grades else False
+            self.earned_credits = round(sum([(float(tuple[0]) * float(tuple[1]) / 10)
+                                        for tuple in list(zip(self.subject_credits, self.subject_grade_points))]), 2)
 
         self.total_credits = round(
             sum([float(subject_credit) for subject_credit in self.subject_credits]), 1)
