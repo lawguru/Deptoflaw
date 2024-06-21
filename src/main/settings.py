@@ -6,5 +6,5 @@ if os.getenv('POSTGRES_DATABASE'):
 if os.getenv('PRODUCTION_SECRET_KEY'):
     from .settings_production import *
 
-if os.getenv('DEPLOYMENT_ENVIRONMENT') == 'vercel':
+if os.getenv('VERCEL'):
     from .settings_vercel import *
