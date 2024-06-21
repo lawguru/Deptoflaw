@@ -95,10 +95,10 @@ class StudentProfile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='student_profile')
     registration_number = models.PositiveBigIntegerField(
-        unique=True, help_text='YYYYXXXXXXX')
+        unique=True, help_text='YYYYXXXXXXX', validators=[models.validators.MinValueValidator(20000000001), models.validators.MaxValueValidator(99999999999)])
     course = models.CharField(max_length=6, choices=course_choices)
     number = models.PositiveBigIntegerField(
-        help_text='10 digit number from Exam Roll no.', default=0)
+        help_text='10 digit number from Exam Roll no.', validators=[models.validators.MinValueValidator(1000000000), models.validators.MaxValueValidator(9999999999)])
     id_number = models.PositiveSmallIntegerField('ID Number',
                                                  help_text='Number at the end of ID Card', default=0)
     dropped_out = models.BooleanField(default=False)
