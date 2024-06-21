@@ -90,8 +90,6 @@ class StudentProfileForm(forms.ModelForm):
         for visible in self.visible_fields():
             visible.field.widget.attrs['class'] = 'form-control'
             visible.field.widget.attrs['placeholder'] = visible.field.label
-            if visible.field.label == 'ID Number':
-                visible.field.initial = f'{visible.field.initial:03d}'
 
 
 class SemesterReportCardForm(forms.ModelForm):
