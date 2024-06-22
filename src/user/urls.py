@@ -5,6 +5,8 @@ from .views import *
 urlpatterns = [
     path('', SelfUser.as_view(), name='self_user'),
     path('list/', UserListView.as_view(), name='user_list'),
+    path('list/skillautocomplete/', SkillAutocomplete.as_view(), name='user_list_skill_autocomplete'),
+    path('list/csv/', UserCSVView.as_view(), name='user_csv'),
     path('signin/', SignIn.as_view(), name='sign_in'),
     path('signout/', SignOut.as_view(), name='sign_out'),
     path('<int:pk>/', BuildProfile.as_view(), name='build_profile'),

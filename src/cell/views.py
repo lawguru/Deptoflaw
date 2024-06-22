@@ -4,7 +4,7 @@ from staff.models import StaffProfile
 from settings.models import Setting
 from user.models import User
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.utils.decorators import method_decorator
 from views import AddUserKeyObject, ChangeUserKeyObject, AddObject, DeleteUserKeyObject
 from django.views.generic.base import View, TemplateView
@@ -14,6 +14,7 @@ from student.models import StudentProfile
 from .forms import *
 from .models import Notice, Quote
 import json
+import csv
 from itertools import chain
 
 # Create your views here.
@@ -628,6 +629,67 @@ class RecruitmentApplications(ListView):
         if ordering:
             context['ordering'] = ordering
         return context
+
+
+@method_decorator(login_required, name="dispatch")
+class RecruitmentApplicationsCSV(RecruitmentApplications):
+    content_type = 'text/csv'
+
+    def get(self, request, pk):
+        queryset = self.get_queryset()
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="applications.csv"'
+
+        writer = csv.writer(response)
+        
+        row = []
+        row.append('Name')
+        row.append('Application Status')
+        row.append('Applied On')
+        row.append('Cover Letter')
+        row.append('Answers')
+        row.append('Bio')
+        row.append('Email')
+        row.append('Phone number')
+        row.append('Address')
+        row.append('Registration Year')
+        row.append('Registration Number')
+        row.append('Roll Number')
+        row.append('Course')
+        row.append('Year')
+        row.append('CGPA')
+        row.append('Backlogs')
+        row.append('Pass Out Year')
+        row.append('Skills')
+        row.append('Resume URL')
+
+        writer.writerow(row)
+
+        for application in queryset:
+            row = []
+            row.append(application.user.full_name)
+            row.append(application.get_status_display())
+            row.append(application.applied_on)
+            row.append(application.cover_letter)
+            row.append(application.answers)
+            row.append(application.user.bio)
+            row.append(application.user.primary_email.email if application.user.primary_email else '')
+            row.append(application.user.primary_phone_number.__str__() if application.user.primary_phone_number else '')
+            row.append(f'{application.user.primary_address.address}, {application.user.primary_address.city}, {application.user.primary_address.state}, {application.user.primary_address.country}, {application.user.primary_address.pincode}' if application.user.primary_address else '')
+            row.append(application.user.student_profile.registration_year)
+            row.append(application.user.student_profile.registration_number)
+            row.append(f'{application.user.student_profile.roll}-{application.user.student_profile.number}')
+            row.append(application.user.student_profile.course)
+            row.append(application.user.student_profile.year)
+            row.append(application.user.student_profile.cgpa)
+            row.append(application.user.student_profile.backlog_count)
+            row.append(application.user.student_profile.pass_out_year)
+            row.append(', '.join([skill.name for skill in application.user.skills.all()]))
+            row.append(request.build_absolute_uri(reverse('resume', args=[application.user.id])))
+            writer.writerow(row)
+
+        return response
 
 
 @method_decorator(login_required, name="dispatch")

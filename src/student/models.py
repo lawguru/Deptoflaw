@@ -165,7 +165,7 @@ class StudentProfile(models.Model):
     def calculate_cgpa(self):
         cgpa = 0
         total_credits = 0
-        for semester_report_card in self.semester_report_cards.all():
+        for semester_report_card in self.semester_report_cards.filter(is_complete=True):
             cgpa = cgpa + semester_report_card.sgpa * semester_report_card.total_credits
             total_credits = total_credits + semester_report_card.total_credits
         return (cgpa / total_credits) if total_credits > 0 else 0

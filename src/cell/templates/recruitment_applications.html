@@ -5,6 +5,24 @@
 {% block content %}
 
 <div class="container-fluid p-3 p-xl-5 min-vh-100">
+
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
+        <div>
+            <h1 class="fw-bold text-body-emphasis mb-0">
+                Applications
+            </h1>
+            <small class="text-body-secondary">for
+                <a href="{% url 'view_recruitment_post' post.pk %}">
+                    {{post.title}} at {{post.company}}
+                </a>
+            </small>
+        </div>
+
+        <form action="{% url 'recruitment_applications_csv' post.pk %}">
+            <input type="submit" class="btn btn-primary" value="Download CSV">
+        </form>
+    </div>
+
     <nav class="navbar navbar-expand-xl bg-body p-0 mb-3 border rounded-2">
         <div class="container-fluid">
             <a class="lead text-body-emphasis me-3" href="#">Filters</a>

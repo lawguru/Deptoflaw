@@ -14,7 +14,8 @@ from .forms import UserForm, PhoneNumberForm, EmailForm, AddressForm, LinkForm
 from .models import User, PhoneNumber, Email, Address, Link
 from django.db.models import Count
 from django.contrib.auth import logout
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+import csv
 
 # Create your views here.
 
@@ -285,6 +286,61 @@ class UserListView(ListView):
     def add_drop_out_year_context(self, context):
         context['drop_out_year_lower_limit'] = self.request.GET.get('drop-out-year-lower-limit', '0')
         context['drop_out_year_upper_limit'] = self.request.GET.get('drop-out-year-upper-limit', '')
+
+
+@method_decorator(login_required, name="dispatch")
+class UserCSVView(UserListView):
+    content_type = 'text/csv'
+
+    def get(self, request):
+        if self.request.GET.get('role-filter') != 'student':
+            return redirect(reverse('user_csv') + '?role-filter=student' + ''.join([f'&{key}={value}' for key, value in self.request.GET.items() if key != 'role-filter']))
+        
+        queryset = self.get_queryset()
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="students.csv"'
+
+        writer = csv.writer(response)
+        
+        row = []
+        row.append('Name')
+        row.append('Email')
+        row.append('Phone number')
+        row.append('Address')
+        row.append('Registration Year')
+        row.append('Registration Number')
+        row.append('Roll Number')
+        row.append('Course')
+        row.append('Year')
+        row.append('CGPA')
+        row.append('Backlogs')
+        row.append('Pass Out Year')
+        row.append('Skills')
+        row.append('Resume URL')
+
+        writer.writerow(row)
+
+        for user in queryset:
+            row = []
+            row.append(user.full_name)
+            row.append(user.primary_email.email if user.primary_email else '')
+            row.append(user.primary_phone_number.__str__() if user.primary_phone_number else '')
+            row.append(f'{user.primary_address.address}, {user.primary_address.city}, {user.primary_address.state}, {user.primary_address.country}, {user.primary_address.pincode}' if user.primary_address else '')
+            row.append(user.student_profile.registration_year)
+            row.append(user.student_profile.registration_number)
+            row.append(f'{user.student_profile.roll}-{user.student_profile.number}')
+            row.append(user.student_profile.course)
+            row.append(user.student_profile.year)
+            row.append(user.student_profile.cgpa)
+            row.append(user.student_profile.backlog_count)
+            row.append(user.student_profile.pass_out_year)
+            row.append(', '.join([skill.name for skill in user.skills.all()]))
+            row.append(request.build_absolute_uri(reverse('resume', args=[user.id])))
+            
+            writer.writerow(row)
+
+        return response
 
 
 class SignIn(TemplateView):
@@ -708,3 +764,9 @@ class AddLink(AddUserKeyObject):
 class DeleteLink(DeleteUserKeyObject):
     model = Link
     redirect_url_name = 'links'
+
+class SkillAutocomplete(View):
+    def get(self, request, *args, **kwargs):
+        query = request.GET.get('q')
+        li = [(obj.name, f'{obj.pk}') for obj in Skill.objects.filter(name__icontains=query)]
+        return JsonResponse(li, safe=False)

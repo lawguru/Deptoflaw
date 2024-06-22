@@ -6,13 +6,20 @@
 
 <div class="container-fluid p-3 p-xl-5 min-vh-100">
 
-    <h1 class="fw-bold text-body-emphasis">
-        {% if is_approved_filter %}
-        Users
-        {% else %}
-        Pending Approvals
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
+        <h1 class="fw-bold text-body-emphasis mb-0">
+            {% if is_approved_filter %}
+            Users
+            {% else %}
+            Pending Approvals
+            {% endif %}
+        </h1>
+        {% if role_filter == 'student' %}
+        <form action="{% url 'user_csv' %}">
+            <input type="submit" class="btn btn-primary" value="Download CSV">
+        </form>
         {% endif %}
-    </h1>
+    </div>
 
     <nav class="navbar navbar-expand-xxl bg-body p-0 mb-3 border rounded-2">
         <div class="container-fluid">
@@ -813,8 +820,8 @@
                             <div
                                 class="badge px-2 d-flex align-items-center text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill border gap-1">
                                 <span class="px-1 fw-bold fs-4">{{semester_report_card.semester}}</span>
-                                <span>
-                                    <strong class="text-start text-body-emphasis fw-bold mb-0 lh-1">
+                                <span class="text-start">
+                                    <strong class="text-body-emphasis fw-bold mb-0 lh-1">
                                         {{ semester_report_card.sgpa }}
                                     </strong>
                                     <small class="text-body-secondary">
@@ -880,7 +887,7 @@
     skill_name_inputs.forEach((element) => {
         skill_option = document.getElementById(element.getAttribute('list'))
         element.addEventListener('keyup', function () {
-            fetch(`{% url "skill_autocomplete" %}?q=${element.value}`)
+            fetch(`{% url "user_list_skill_autocomplete" %}?q=${element.value}`)
                 .then(response => response.json())
                 .then(data => {
                     skill_option.innerHTML = ''
