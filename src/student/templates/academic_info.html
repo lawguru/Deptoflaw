@@ -263,7 +263,49 @@
     </div>
 
     <div id="semester-report-cards" class="my-5">
-        <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Report Cards</h2>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <h2 class="fw-bold text-body-emphasis lh-1">Academic Performance</h2>
+            <div class="d-flex align-items-center gap-2 ms-2">
+                <a href="{% url 'resume' user.pk %}" target="_blank">
+                    <span
+                        class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                        <div class="rounded-circle m-2">
+                            <i class="bi bi-person-lines-fill fs-5"></i>
+                        </div>
+                        <div class="text-start">
+                            <strong class="fw-bold text-body-emphasis lh-1">
+                                Resume
+                            </strong>
+                            <small class="d-block text-body-secondary">View</small>
+                        </div>
+                    </span>
+                </a>
+                <span
+                    class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                    <div class="rounded-circle m-2">
+                        <i class="bi bi-mortarboard fs-5"></i>
+                    </div>
+                    <div class="text-start">
+                        <strong class="fw-bold text-body-emphasis lh-1">
+                            {{ profile.cgpa }}
+                        </strong>
+                        <small class="d-block text-body-secondary">CGPA</small>
+                    </div>
+                </span>
+                <span
+                    class="badge d-flex align-items-center py-0 ps-1 pe-3 {% if profile.backlog_count == 0 %} text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle {% else %} text-danger-emphasis bg-danger-subtle border border-danger-subtle {% endif %} rounded-pill">
+                    <div class="rounded-circle m-2">
+                        <i class="bi bi-backspace fs-5"></i>
+                    </div>
+                    <div class="text-start">
+                        <strong class="fw-bold text-body-emphasis lh-1">
+                            {{ profile.backlog_count }}
+                        </strong>
+                        <small class="d-block text-body-secondary">Backlogs</small>
+                    </div>
+                </span>
+            </div>
+        </div>
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 align-items-center g-0">
             {% for semester_report_card in semester_report_cards %}
             <div class="col-12 col-sm-6 col-md-4 p-2">

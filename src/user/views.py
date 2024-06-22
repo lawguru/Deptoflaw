@@ -468,6 +468,26 @@ class MakeTPCHead(UserPerformAction):
 
 
 @method_decorator(login_required, name="dispatch")
+class Resume(TemplateView):
+    template_name = 'resume.html'
+
+    def get(self, request, pk):
+        if not User.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        user = User.objects.get(pk=pk)
+        if request.user not in user.view_users:
+            raise PermissionDenied()
+        return super().get(request, pk)
+
+    def get_context_data(self, **kwargs):
+        user = User.objects.get(pk=self.kwargs['pk'])
+
+        context = super().get_context_data(**kwargs)
+        context['user'] = user
+        return context
+
+
+@method_decorator(login_required, name="dispatch")
 class BuildProfile(TemplateView):
     template_name = 'build_profile.html'
 

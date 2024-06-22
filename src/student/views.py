@@ -74,7 +74,7 @@ class AcademicInfo(TemplateView):
         if not StudentProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         profile = StudentProfile.objects.get(pk=self.kwargs['pk'])
-        if request.user not in profile.edit_users:
+        if request.user not in profile.view_users:
             raise PermissionDenied()
         return super().get(request, pk)
 

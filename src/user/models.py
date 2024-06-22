@@ -92,28 +92,25 @@ class User(AbstractBaseUser, PermissionsMixin):
     def edit_users(self):
         if self.is_superuser:
             return User.objects.filter(pk=self.pk)
-        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.pk))).distinct()
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.pk)).distinct()
 
     @property
     def view_users(self):
-        if self.is_superuser or self.is_coordinator or self.role == 'staff' or self.role == 'recruiter':
+        if self.is_superuser or self.is_coordinator or self.role == 'staff' or self.role == 'recruiter' or (self.role == 'student' and self.student_profile.is_cr):
             return User.objects.all()
         if self.role == 'student':
             return User.objects.filter(
+                Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.pk) |
                 Q(
-                    Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.pk) |
-                    # Q(
-                    #     Q(student_profile__year=self.student_profile.year) & Q(
-                    #         student_profile__course=self.student_profile.course) & Q(student_profile__is_cr=True)
-                    # ) |
-                    Q(
-                        Q(student_profile__registration_year=self.student_profile.registration_year) & Q(
-                            student_profile__course=self.student_profile.course) & Q(student_profile__is_cr=True)
-                    ) |
-                    Q(
-                        Q(student_profile__pass_out_year=self.student_profile.pass_out_year) & Q(
-                            student_profile__course=self.student_profile.course) & Q(student_profile__is_cr=True)
-                    )
+                    Q(recruitment_posts__applications__in=self.job_applications.all())
+                ) |
+                Q(
+                    Q(student_profile__registration_year=self.student_profile.registration_year) & Q(
+                        student_profile__course=self.student_profile.course) & Q(student_profile__is_cr=True)
+                ) |
+                Q(
+                    Q(student_profile__pass_out_year=self.student_profile.pass_out_year) & Q(
+                        student_profile__course=self.student_profile.course) & Q(student_profile__is_cr=True)
                 )
             ).distinct()
 

@@ -66,7 +66,8 @@ class RecruiterInfo(TemplateView):
     def get(self, request, pk):
         if not RecruiterProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
-        elif RecruiterProfile.objects.get(pk=pk).user != request.user and not request.user.is_superuser:
+        profile = RecruiterProfile.objects.get(pk=pk)
+        if request.user not in profile.view_users:
             raise PermissionDenied()
         return super().get(request, pk)
 

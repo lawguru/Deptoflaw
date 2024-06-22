@@ -462,6 +462,21 @@
                     </div>
                     {% endif %}
                     <div class="d-flex flex-wrap align-items-center justify-content-start gap-2 mt-3 mb-3">
+                        <a href="{% url 'resume' user.pk %}" target="_blank">
+                            <span
+                                class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                <div class="rounded-circle m-2">
+                                    <i class="bi bi-person-lines-fill fs-5"></i>
+                                </div>
+                                <div class="text-start">
+                                    <strong class="fw-bold text-body-emphasis lh-1">
+                                        Resume
+                                    </strong>
+                                    <small class="d-block text-body-secondary">View</small>
+                                </div>
+                            </span>
+                        </a>
+                        {% if application.user.primary_email %}
                         <span
                             class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
                             <div class="rounded-circle m-2">
@@ -474,6 +489,8 @@
                                 <small class="d-block text-body-secondary">Email</small>
                             </div>
                         </span>
+                        {% endif %}
+                        {% if application.user.primary_phone_number %}
                         <span
                             class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
                             <div class="rounded-circle m-2">
@@ -486,18 +503,24 @@
                                 <small class="d-block text-body-secondary">Phone number</small>
                             </div>
                         </span>
+                        {% endif %}
+                        {% if application.user.primary_address %}
                         <span
-                            class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill" data-bs-toggle="tooltip" data-bs-title="{{application.user.primary_address.address}}, PIN/ZIP: {{application.user.primary_address.pincode}}">
+                            class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill"
+                            data-bs-toggle="tooltip"
+                            data-bs-title="{{application.user.primary_address.address}}, PIN/ZIP: {{application.user.primary_address.pincode}}">
                             <div class="rounded-circle m-2">
                                 <i class="bi bi-map fs-5"></i>
                             </div>
                             <div class="text-start">
                                 <strong class="fw-bold text-body-emphasis lh-1">
-                                    {{application.user.primary_address.city}}, {{application.user.primary_address.state}}, {{application.user.primary_address.country}}
+                                    {{application.user.primary_address.city}}, {{application.user.primary_address.state}},
+                                    {{application.user.primary_address.country}}
                                 </strong>
                                 <small class="d-block text-body-secondary">Location</small>
                             </div>
                         </span>
+                        {% endif %}
                     </div>
                     <h5 class="mb-0 mt-4 fw-bold text-body-emphasis lh-1 ">About</h5>
                     <div>

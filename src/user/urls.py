@@ -17,6 +17,7 @@ urlpatterns = [
     path('<int:pk>/removeclassrep/', RemoveClassRep.as_view(), name='remove_cr'),
     path('<int:pk>/makehod/', MakeHOD.as_view(), name='make_hod'),
     path('<int:pk>/maketpchead/', MakeTPCHead.as_view(), name='make_tpc_head'),
+    path('<int:pk>/resume/', Resume.as_view(), name='resume'),
     path('<int:pk>/personal/', PersonalContactInfo.as_view(), name='personal_contact_info'),
     path('<int:pk>/personal/phone-numbers/', RedirectView.as_view(url='../#phone-numbers'), name='phone_numbers'),
     path('<int:pk>/personal/emails/', RedirectView.as_view(url='../#emails'), name='emails'),

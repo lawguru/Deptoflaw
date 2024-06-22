@@ -118,33 +118,11 @@ class StudentProfile(models.Model):
 
     @property
     def edit_users(self):
-        if self.user.is_superuser:
-            return User.objects.filter(pk=self.user.pk)
-        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+        return self.user.edit_users
 
     @property
     def view_users(self):
-        if self.user.is_superuser or self.user.is_coordinator or self.is_cr:
-            return User.objects.all()
-        # To be able to access annotations in the default manager's get_queryset
-        self_annotated = StudentProfile.objects.get(pk=self.pk)
-        return User.objects.filter(
-            Q(
-                Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.pk) |
-                Q(
-                    Q(student_profile__year=self_annotated.year) & Q(
-                        student_profile__course=self.course) & Q(student_profile__is_cr=True)
-                ) |
-                Q(
-                    Q(student_profile__registration_year=self.registration_year) & Q(
-                        student_profile__course=self.course) & Q(student_profile__is_cr=True)
-                ) |
-                Q(
-                    Q(student_profile__pass_out_year=self.pass_out_year) & Q(
-                        student_profile__course=self.course) & Q(student_profile__is_cr=True)
-                )
-            )
-        ).distinct()
+        return self.user.view_users
 
     @property
     def year_suffix(self):

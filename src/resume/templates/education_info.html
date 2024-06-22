@@ -327,7 +327,7 @@
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <form id="change-certification-{{ certification.0.pk }}-modal"
+                                    <form id="change-certification-{{ certification.0.pk }}-form"
                                         action="{% url 'change_certification' certification.0.pk %}" method="POST">
                                         {% csrf_token %}
                                         <div class="d-none">
@@ -358,7 +358,7 @@
                                     </form>
                                 </div>
                                 <div class="modal-footer">
-                                    <input type="submit" form="change-certification-{{ certification.0.pk }}-modal"
+                                    <input type="submit" form="change-certification-{{ certification.0.pk }}-form"
                                         class="btn btn-primary btn-lg m-0 w-100" value="Save"
                                         onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
                                 </div>

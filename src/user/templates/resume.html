@@ -1,0 +1,415 @@
+{% extends "skeleton.html" %}
+
+{% block title %}{{user.full_name}} | Resume | TPC | CSE | AUS{% endblock %}
+{% block head %}
+<style>
+#print-container {
+    margin: 1cm;
+    width: 21cm;
+}
+
+#print-target {
+    padding: 1cm;
+    color: #000;
+    background-color: #fff;
+    font-size: 10pt;
+    width: 100%;
+}
+
+@media print {
+
+    body {
+        color: #000;
+        background-color: #fff;
+    }
+
+    #print-container {
+        margin: 0;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    #print-target {
+        display: block;
+        padding: 0;
+    }
+
+    @page {
+        size: A4;
+        margin: 1cm;
+    }
+
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-center">
+    <div id="print-container">
+        <div class="no-print">
+            <div class="my-3 d-flex align-items-center justify-content-between">
+                <a href="{% url 'student_profile' user.student_profile.pk %}">
+                    View Profile
+                </a>
+                <button class="btn btn-primary" onclick="window.print()">Print</button>
+            </div>
+        </div>
+        <div id="print-target">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="fw-bold text-body-emphasis lh-1">{{user.full_name}}</h3>
+                <h6 class="lh-1 fw-bold text-body-secondary">{{user.subtext}}</h6>
+            </div>
+            <div>
+                <div class="d-flex align-items-center gap-2 p-1">
+                    <div>
+                        <p class="mb-0 lh-1">
+                            Roll Number
+                            <strong>{{user.student_profile.roll}}-{{user.student_profile.number}}</strong>
+                        </p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 p-1">
+                    <div>
+                        <p class="mb-0 lh-1">
+                            Registration Number
+                            <strong>{{user.student_profile.registration_number}}</strong>
+                            of
+                            <strong>{{user.student_profile.registration_year}}</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-4">
+                <ul class="list-group list-group-flush">
+                    {% if user.primary_phone_number %}
+                    <li class="list-group-item d-flex align-items-center justify-content-between px-0 bg-transparent">
+                        <a href="tel:{{user.primary_phone_number}}">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-telephone fs-5"></i>
+                                <div>
+                                    <p class="mb-0 lh-1"><strong>{{ user.primary_phone_number }}</strong></p>
+                                    <p class="mb-0 lh-1"><small>Phone</small></p>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if user.primary_email %}
+                    <li class="list-group-item d-flex align-items-center justify-content-between px-0 bg-transparent">
+                        <a href="mailto:{{user.primary_email.email}}">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-envelope fs-5"></i>
+                                <div>
+                                    <p class="mb-0 lh-1"><strong>{{ user.primary_email }}</strong></p>
+                                    <p class="mb-0 lh-1"><small>Email</small></p>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% if user.primary_address %}
+                    <li class="list-group-item d-flex align-items-center justify-content-between px-0 bg-transparent">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-map fs-5"></i>
+                            <div>
+                                <p class="mb-0 lh-1"><strong>{{ user.primary_address.city }}, {{ user.primary_address.country }}</strong></p>
+                                <p class="mb-0 lh-1"><small>Location</small></p>
+                            </div>
+                        </div>
+                    </li>
+                    {% endif %}
+                    {% for link in user.links.all %}
+                    <li class="list-group-item d-flex align-items-center justify-content-between px-0 bg-transparent">
+                        <a href="{{link.url}}">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="{{link.icon}} fs-5"></i>
+                                <div>
+                                    <p class="mb-0 fs-5">{{ link.title }}</p>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                {% if user.skills.all|length %}
+                <div class="my-3">
+                    <h6 class="fw-bold text-body-emphasis mb-1">Skills</h6>
+                    <div class="d-flex flex-wrap align-items-center gap-2 my-2">
+                        {% for skill in user.skills.all %}
+                        <div class="badge d-flex align-items-center rounded-pill text-bg-accent gap-1">
+                            <h6 class="replace-abbreviation text-start fw-bold mb-0 lh-1">
+                                {{ skill.name }}
+                            </h6>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if user.languages.all|length %}
+                <div class="my-3">
+                    <h6 class="fw-bold text-body-emphasis mb-1">Languages</h6>
+                    <div class="d-flex flex-wrap align-items-center gap-2 my-2">
+                        {% for language in user.languages.all %}
+                        <div class="badge d-flex align-items-center rounded-pill text-bg-accent gap-1">
+                            <h6 class="replace-abbreviation text-start fw-bold mb-0 lh-1">
+                                {{ language.name }}
+                            </h6>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if user.achievements.all|length %}
+                <div class="my-3">
+                    <h6 class="fw-bold text-body-emphasis mb-1">Achievements</h6>
+                    {% for achievement in user.achievements.all %}
+                    <div class="mb-2">
+                        <div>
+                            <strong class="replace-abbreviation lh-4 mb-0">
+                                {{ achievement.title }}
+                            </strong>
+                            <p class="mb-0">
+                                <small class="text-body-secondary">
+                                    <i class="bi bi-calendar-event"></i>
+                                    <span>{{ achievement.date }}</span>
+                                </small>
+                            </p>
+                        </div>
+                        <p class="replace-abbreviation">{{ achievement.description }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-8">
+                {% if user.work_experiences.all|length %}
+                <div class="mb-3">
+                    <h5 class="fw-bold text-body-emphasis">Experiences / Positions</h5>
+                    {% for work_experience in user.work_experiences.all %}
+                    <div class="mb-2">
+                        <h6 class="replace-abbreviation fw-bold text-secondary-emphasis lh-4 mb-0">
+                            {{ work_experience.title }} at {{ work_experience.company }}
+                        </h6>
+                        <p class="mb-0">
+                            <small class="text-body-secondary">
+                                <i class="bi bi-calendar-event"></i>
+                                <span>{{ work_experience.start_date }}-{{ work_experience.end_date }}</span>
+                            </small>
+                        </p>
+                        <p class="mb-0">
+                            <small class="text-body-secondary">
+                                <i class="bi bi-map"></i>
+                                <span class="replace-abbreviation">{{ work_experience.location }}</span>
+                            </small>
+                        </p>
+                    </div>
+                    <p class="replace-abbreviation">{{ work_experience.description }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if user.projects.all|length %}
+                <div class="mb-3">
+                    <h5 class="fw-bold text-body-emphasis">Projects</h5>
+                    {% for project in user.projects.all %}
+                    <div class="mb-2">
+                        <div>
+                            <h6 class="replace-abbreviation fw-bold text-secondary-emphasis lh-4 mb-0">
+                                {{ project.title }}
+                            </h6>
+                            <p class="mb-0">
+                                <small class="text-body-secondary">
+                                    <i class="bi bi-calendar-event"></i>
+                                    <span>{{ project.start_date }}-{{ project.end_date }}</span>
+                                </small>
+                            </p>
+                            {% if project.get_name_url_tuple|length > 0 %}
+                            <div class="d-flex gap-3 mb-0">
+                                {% for url in project.get_name_url_tuple %}
+                                <a href="{{ url.1 }}"><i class="bi bi-link-45deg"></i>{{ url.0 }}</a>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <p class="replace-abbreviation">{{ project.description }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <h5 class="fw-bold text-body-emphasis">Education</h5>
+                    <div class="mb-2">
+                        <div>
+                            <h6 class="fw-bold text-secondary-emphasis lh-4 mb-0">
+                                <abbr title="{{ user.student_profile.get_course_display }}" class="initialism">
+                                    {{user.student_profile.course}}
+                                </abbr>
+                            </h6>
+                            <p class="replace-abbreviation mb-0">Computer Science and Engineering</p>
+                        </div>
+                        <p class="mb-0">from <strong class="replace-abbreviation  text-secondary-emphasis">Assam University, Silchar</strong></p>
+                        <p class="mb-0"><strong class="text-secondary-emphasis">Currently {{user.student_profile.cgpa}} CGPA</strong> out of 10, expected graduation on <strong class="text-secondary-emphasis">{{ user.student_profile.registration_year|add:user.student_profile.course_duration }}</strong></p>
+                    </div>
+                    {% if user.other_educations.all|length %}
+                    {% for education in user.other_educations.all %}
+                    <div class="mb-2">
+                        <div>
+                            <h6 class="fw-bold text-secondary-emphasis lh-4 mb-0">
+                                <abbr title="{{ education.get_education_display }}" class="initialism">
+                                    {{education.education}}
+                                </abbr>
+                            </h6>
+                            <p class="replace-abbreviation mb-0">{{ education.specialization }}</p>
+                        </div>
+                        <p class="mb-0">from <strong class="replace-abbreviation  text-secondary-emphasis">{{ education.institution }}</strong></p>
+                        <p class="mb-0">with <strong class="text-secondary-emphasis">{{ education.grade_point }} points</strong> out of 10 on <strong class="text-secondary-emphasis">{{ education.year }}</strong> in <strong class="text-secondary-emphasis">{{ education.duration }} years</strong></p>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+
+                {% if user.certifications.all|length %}
+                <div class="mb-3">
+                    <h5 class="fw-bold text-body-emphasis">Certification / Trainings</h5>
+                    {% for certification in user.certifications.all %}
+                    <div class="mb-2">
+                        <div>
+                            <h6 class="replace-abbreviation fw-bold text-secondary-emphasis lh-4 mb-0">
+                                {{ certification.title }}
+                            </h6>
+                            <p class="mb-0">
+                                <small class="replace-abbreviation text-body-secondary">
+                                    <i class="bi bi-bookmark-check"></i>
+                                    <span class="replace-abbreviation">{{ certification.issuer}}</span>
+                                </small>
+                            </p>
+                            <p class="mb-0">
+                                <small class="text-body-secondary">
+                                    <i class="bi bi-calendar-event"></i>
+                                    <span>{{ certification.issue_date }}</span>
+                                </small>
+                            </p>
+                        </div>
+                        <p class="replace-abbreviation">{{ certification.description }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if user.patents.all|length %}
+                <div class="mb-3">
+                    <h5 class="fw-bold text-body-emphasis">Patents</h5>
+                    {% for patent in user.patents.all %}
+                    <div class="mb-2">
+                        <div>
+                            <h6 class="replace-abbreviation fw-bold text-secondary-emphasis lh-4 mb-0">
+                                {{ patent.title }}
+                            </h6>
+                            <p class="mb-0">
+                                <small class="text-body-secondary">
+                                    <i class="bi bi-calendar-event"></i>
+                                    <span>{{ patent.issue_date }}</span>
+                                </small>
+                            </p>
+                            <p class="mb-0">
+                                <small class="text-body-secondary">
+                                    <i class="bi bi-buildings"></i>
+                                    <span class="replace-abbreviation">{{ patent.patent_office }}</span>
+                                    <i class="ms-2 bi bi-ticket-detailed"></i>
+                                    <span class="replace-abbreviation">{{ patent.patent_number }}</span>
+                                </small>
+                            </p>
+                        </div>
+                        <p class="replace-abbreviation">{{ patent.description }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if user.publications.all|length %}
+                <div class="mb-3">
+                    <h5 class="fw-bold text-body-emphasis">Publications</h5>
+                    {% for publication in user.publications.all %}
+                    <div class="mb-2">
+                        <div>
+                            <h6 class="replace-abbreviation fw-bold text-secondary-emphasis lh-4 mb-0">
+                                {{ publication.title }}
+                            </h6>
+                            <p class="mb-0">
+                                <small class="text-body-secondary">
+                                    <i class="bi bi-journal-bookmark"></i>
+                                    <span>{{ publication.publisher }}</span>
+                                </small>
+                            </p>
+                            <p class="mb-0">
+                                <small class="text-body-secondary">
+                                    <i class="bi bi-calendar-event"></i>
+                                    <span>{{ publication.publication_date }}</span>
+                                </small>
+                            </p>
+                        </div>
+                        <p class="replace-abbreviation">{{ publication.description }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if user.presentations.all|length %}
+                <div class="mb-3">
+                    <h5 class="fw-bold text-body-emphasis">Presentations</h5>
+                    {% for presentation in user.presentations.all %}
+                    <div class="mb-2">
+                        <div>
+                            <h6 class="replace-abbreviation fw-bold text-secondary-emphasis lh-4 mb-0">
+                                {{ presentation.title }}
+                            </h6>
+                            <p class="mb-0">
+                                <small class="text-body-secondary">
+                                    <i class="bi bi-map"></i>
+                                    <span class="replace-abbreviation">{{ presentation.location }}</span>
+                                </small>
+                            </p>
+                            <p class="mb-0">
+                                <small class="text-body-secondary">
+                                    <i class="bi bi-calendar-event"></i>
+                                    <span>{{ presentation.date }}</span>
+                                </small>
+                            </p>
+                        </div>
+                        <p class="replace-abbreviation">{{ presentation.description }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% if user.other_infos.all|length %}
+        <div>
+            {% for other_info in user.other_infos.all %}
+            <div class="mb-3">
+                <h5 class="replace-abbreviation fw-bold text-body-emphasis lh-4 mb-0">
+                    {{ other_info.title }}
+                </h5>
+                <p class="replace-abbreviation">{{ other_info.description }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        </div>
+    </div>
+</div>
+<script>
+    document.querySelectorAll('.replace-abbreviation').forEach((element, index) => {
+        element.innerHTML = replaceAbbreviations(element.innerHTML);
+    });
+</script>
+{% endblock %}
