@@ -4,11 +4,11 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, reverse
 from views import ChangeObject, ChangeUserKeyObject
+from django.views.generic.base import TemplateView
 from user.models import Email
+from user.views import UserPerformAction
 from .models import *
 from .forms import *
-from django.views.generic import ListView
-from django.views.generic.base import TemplateView
 
 # Create your views here.
 
@@ -26,8 +26,6 @@ class StudentSignUp(TemplateView):
         if form.is_valid():
             email, created = Email.objects.get_or_create(
                 email=form.cleaned_data['email'])
-            if email.user:
-                return render(request, self.template_name, {'form': form, 'error': 'Email already in use'})
             user = User.objects.create(role='student', primary_email=email)
             student = StudentProfile.objects.create(user=user, registration_number=form.cleaned_data['registration_number'], course=form.cleaned_data['course'], number=int(
                 form.cleaned_data['number']), id_number=int(form.cleaned_data['id_number']))
@@ -52,28 +50,20 @@ class StudentSignIn(TemplateView):
         form = StudentSigninForm(request.POST)
         if form.is_valid():
             registration_number_or_email = form.cleaned_data['registration_number_or_email']
-            password = form.cleaned_data['password']
             if Email.objects.filter(email=registration_number_or_email).exists():
-                email = Email.objects.get(email=registration_number_or_email)
-                if email.user:
-                    user = email.user
-                else:
-                    return render(request, self.template_name, {'form': form, 'error': 'No User with this Email'})
+                user = Email.objects.get(email=registration_number_or_email).user
             elif StudentProfile.objects.filter(registration_number=int(registration_number_or_email)).exists():
                 user = StudentProfile.objects.get(
                     registration_number=int(registration_number_or_email)).user
-            else:
-                return render(request, self.template_name, {'form': form, 'error': 'Invalid Registration Number or Email'})
-            user = authenticate(
-                username=user.pk, password=password)
-            if user is not None:
+            
+            if not user is None:
                 login(request, user)
                 next = request.GET.get('next')
                 if next:
                     return redirect(next)
                 return redirect('build_profile', user.pk)
-            return render(request, self.template_name, {'form': form, 'error': 'Wrong Password'})
-        return render(request, self.template_name, {'form': form, 'error': 'Invalid Form Data'})
+        
+        return render(request, self.template_name, {'form': form})
 
 
 @method_decorator(login_required, name="dispatch")
@@ -84,7 +74,7 @@ class AcademicInfo(TemplateView):
         if not StudentProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         profile = StudentProfile.objects.get(pk=self.kwargs['pk'])
-        if request.user not in profile.edit_users:
+        if request.user not in profile.view_users:
             raise PermissionDenied()
         return super().get(request, pk)
 

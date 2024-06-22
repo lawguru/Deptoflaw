@@ -1,9 +1,10 @@
-import random
+from django.core.validators import MaxValueValidator, MinValueValidator
 from datetime import datetime
 from django.db import models
 from django.db.models import Q
 from user.models import User
 from settings.models import Setting
+
 
 # Create your models here.
 
@@ -95,12 +96,12 @@ class StudentProfile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='student_profile')
     registration_number = models.PositiveBigIntegerField(
-        unique=True, help_text='YYYYXXXXXXX')
+        unique=True, help_text='YYYYXXXXXXX', validators=[MinValueValidator(20000000001), MaxValueValidator(99999999999)])
     course = models.CharField(max_length=6, choices=course_choices)
     number = models.PositiveBigIntegerField(
-        help_text='10 digit number from Exam Roll no.', default=0)
+        help_text='10 digit number from Exam Roll no.', validators=[MinValueValidator(1000000000), MaxValueValidator(9999999999)])
     id_number = models.PositiveSmallIntegerField('ID Number',
-                                                 help_text='Number at the end of ID Card', default=0)
+                                                 help_text='Number at the end of ID Card', validators=[MinValueValidator(1), MaxValueValidator(999)])
     dropped_out = models.BooleanField(default=False)
     is_cr = models.BooleanField(default=False)
 
@@ -117,54 +118,11 @@ class StudentProfile(models.Model):
 
     @property
     def edit_users(self):
-        if self.user.is_superuser:
-            return User.objects.filter(pk=self.user.pk)
-        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+        return self.user.edit_users
 
     @property
     def view_users(self):
-        if self.user.is_superuser or self.user.is_coordinator or self.is_cr:
-            return User.objects.all()
-        # To be able to access annotations in the default manager's get_queryset
-        self_annotated = StudentProfile.objects.get(pk=self.pk)
-        return User.objects.filter(
-            Q(
-                Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.pk) |
-                Q(
-                    Q(student_profile__year=self_annotated.year) & Q(
-                        student_profile__course=self.course) & Q(student_profile__is_cr=True)
-                ) |
-                Q(
-                    Q(student_profile__registration_year=self.registration_year) & Q(
-                        student_profile__course=self.course) & Q(student_profile__is_cr=True)
-                ) |
-                Q(
-                    Q(student_profile__pass_out_year=self.pass_out_year) & Q(
-                        student_profile__course=self.course) & Q(student_profile__is_cr=True)
-                )
-            )
-        ).distinct()
-
-    @property
-    def make_cr_users(self):
-        if self.user.is_cr:
-            return User.objects.none()
-        self_annotated = StudentProfile.objects.get(pk=self.pk)
-        return User.objects.filter(
-            Q(
-                Q(is_superuser=True) | Q(is_coordinator=True) |
-                Q(
-                    Q(student_profile__year=self_annotated.year) & Q(
-                        student_profile__course=self.course) & Q(student_profile__is_cr=True)
-                )
-            )
-        ).distinct()
-
-    @property
-    def remove_cr_users(self):
-        return User.objects.filter(
-            Q(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.pk))
-        )
+        return self.user.view_users
 
     @property
     def year_suffix(self):
@@ -207,7 +165,7 @@ class StudentProfile(models.Model):
     def calculate_cgpa(self):
         cgpa = 0
         total_credits = 0
-        for semester_report_card in self.semester_report_cards.all():
+        for semester_report_card in self.semester_report_cards.filter(is_complete=True):
             cgpa = cgpa + semester_report_card.sgpa * semester_report_card.total_credits
             total_credits = total_credits + semester_report_card.total_credits
         return (cgpa / total_credits) if total_credits > 0 else 0
@@ -270,7 +228,10 @@ class SemesterReportCard(models.Model):
         def get_queryset(self):
             return super().get_queryset().annotate(
                 semester=models.Window(
-                    expression=models.functions.RowNumber()),
+                    expression=models.functions.RowNumber(),
+                    partition_by=[models.F('student_profile')],
+                    order_by=models.F('id').asc()
+                ),
                 roll=models.ExpressionWrapper(models.functions.Concat(models.F('semester'), datetime.now(
                 ).year % 100, models.F('student_profile__registration_year') % 100), output_field=models.CharField()),
             )
@@ -298,8 +259,8 @@ class SemesterReportCard(models.Model):
     @property
     def edit_users(self):
         if self.student_profile.user.is_superuser:
-            return User.objects.filter(pk=self.user.pk)
-        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.student_profile.user.pk))).distinct()
+            return User.objects.filter(pk=self.student_profile.user.pk)
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.student_profile.user.pk)).distinct()
 
     def get_sgpa(self):
         sgpa = 0
@@ -314,27 +275,37 @@ class SemesterReportCard(models.Model):
                     float(self.subject_grade_points[i])
         return (sgpa / self.total_credits) if self.total_credits > 0 else 0
 
-    def semester(self):
+    def getsemester(self):
         try:
             return list(self.student_profile.semester_report_cards.all()).index(self) + 1
         except:
             return self.student_profile.semester_report_cards.count() + 1
 
-    def save(self, *args, **kwargs):
-        if self.pk:
-            self.backlogs = self.subject_letter_grades.count('F')
-            self.passed = True if 'F' not in self.subject_letter_grades else False
-            self.earned_credits = round(sum([(float(tuple[0]) * float(tuple[1]) / 10)
-                                        for tuple in list(zip(self.subject_credits, self.subject_grade_points))]), 2)
-        elif SemesterReportCardTemplate.objects.filter(course=self.student_profile.course, semester=self.semester()).exists():
+    def semester(self):
+        return self.getsemester()
+
+    def reset(self, save=True):
+        if SemesterReportCardTemplate.objects.filter(course=self.student_profile.course, semester=self.getsemester()).exists():
             template = SemesterReportCardTemplate.objects.get(
-                course=self.student_profile.course, semester=self.semester())
+                course=self.student_profile.course, semester=self.getsemester())
             self.subjects = template.subjects
             self.subject_codes = template.subject_codes
             self.subject_credits = template.subject_credits
             self.subject_passing_grade_points = template.subject_passing_grade_points
             self.subject_letter_grades = ['S' for _ in template.subjects]
             self.subject_grade_points = [0 for _ in template.subjects]
+
+            if save:
+                self.save()
+
+    def save(self, *args, **kwargs):
+        if not self.pk or self.subjects in [None, []]:
+            self.reset(False)
+        else:
+            self.backlogs = self.subject_letter_grades.count('F')
+            self.passed = True if 'F' not in self.subject_letter_grades else False
+            self.earned_credits = round(sum([(float(tuple[0]) * float(tuple[1]) / 10)
+                                        for tuple in list(zip(self.subject_credits, self.subject_grade_points))]), 2)
 
         self.total_credits = round(
             sum([float(subject_credit) for subject_credit in self.subject_credits]), 1)

@@ -5,6 +5,24 @@
 {% block content %}
 
 <div class="container-fluid p-3 p-xl-5 min-vh-100">
+
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
+        <div>
+            <h1 class="fw-bold text-body-emphasis mb-0">
+                Applications
+            </h1>
+            <small class="text-body-secondary">for
+                <a href="{% url 'view_recruitment_post' post.pk %}">
+                    {{post.title}} at {{post.company}}
+                </a>
+            </small>
+        </div>
+
+        <form action="{% url 'recruitment_applications_csv' post.pk %}">
+            <input type="submit" class="btn btn-primary" value="Download CSV">
+        </form>
+    </div>
+
     <nav class="navbar navbar-expand-xl bg-body p-0 mb-3 border rounded-2">
         <div class="container-fluid">
             <a class="lead text-body-emphasis me-3" href="#">Filters</a>
@@ -328,7 +346,7 @@
                         <div
                             class="ms-0 mt-3 mt-xl-0 ms-xl-auto d-sm-flex flex-wrap align-items-center justify-content-start justify-content-xl-end gap-2 pe-3">
                             <div class="d-flex align-items-center gap-2 mb-2 mb-sm-0">
-                                <span class="badge d-flex align-items-center py-0 ps-1 pe-3
+                                <span id="application-{{application.pk}}-status-badge" class="badge d-flex align-items-center py-0 ps-1 pe-3
                                                                                     {% if application.status == 'P' %}
                                                                                     text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle
                                                                                     {% elif application.status == 'R' %}
@@ -339,7 +357,7 @@
                                                                                     text-info-emphasis bg-info-subtle border border-info-subtle
                                                                                     {% endif %}
                                                                                     rounded-pill">
-                                    <div class="rounded-circle m-2">
+                                    <div id="application-{{application.pk}}-status-icon" class="rounded-circle m-2">
                                         {% if application.status == 'P' %}
                                         <i class="bi bi-app-indicator fs-5"></i>
                                         {% elif application.status == 'R' %}
@@ -351,7 +369,7 @@
                                         {% endif %}
                                     </div>
                                     <div class="text-start">
-                                        <strong class="fw-bold text-body-emphasis lh-1">
+                                        <strong id="application-{{application.pk}}-status-text" class="fw-bold text-body-emphasis lh-1">
                                             {{ application.get_status_display }}
                                         </strong>
                                         <small class="d-block text-body-secondary">Status</small>
@@ -429,11 +447,10 @@
                         <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Action
                         </button>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu application-actions" id="{{application.pk}}-actions" data-application-pk="{{application.pk}}">
                             {% if request.user in application.select_users %}
                             <li>
                                 <form action="{% url 'select_recruitment_application' application.pk %}" method="POST">
-                                    {% csrf_token %}
                                     <input type="submit" class="btn dropdown-item" value="Select">
                                 </form>
                             </li>
@@ -441,7 +458,6 @@
                             {% if request.user in application.reject_users %}
                             <li>
                                 <form action="{% url 'reject_recruitment_application' application.pk %}" method="POST">
-                                    {% csrf_token %}
                                     <input type="submit" class="btn dropdown-item" value="Reject">
                                 </form>
                             </li>
@@ -449,7 +465,6 @@
                             {% if request.user in application.shortlist_users %}
                             <li>
                                 <form action="{% url 'shortlist_recruitment_application' application.pk %}" method="POST">
-                                    {% csrf_token %}
                                     <input type="submit" class="btn dropdown-item" value="Shortlist for Interview">
                                 </form>
                             </li>
@@ -457,7 +472,6 @@
                             {% if request.user in application.pending_users %}
                             <li>
                                 <form action="{% url 'pending_recruitment_application' application.pk %}" method="POST">
-                                    {% csrf_token %}
                                     <input type="submit" class="btn dropdown-item" value="Set as Pending">
                                 </form>
                             </li>
@@ -466,6 +480,21 @@
                     </div>
                     {% endif %}
                     <div class="d-flex flex-wrap align-items-center justify-content-start gap-2 mt-3 mb-3">
+                        <a href="{% url 'resume' user.pk %}" target="_blank">
+                            <span
+                                class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                <div class="rounded-circle m-2">
+                                    <i class="bi bi-person-lines-fill fs-5"></i>
+                                </div>
+                                <div class="text-start">
+                                    <strong class="fw-bold text-body-emphasis lh-1">
+                                        Resume
+                                    </strong>
+                                    <small class="d-block text-body-secondary">View</small>
+                                </div>
+                            </span>
+                        </a>
+                        {% if application.user.primary_email %}
                         <span
                             class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
                             <div class="rounded-circle m-2">
@@ -478,6 +507,8 @@
                                 <small class="d-block text-body-secondary">Email</small>
                             </div>
                         </span>
+                        {% endif %}
+                        {% if application.user.primary_phone_number %}
                         <span
                             class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
                             <div class="rounded-circle m-2">
@@ -490,18 +521,24 @@
                                 <small class="d-block text-body-secondary">Phone number</small>
                             </div>
                         </span>
+                        {% endif %}
+                        {% if application.user.primary_address %}
                         <span
-                            class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill" data-bs-toggle="tooltip" data-bs-title="{{application.user.primary_address.address}}, PIN/ZIP: {{application.user.primary_address.pincode}}">
+                            class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill"
+                            data-bs-toggle="tooltip"
+                            data-bs-title="{{application.user.primary_address.address}}, PIN/ZIP: {{application.user.primary_address.pincode}}">
                             <div class="rounded-circle m-2">
                                 <i class="bi bi-map fs-5"></i>
                             </div>
                             <div class="text-start">
                                 <strong class="fw-bold text-body-emphasis lh-1">
-                                    {{application.user.primary_address.city}}, {{application.user.primary_address.state}}, {{application.user.primary_address.country}}
+                                    {{application.user.primary_address.city}}, {{application.user.primary_address.state}},
+                                    {{application.user.primary_address.country}}
                                 </strong>
                                 <small class="d-block text-body-secondary">Location</small>
                             </div>
                         </span>
+                        {% endif %}
                     </div>
                     <h5 class="mb-0 mt-4 fw-bold text-body-emphasis lh-1 ">About</h5>
                     <div>
@@ -814,6 +851,106 @@
         }
     }
     window.onload = addHiddenInputs();
+
+    function handleActions() {
+        document.querySelectorAll('.application-actions').forEach((element) => {
+            element.querySelectorAll('form').forEach((form) => {
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    form.getElementsByTagName('input')[0].disabled = true;
+                    form.getElementsByTagName('input')[0].value = 'Loading...';
+                    application_actions_url = element.getAttribute('data-application-actions-url');
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    }).then(response => {
+                        application_pk = element.getAttribute('data-application-pk')
+                        dropdown = document.getElementById(`${application_pk}-actions`)
+                        if (response.status == 200) {
+                            response.json().then(data => {
+                                if (data.length == 0) {
+                                    dropdown.parentElement.remove();
+                                    return;
+                                }
+                                dropdown.innerHTML = ''
+                                data.actions.forEach((option) => {
+                                    input = document.createElement('input')
+                                    input.classList.add('btn')
+                                    input.classList.add('dropdown-item')
+                                    input.value = option.name
+                                    input.type = 'submit'
+                                    form = document.createElement('form')
+                                    form.action = option.url
+                                    form.method = 'POST'
+                                    form.appendChild(input)
+                                    li = document.createElement('li')
+                                    li.appendChild(form)
+                                    dropdown.appendChild(li)
+                                });
+                                handleActions();
+                                
+                                badge = document.getElementById(`application-${application_pk}-status-badge`);
+                                icon = document.getElementById(`application-${application_pk}-status-icon`);
+                                
+                                if (badge.classList.contains('bg-secondary-subtle')) {
+                                badge.classList.remove('text-secondary-emphasis');
+                                badge.classList.remove('bg-secondary-subtle');
+                                badge.classList.remove('border-secondary-subtle');
+                                }
+                                else if (badge.classList.contains('bg-danger-subtle')) {
+                                badge.classList.remove('text-danger-emphasis');
+                                badge.classList.remove('bg-danger-subtle');
+                                badge.classList.remove('border-danger-subtle');
+                                }
+                                else if (badge.classList.contains('bg-success-subtle')) {
+                                badge.classList.remove('text-success-emphasis');
+                                badge.classList.remove('bg-success-subtle');
+                                badge.classList.remove('border-success-subtle');
+                                }
+                                else if (badge.classList.contains('bg-info-subtle')) {
+                                badge.classList.remove('text-info-emphasis');
+                                badge.classList.remove('bg-info-subtle');
+                                badge.classList.remove('border-info-subtle');
+                                }
+                                if (data.status=='P') {
+                                badge.classList.add('text-secondary-emphasis');
+                                badge.classList.add('bg-secondary-subtle');
+                                badge.classList.add('border-secondary-subtle');
+                                icon.innerHTML = '<i class="bi bi-app-indicator fs-5"></i>'
+                                }
+                                else if (data.status=='R') {
+                                badge.classList.add('text-danger-emphasis');
+                                badge.classList.add('bg-danger-subtle');
+                                badge.classList.add('border-danger-subtle');
+                                icon.innerHTML = '<i class="bi bi-x-circle fs-5"></i>'
+                                }
+                                else if (data.status=='S') {
+                                badge.classList.add('text-success-emphasis');
+                                badge.classList.add('bg-success-subtle');
+                                badge.classList.add('border-success-subtle');
+                                icon.innerHTML = '<i class="bi bi-check2-circle fs-5"></i>'
+                                }
+                                else if (data.status=='I') {
+                                badge.classList.add('text-info-emphasis');
+                                badge.classList.add('bg-info-subtle');
+                                badge.classList.add('border-info-subtle');
+                                icon.innerHTML = '<i class="bi bi-info-circle fs-5"></i>'
+                                }
+                                document.getElementById(`application-${application_pk}-status-text`).innerHTML = data.status_text
+                            });
+                        }
+                        else {
+                            dropdown.innerHTML = 'An error occurred. Please try again later.';
+                        }
+                    });
+                });
+            });
+        });
+    }
+
+    handleActions();
 </script>
 
 {% endblock %}

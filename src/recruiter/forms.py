@@ -1,5 +1,7 @@
+from django.contrib.auth import authenticate
 from django import forms
 from .models import RecruiterProfile
+from user.models import Email
 
 
 class RecruiterProfileForm(forms.ModelForm):
@@ -36,6 +38,15 @@ class RecruiterSignUpForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.label_suffix = ''
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('password') != cleaned_data.get('confirm_password'):
+            self.add_error('confirm_password', 'Passwords do not match')
+        if Email.objects.filter(email=cleaned_data.get('email')).exists():
+            if Email.objects.get(email=cleaned_data.get('email')).user:
+                self.add_error('email', 'Email already in use')
+        return cleaned_data
+
 
 class RecruiterSigninForm(forms.Form):
     email = forms.CharField(widget=forms.TextInput(
@@ -46,3 +57,20 @@ class RecruiterSigninForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_suffix = ''
+
+    def clean(self):
+        cleaned_data = super().clean()
+        user = None
+        if Email.objects.filter(email=cleaned_data.get('email')).exists():
+            email = Email.objects.get(email=cleaned_data.get('email'))
+            if email.user:
+                user = email.user
+        else:
+            self.add_error('email', 'No User with this Email')
+        
+        if user is not None:
+            user = authenticate(username=user.pk, password=cleaned_data.get('password'))
+            if user is None:
+                self.add_error('password', 'Invalid Password')
+        
+        return cleaned_data

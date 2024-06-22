@@ -5,12 +5,15 @@
 {% block content %}
 
 <div class="container-fluid p-3 p-xl-5 min-vh-100">
-    <strong class="display-6 fw-bold text-body-emphasis lh-1">Recruitment Posts</strong>
-    {% if user_filter %}
-    <small class="d-block text-body-secondary">
-        By {{user.full_name}}
-    </small>
-    {% endif %}
+
+    <div class="mb-2">
+        <strong class="display-6 fw-bold text-body-emphasis lh-1">Recruitment Posts</strong>
+        {% if user_filter %}
+        <small class="d-block text-body-secondary">
+            By {{user.full_name}}
+        </small>
+        {% endif %}
+    </diV>
 
     <nav class="navbar navbar-expand-xxl bg-body p-0 mb-3 border rounded-2">
         <div class="container-fluid">
@@ -197,7 +200,7 @@
                             <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
                                 <li>
                                     <form action="#">
-                                        <div class="input-group mb-1" style="width: 38ch">
+                                        <div class="input-group" style="min-width: 38ch">
                                             <div class="input-group-text bg-transparent">Expected</div>
                                             <input type="number" class="form-control" name="expected-salary"
                                                 id="expected-salary" value="{{expected_salary}}" placeholder="0">
@@ -220,13 +223,13 @@
                             <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
                                 <li>
                                     <form action="#">
-                                        <div class="input-group mb-1" style="width: 30ch">
+                                        <div class="input-group mb-1" style="min-width: 30ch">
                                             <div class="input-group-text bg-transparent">Lower limit</div>
                                             <input type="number" class="form-control"
                                                 name="experience-filter-lower-limit" id="experience-filter-lower-limit"
                                                 value="{{experience_filter_lower_limit}}" placeholder="0">
                                         </div>
-                                        <div class="input-group mb-1" style="width: 30ch">
+                                        <div class="input-group mb-1" style="min-width: 30ch">
                                             <div class="input-group-text bg-transparent">Upper limit</div>
                                             <input type="number" class="form-control"
                                                 name="experience-filter-upper-limit" id="experience-filter-upper-limit"

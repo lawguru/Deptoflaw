@@ -162,11 +162,11 @@ class Certification(models.Model):
     class Meta:
         base_manager_name = 'objects'
 
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='certifications')
     title = models.CharField(max_length=100)
     issuer = models.CharField(max_length=100)
     issue_date = models.DateField()
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
 
     @property
     def edit_users(self):
@@ -264,13 +264,13 @@ class WorkExperience(models.Model):
     class Meta:
         base_manager_name = 'objects'
 
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='work_experiences')
     title = models.CharField(max_length=100)
     company = models.CharField(max_length=100)
     location = models.CharField(max_length=100)
     start_date = models.DateField()
     end_date = models.DateField()
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
 
     @property
     def edit_users(self):
@@ -307,9 +307,9 @@ class Project(models.Model):
     class Meta:
         base_manager_name = 'objects'
 
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='projects')
     title = models.CharField(max_length=100)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     urls = models.TextField('Related URLs', default='', blank=True, help_text='Comma \',\' separated list of URLs in brackets following names. Eg. GitHub Repository (https://github.com/user/repo/), Website (https://example.com/), etc.')
     start_date = models.DateField()
     end_date = models.DateField()
@@ -359,12 +359,12 @@ class Patent(models.Model):
     class Meta:
         base_manager_name = 'objects'
 
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='patents')
     title = models.CharField(max_length=100)
     patent_office = models.CharField(max_length=100)
     patent_number = models.CharField(max_length=100)
     issue_date = models.DateField()
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
 
     @property
     def edit_users(self):
@@ -399,11 +399,11 @@ class Publication(models.Model):
     class Meta:
         base_manager_name = 'objects'
 
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='publications')
     title = models.CharField(max_length=100)
     publisher = models.CharField(max_length=100)
     publication_date = models.DateField()
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
 
     @property
     def edit_users(self):
@@ -438,7 +438,7 @@ class Achievement(models.Model):
     class Meta:
         base_manager_name = 'objects'
 
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='achievements')
     title = models.CharField(max_length=100)
     date = models.DateField()
     description = models.TextField()
@@ -476,7 +476,7 @@ class Presentation(models.Model):
     class Meta:
         base_manager_name = 'objects'
 
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='presentations')
     title = models.CharField(max_length=100)
     location = models.CharField(max_length=100)
     date = models.DateField()
@@ -512,7 +512,7 @@ class OtherInfo(models.Model):
     class Meta:
         base_manager_name = 'objects'
 
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='other_infos')
     title = models.CharField(max_length=100)
     description = models.TextField()
 

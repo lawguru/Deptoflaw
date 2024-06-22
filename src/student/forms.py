@@ -1,15 +1,17 @@
+from django.contrib.auth import authenticate
 from django import forms
 from .models import *
+from user.models import Email
 import datetime
 
 
 class StudentSignUpForm(forms.Form):
     year = datetime.datetime.now().year
-    registration_number = forms.CharField(max_length=50, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'type': 'number', 'value': year * 10000, 'min': 2000000001, 'max': 99999999999, 'placeholder': 'Registration Number'}), help_text='YYYYXXXXXXX')
+    registration_number = forms.CharField(min_length=11, max_length=11, widget=forms.TextInput(
+        attrs={'class': 'form-control', 'type': 'number', 'value': year * 10000, 'min': 20000000001, 'max': 99999999999, 'placeholder': 'Registration Number'}), help_text='YYYYXXXXXXX')
     course = forms.CharField(max_length=50, widget=forms.Select(
         choices=StudentProfile.course_choices, attrs={'class': 'form-control', 'placeholder': 'Course'}))
-    number = forms.CharField(max_length=50, widget=forms.TextInput(attrs={
+    number = forms.CharField(min_length=10, max_length=10, widget=forms.TextInput(attrs={
                              'class': 'form-control', 'type': 'number', 'placeholder': 'Roll Number'}), label='Roll Number', help_text='10 digit number in Roll number')
     id_number = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'number', 'value': 000,
                                 'min': 1, 'max': 999, 'placeholder': 'Library ID Number'}), label='Library ID Number', help_text='Last 3 digits of ID YYCSEBTCXXX')
@@ -28,6 +30,17 @@ class StudentSignUpForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.label_suffix = ''
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('password') != cleaned_data.get('confirm_password'):
+            self.add_error('confirm_password', 'Passwords do not match')
+        if StudentProfile.objects.filter(registration_number=int(cleaned_data.get('registration_number'))).exists():
+            self.add_error('registration_number', 'Student with that Registration number already exists')
+        if Email.objects.filter(email=cleaned_data.get('email')).exists():
+            if Email.objects.get(email=cleaned_data.get('email')).user:
+                self.add_error('email', 'Email already in use')
+        return cleaned_data
+
 
 class StudentSigninForm(forms.Form):
     registration_number_or_email = forms.CharField(widget=forms.TextInput(
@@ -38,6 +51,31 @@ class StudentSigninForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_suffix = ''
+
+    def clean(self):
+        cleaned_data = super().clean()
+        user = None
+        if Email.objects.filter(email=cleaned_data.get('registration_number_or_email')).exists():
+            email = Email.objects.get(email=cleaned_data.get('registration_number_or_email'))
+            if not email.user:
+                self.add_error('registration_number_or_email', 'No User with this Email')
+            else:
+                user = email.user
+        elif cleaned_data.get('registration_number_or_email').isdigit():
+            if StudentProfile.objects.filter(registration_number=int(cleaned_data.get('registration_number_or_email'))).exists():
+                user = StudentProfile.objects.get(
+                    registration_number=int(cleaned_data.get('registration_number_or_email'))).user
+            else:
+                self.add_error('registration_number_or_email', 'No Student with this Registration Number')
+        else:
+            self.add_error('registration_number_or_email', 'Invalid Registration Number or Email')
+        
+        if user is not None:
+            user = authenticate(username=user.pk, password=cleaned_data.get('password'))
+            if user is None:
+                self.add_error('password', 'Invalid Password')
+
+        return cleaned_data
 
 
 class StudentProfileForm(forms.ModelForm):
@@ -52,8 +90,15 @@ class StudentProfileForm(forms.ModelForm):
         for visible in self.visible_fields():
             visible.field.widget.attrs['class'] = 'form-control'
             visible.field.widget.attrs['placeholder'] = visible.field.label
-            if visible.field.label == 'ID Number':
-                visible.field.initial = f'{visible.field.initial:03d}'
+            if visible.name == 'id_number':
+                visible.field.widget.attrs['min'] = 1
+                visible.field.widget.attrs['max'] = 999
+            if visible.name == 'number':
+                visible.field.widget.attrs['min'] = 1000000000
+                visible.field.widget.attrs['max'] = 9999999999
+            if visible.name == 'registration_number':
+                visible.field.widget.attrs['min'] = 20000000001
+                visible.field.widget.attrs['max'] = 99999999999
 
 
 class SemesterReportCardForm(forms.ModelForm):

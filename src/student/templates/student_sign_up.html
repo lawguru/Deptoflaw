@@ -25,18 +25,42 @@
             {{ form.email }}
             {{ form.email.label_tag }}
         </div>
+        {% if form.email.errors %}
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle"></i>
+            {% for error in form.email.errors %}
+            <span>{{ error|escape }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
         <div class="row g-0 gap-3">
             <div class="col-12 col-sm">
                 <div class="form-floating mb-3">
                     {{ form.password }}
                     {{ form.password.label_tag }}
                 </div>
+                {% if form.password.errors %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {% for error in form.password.errors %}
+                    <span>{{ error|escape }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
             <div class="col-12 col-sm">
                 <div class="form-floating mb-3">
                     {{ form.confirm_password }}
                     {{ form.confirm_password.label_tag }}
                 </div>
+                {% if form.confirm_password.errors %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {% for error in form.confirm_password.errors %}
+                    <span>{{ error|escape }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
         </div>
         <div class="form-floating mb-3">
@@ -52,6 +76,14 @@
                         {{ form.registration_number.help_text }}
                     </div>
                 </div>
+                {% if form.registration_number.errors %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {% for error in form.registration_number.errors %}
+                    <span>{{ error|escape }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
             <div class="col-12 col-sm">
                 <div class="input-group mb-3">
@@ -62,6 +94,14 @@
                         {{ form.id_number.label_tag }}
                     </div>
                 </div>
+                {% if form.id_number.errors %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {% for error in form.id_number.errors %}
+                    <span>{{ error|escape }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
             <div class="col-12 col-lg">
                 <div class="form-floating mb-3">
@@ -71,6 +111,14 @@
                         {{ form.number.help_text }}
                     </div>
                 </div>
+                {% if form.number.errors %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {% for error in form.number.errors %}
+                    <span>{{ error|escape }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
         </div>
         <p class="form-text ms-2 mb-1">Already have an Account? <a href="{% url 'student_sign_in' %}?next={{ request.GET.next }}">Sign Up</a></p>

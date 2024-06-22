@@ -59,25 +59,11 @@ class StaffProfile(models.Model):
 
     @property
     def edit_users(self):
-        if self.user.is_superuser:
-            return User.objects.filter(pk=self.user.pk)
-        return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+        return self.user.edit_users
 
     @property
     def view_users(self):
-        return User.objects.all()
-
-    @property
-    def make_hod_users(self):
-        if self.is_hod:
-            return User.objects.none()
-        return User.objects.filter(Q(is_superuser=True) | Q(staff_profile__is_hod=True)).distinct()
-
-    @property
-    def make_tpc_head_users(self):
-        if self.make_tpc_head_users:
-            return User.objects.none()
-        return User.objects.filter(Q(is_superuser=True) | Q(staff_profile__is_hod=True) | Q(staff_profile__is_tpc_head=True)).distinct()
+        return self.user.view_users
 
     def save(self, *args, **kwargs):
         if self.is_hod:

@@ -6,13 +6,20 @@
 
 <div class="container-fluid p-3 p-xl-5 min-vh-100">
 
-    <h1 class="fw-bold text-body-emphasis">
-        {% if is_approved_filter %}
-        Users
-        {% else %}
-        Pending Approvals
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
+        <h1 class="fw-bold text-body-emphasis mb-0">
+            {% if is_approved_filter %}
+            Users
+            {% else %}
+            Pending Approvals
+            {% endif %}
+        </h1>
+        {% if role_filter == 'student' %}
+        <form action="{% url 'user_csv' %}">
+            <input type="submit" class="btn btn-primary" value="Download CSV">
+        </form>
         {% endif %}
-    </h1>
+    </div>
 
     <nav class="navbar navbar-expand-xxl bg-body p-0 mb-3 border rounded-2">
         <div class="container-fluid">
@@ -642,11 +649,10 @@
                             <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Action
                             </button>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu user-actions" id="{{user.pk}}-actions" data-user-pk="{{user.pk}}">
                                 {% if request.user in user.approve_users %}
                                 <li>
                                     <form action="{% url 'approve_user' user.pk %}" method="POST">
-                                        {% csrf_token %}
                                         <input type="submit" class="btn dropdown-item" value="Approve">
                                     </form>
                                 </li>
@@ -654,7 +660,6 @@
                                 {% if request.user in user.delete_users %}
                                 <li>
                                     <form action="{% url 'reject_user' user.pk %}" method="POST">
-                                        {% csrf_token %}
                                         <input type="submit" class="btn dropdown-item" value="Reject">
                                     </form>
                                 </li>
@@ -663,7 +668,6 @@
                                 {% if request.user in user.make_superuser_users %}
                                 <li>
                                     <form action="{% url 'make_superuser' user.pk %}" method="POST">
-                                        {% csrf_token %}
                                         <input type="submit" class="btn dropdown-item" value="Make Superuser">
                                     </form>
                                 </li>
@@ -672,7 +676,6 @@
                                 {% if request.user in user.make_coordinator_users %}
                                 <li>
                                     <form action="{% url 'make_coordinator' user.pk %}" method="POST">
-                                        {% csrf_token %}
                                         <input type="submit" class="btn dropdown-item" value="Make Coordinator">
                                     </form>
                                 </li>
@@ -681,24 +684,37 @@
                                 {% if request.user in user.remove_coordinator_users %}
                                 <li>
                                     <form action="{% url 'remove_coordinator' user.pk %}" method="POST">
-                                        {% csrf_token %}
                                         <input type="submit" class="btn dropdown-item" value="Remove Coordinator">
                                     </form>
                                 </li>
                                 {% endif %}
 
-                                {% if request.user in user.staff_profile.make_hod_users %}
+                                {% if request.user in user.make_cr_users %}
                                 <li>
-                                    <form action="{% url 'make_hod' user.staff_profile.pk %}" method="POST">
-                                        {% csrf_token %}
+                                    <form action="{% url 'make_cr' user.pk %}" method="POST">
+                                        <input type="submit" class="btn dropdown-item" value="Make CR">
+                                    </form>
+                                </li>
+                                {% endif %}
+
+                                {% if request.user in user.remove_cr_users %}
+                                <li>
+                                    <form action="{% url 'remove_cr' user.pk %}" method="POST">
+                                        <input type="submit" class="btn dropdown-item" value="Remove CR">
+                                    </form>
+                                </li>
+                                {% endif %}
+
+                                {% if request.user in user.make_hod_users %}
+                                <li>
+                                    <form action="{% url 'make_hod' user.pk %}" method="POST">
                                         <input type="submit" class="btn dropdown-item" value="Make HOD">
                                     </form>
                                 </li>
                                 {% endif %}
-                                {% if request.user in user.staff_profile.make_tpc_head_users %}
+                                {% if request.user in user.make_tpc_head_users %}
                                 <li>
-                                    <form action="{% url 'make_tpc_head' user.staff_profile.pk %}" method="POST">
-                                        {% csrf_token %}
+                                    <form action="{% url 'make_tpc_head' user.pk %}" method="POST">
                                         <input type="submit" class="btn dropdown-item" value="Make Head of TPC">
                                     </form>
                                 </li>
@@ -708,6 +724,22 @@
                         {% endif %}
                     </div>
                     <div class="d-flex flex-wrap align-items-center justify-content-start gap-2 mt-3 mb-3">
+                        {% if user.student_profile %}
+                        <a href="{% url 'resume' user.pk %}" target="_blank">
+                            <span
+                                class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                <div class="rounded-circle m-2">
+                                    <i class="bi bi-person-lines-fill fs-5"></i>
+                                </div>
+                                <div class="text-start">
+                                    <strong class="fw-bold text-body-emphasis lh-1">
+                                        Resume
+                                    </strong>
+                                    <small class="d-block text-body-secondary">View</small>
+                                </div>
+                            </span>
+                        </a>
+                        {% endif %}
                         {% if user.primary_email %}
                         <span
                             class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
@@ -788,8 +820,8 @@
                             <div
                                 class="badge px-2 d-flex align-items-center text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill border gap-1">
                                 <span class="px-1 fw-bold fs-4">{{semester_report_card.semester}}</span>
-                                <span>
-                                    <strong class="text-start text-body-emphasis fw-bold mb-0 lh-1">
+                                <span class="text-start">
+                                    <strong class="text-body-emphasis fw-bold mb-0 lh-1">
                                         {{ semester_report_card.sgpa }}
                                     </strong>
                                     <small class="text-body-secondary">
@@ -855,7 +887,7 @@
     skill_name_inputs.forEach((element) => {
         skill_option = document.getElementById(element.getAttribute('list'))
         element.addEventListener('keyup', function () {
-            fetch(`{% url "skill_autocomplete" %}?q=${element.value}`)
+            fetch(`{% url "user_list_skill_autocomplete" %}?q=${element.value}`)
                 .then(response => response.json())
                 .then(data => {
                     skill_option.innerHTML = ''
@@ -1038,6 +1070,59 @@
         }
     }
     window.onload = addHiddenInputs();
+
+    function handleActions() {
+        document.querySelectorAll('.user-actions').forEach((element) => {
+            element.querySelectorAll('form').forEach((form) => {
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    form.getElementsByTagName('input')[0].disabled = true;
+                    form.getElementsByTagName('input')[0].value = 'Loading...';
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    }).then(response => {
+                        user_pk = element.getAttribute('data-user-pk')
+                        dropdown = document.getElementById(`${user_pk}-actions`)
+                        if (response.status == 200) {
+                            response.json().then(data => {
+                                if (data.length == 0) {
+                                    dropdown.parentElement.remove();
+                                    return;
+                                }
+                                dropdown.innerHTML = ''
+                                data.forEach((option) => {
+                                    input = document.createElement('input')
+                                    input.classList.add('btn')
+                                    input.classList.add('dropdown-item')
+                                    input.value = option.name
+                                    input.type = 'submit'
+
+                                    form = document.createElement('form')
+                                    form.action = option.url
+                                    form.method = 'POST'
+                                    form.appendChild(input)
+
+                                    li = document.createElement('li')
+                                    li.appendChild(form)
+
+                                    dropdown.appendChild(li)
+                                });
+                                handleActions();
+                            });
+                        }
+                        else {
+                            dropdown.innerHTML = 'An error occurred. Please try again later.';
+                        }
+                    });
+                });
+            });
+        });
+    }
+
+    handleActions();
 </script>
 
 {% endblock %}

@@ -14,6 +14,8 @@ from .forms import UserForm, PhoneNumberForm, EmailForm, AddressForm, LinkForm
 from .models import User, PhoneNumber, Email, Address, Link
 from django.db.models import Count
 from django.contrib.auth import logout
+from django.http import JsonResponse, HttpResponse
+import csv
 
 # Create your views here.
 
@@ -286,6 +288,61 @@ class UserListView(ListView):
         context['drop_out_year_upper_limit'] = self.request.GET.get('drop-out-year-upper-limit', '')
 
 
+@method_decorator(login_required, name="dispatch")
+class UserCSVView(UserListView):
+    content_type = 'text/csv'
+
+    def get(self, request):
+        if self.request.GET.get('role-filter') != 'student':
+            return redirect(reverse('user_csv') + '?role-filter=student' + ''.join([f'&{key}={value}' for key, value in self.request.GET.items() if key != 'role-filter']))
+        
+        queryset = self.get_queryset()
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="students.csv"'
+
+        writer = csv.writer(response)
+        
+        row = []
+        row.append('Name')
+        row.append('Email')
+        row.append('Phone number')
+        row.append('Address')
+        row.append('Registration Year')
+        row.append('Registration Number')
+        row.append('Roll Number')
+        row.append('Course')
+        row.append('Year')
+        row.append('CGPA')
+        row.append('Backlogs')
+        row.append('Pass Out Year')
+        row.append('Skills')
+        row.append('Resume URL')
+
+        writer.writerow(row)
+
+        for user in queryset:
+            row = []
+            row.append(user.full_name)
+            row.append(user.primary_email.email if user.primary_email else '')
+            row.append(user.primary_phone_number.__str__() if user.primary_phone_number else '')
+            row.append(f'{user.primary_address.address}, {user.primary_address.city}, {user.primary_address.state}, {user.primary_address.country}, {user.primary_address.pincode}' if user.primary_address else '')
+            row.append(user.student_profile.registration_year)
+            row.append(user.student_profile.registration_number)
+            row.append(f'{user.student_profile.roll}-{user.student_profile.number}')
+            row.append(user.student_profile.course)
+            row.append(user.student_profile.year)
+            row.append(user.student_profile.cgpa)
+            row.append(user.student_profile.backlog_count)
+            row.append(user.student_profile.pass_out_year)
+            row.append(', '.join([skill.name for skill in user.skills.all()]))
+            row.append(request.build_absolute_uri(reverse('resume', args=[user.id])))
+            
+            writer.writerow(row)
+
+        return response
+
+
 class SignIn(TemplateView):
     template_name = 'sign_in.html'
 
@@ -306,67 +363,184 @@ class SignOut(View):
 
 
 @method_decorator(login_required, name="dispatch")
-class ApproveUser(View):
-    def post(self, request, pk):
+class UserPerformAction(View):
+    def post(self, request, pk, action):
         if not User.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         user = User.objects.get(pk=pk)
-        if request.user not in user.approve_users:
-            raise PermissionDenied()
-        user.is_approved = True
-        user.save()
-        return redirect(reverse('user_list') + f'?is-approved-filter=False')
+
+        if action == 'approve':
+            if request.user not in user.approve_users:
+                raise PermissionDenied()
+            user.is_approved = True
+            user.save()
+        elif action == 'reject':
+            if request.user not in user.delete_users:
+                raise PermissionDenied()
+            user.delete()
+        elif action == 'make_superuser':
+            if request.user not in user.make_superuser_users:
+                raise PermissionDenied()
+            user.is_superuser = True
+            user.save()
+        elif action == 'make_coordinator':
+            if request.user not in user.make_coordinator_users:
+                raise PermissionDenied()
+            user.is_coordinator = True
+            user.save()
+        elif action == 'remove_coordinator':
+            if request.user not in user.remove_coordinator_users:
+                raise PermissionDenied()
+            user.is_coordinator = False
+            user.save()
+        elif action == 'make_cr':
+            if request.user not in user.make_cr_users:
+                raise PermissionDenied()
+            profile = user.student_profile
+            profile.is_cr = True
+            profile.save()
+        elif action == 'remove_cr':
+            if request.user not in user.remove_cr_users:
+                raise PermissionDenied()
+            profile = user.student_profile
+            profile.is_cr = False
+            profile.save()
+        elif action == 'make_hod':
+            if request.user not in user.make_hod_users:
+                raise PermissionDenied()
+            profile = user.staff_profile
+            profile.is_hod = True
+            profile.save()
+        elif action == 'make_tpc_head':
+            if request.user not in user.make_tpc_head_users:
+                raise PermissionDenied()
+            profile = user.staff_profile
+            profile.is_tpc_head = True
+            profile.save()
+
+        actions = []
+
+        if request.user in user.approve_users:
+            actions.append({
+                'name': 'Approve',
+                'url': reverse('approve_user', args=[pk])
+            })
+        if request.user in user.delete_users:
+            actions.append({
+                'name': 'Reject',
+                'url': reverse('reject_user', args=[pk])
+            })
+        if request.user in user.make_superuser_users:
+            actions.append({
+                'name': 'Make Superuser',
+                'url': reverse('make_superuser', args=[pk])
+            })
+        if request.user in user.make_coordinator_users:
+            actions.append({
+                'name': 'Make Coordinator',
+                'url': reverse('make_coordinator', args=[pk])
+            })
+        if request.user in user.remove_coordinator_users:
+            actions.append({
+                'name': 'Remove Coordinator',
+                'url': reverse('remove_coordinator', args=[pk])
+            })
+        if request.user in user.make_cr_users:
+            actions.append({
+                'name': 'Make CR',
+                'url': reverse('make_cr', args=[pk])
+            })
+        if request.user in user.remove_cr_users:
+            actions.append({
+                'name': 'Remove CR',
+                'url': reverse('remove_cr', args=[pk])
+            })
+        if request.user in user.make_hod_users:
+            actions.append({
+                'name': 'Make HOD',
+                'url': reverse('make_hod', args=[pk])
+            })
+        if request.user in user.make_tpc_head_users:
+            actions.append({
+                'name': 'Make TPC Head',
+                'url': reverse('make_tpc_head', args=[pk])
+            })
+
+        return JsonResponse(actions, safe=False)
 
 
 @method_decorator(login_required, name="dispatch")
-class RejectUser(View):
+class ApproveUser(UserPerformAction):
     def post(self, request, pk):
-        if not User.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        user = User.objects.get(pk=pk)
-        if request.user not in user.delete_users:
-            raise PermissionDenied()
-        user.delete()
-        return redirect(reverse('user_list') + f'?is-approved-filter=True')
+        return super().post(request, pk, 'approve')
 
 
 @method_decorator(login_required, name="dispatch")
-class MakeSuperUser(View):
+class RejectUser(UserPerformAction):
     def post(self, request, pk):
-        if not User.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        user = User.objects.get(pk=pk)
-        if request.user not in user.make_superuser_users:
-            raise PermissionDenied()
-        user.is_superuser = True
-        user.save()
-        return redirect(reverse('user_list'))
+        return super().post(request, pk, 'reject')
 
 
 @method_decorator(login_required, name="dispatch")
-class MakeCoordinator(View):
+class MakeSuperUser(UserPerformAction):
     def post(self, request, pk):
-        if not User.objects.filter(pk=pk).exists():
-            raise ObjectDoesNotExist()
-        user = User.objects.get(pk=pk)
-        if request.user not in user.make_coordinator_users:
-            raise PermissionDenied()
-        user.is_coordinator = True
-        user.save()
-        return redirect(reverse('user_list'))
+        return super().post(request, pk, 'make_superuser')
 
 
 @method_decorator(login_required, name="dispatch")
-class RemoveCoordinator(View):
+class MakeCoordinator(UserPerformAction):
     def post(self, request, pk):
+        return super().post(request, pk, 'make_coordinator')
+
+
+@method_decorator(login_required, name="dispatch")
+class RemoveCoordinator(UserPerformAction):
+    def post(self, request, pk):
+        return super().post(request, pk, 'remove_coordinator')
+
+
+@method_decorator(login_required, name="dispatch")
+class MakeClassRep(UserPerformAction):
+    def post(self, request, pk):
+        return super().post(request, pk, 'make_cr')
+
+
+@method_decorator(login_required, name="dispatch")
+class RemoveClassRep(UserPerformAction):
+    def post(self, request, pk):
+        return super().post(request, pk, 'remove_cr')
+
+
+@method_decorator(login_required, name="dispatch")
+class MakeHOD(UserPerformAction):
+    def post(self, request, pk):
+        return super().post(request, pk, 'make_hod')
+
+
+@method_decorator(login_required, name="dispatch")
+class MakeTPCHead(UserPerformAction):
+    def post(self, request, pk):
+        return super().post(request, pk, 'make_tpc_head')
+
+
+@method_decorator(login_required, name="dispatch")
+class Resume(TemplateView):
+    template_name = 'resume.html'
+
+    def get(self, request, pk):
         if not User.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         user = User.objects.get(pk=pk)
-        if request.user not in user.remove_coordinator_users:
+        if request.user not in user.view_users:
             raise PermissionDenied()
-        user.is_coordinator = False
-        user.save()
-        return redirect(reverse('user_list'))
+        return super().get(request, pk)
+
+    def get_context_data(self, **kwargs):
+        user = User.objects.get(pk=self.kwargs['pk'])
+
+        context = super().get_context_data(**kwargs)
+        context['user'] = user
+        return context
 
 
 @method_decorator(login_required, name="dispatch")
@@ -590,3 +764,9 @@ class AddLink(AddUserKeyObject):
 class DeleteLink(DeleteUserKeyObject):
     model = Link
     redirect_url_name = 'links'
+
+class SkillAutocomplete(View):
+    def get(self, request, *args, **kwargs):
+        query = request.GET.get('q')
+        li = [(obj.name, f'{obj.pk}') for obj in Skill.objects.filter(name__icontains=query)]
+        return JsonResponse(li, safe=False)

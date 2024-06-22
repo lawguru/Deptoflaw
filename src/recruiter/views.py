@@ -25,8 +25,6 @@ class RecruiterSignUp(TemplateView):
         if form.is_valid():
             email, created = Email.objects.get_or_create(
                 email=form.cleaned_data['email'])
-            if email.user:
-                return render(request, self.template_name, {'form': form, 'error': 'Email already in use'})
             user = User.objects.create(role='recruiter', primary_email=email)
             recruiter = RecruiterProfile.objects.create(user=user,
                                                         company_name=form.cleaned_data['company_name'], designation=form.cleaned_data['designation'])
@@ -52,22 +50,13 @@ class RecruiterSignIn(TemplateView):
         form = RecruiterSigninForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            if not Email.objects.filter(email=email).exists():
-                return render(request, self.template_name, {'form': form, 'error': 'Email does not exist'})
-            email = Email.objects.get(email=email)
-            if email.user:
-                user = authenticate(
-                    username=email.user.pk, password=password)
-                if user is not None:
-                    login(request, user)
-                    next = request.GET.get('next')
-                    if next:
-                        return redirect(next)
-                    return redirect('build_profile', user.pk)
-                return render(request, self.template_name, {'form': form, 'error': 'Invalid password'})
-            return render(request, self.template_name, {'form': form, 'error': 'No user with this email'})
-        return render(request, self.template_name, {'form': form, 'error': 'Invalid form data'})
+            user = Email.objects.get(email=email).user
+            login(request, user)
+            next = request.GET.get('next')
+            if next:
+                return redirect(next)
+            return redirect('build_profile', user.pk)
+        return render(request, self.template_name, {'form': form})
 
 
 @method_decorator(login_required, name="dispatch")
@@ -77,7 +66,8 @@ class RecruiterInfo(TemplateView):
     def get(self, request, pk):
         if not RecruiterProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
-        elif RecruiterProfile.objects.get(pk=pk).user != request.user and not request.user.is_superuser:
+        profile = RecruiterProfile.objects.get(pk=pk)
+        if request.user not in profile.view_users:
             raise PermissionDenied()
         return super().get(request, pk)
 

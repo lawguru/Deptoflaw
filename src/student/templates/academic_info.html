@@ -46,6 +46,14 @@
                                                 {{ change_profile_form.registration_number.help_text }}
                                             </div>
                                         </div>
+                                        {% if change_profile_form.registration_number.errors %}
+                                        <div class="alert alert-danger" role="alert">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            {% for error in change_profile_form.registration_number.errors %}
+                                            <span>{{ error|escape }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     <div class="col-12 col-sm">
                                         <div class="input-group">
@@ -56,6 +64,14 @@
                                                 {{ change_profile_form.id_number.label_tag }}
                                             </div>
                                         </div>
+                                        {% if change_profile_form.id_number.errors %}
+                                        <div class="alert alert-danger" role="alert">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            {% for error in change_profile_form.id_number.errors %}
+                                            <span>{{ error|escape }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     <div class="col-12 col-lg">
                                         <div class="">
@@ -69,6 +85,14 @@
                                         <div class="form-text ms-3">
                                             {{ change_profile_form.number.help_text }}
                                         </div>
+                                        {% if change_profile_form.number.errors %}
+                                        <div class="alert alert-danger" role="alert">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            {% for error in change_profile_form.number.errors %}
+                                            <span>{{ error|escape }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </form>
@@ -224,6 +248,12 @@
                 </div>
                 <div class="modal-body">
                     <form id="semester-report-card-dynamic-form" method="POST">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="semester-report-card-dynamic-form-is-complete" name="is_complete">
+                            <label class="form-check-label" for="flexCheckDefault">
+                                Check this to Consider for CGPA Calculation
+                            </label>
+                        </div>
                         <table class="table table-primary table-striped m-0 rounded-3 overflow-hidden">
                             <tbody id="semester-report-card-dynamic-form-fields">
                             </tbody>
@@ -239,39 +269,81 @@
     </div>
 
     <div id="semester-report-cards" class="my-5">
-        <h2 class="fw-bold text-body-emphasis lh-1 mb-3">Report Cards</h2>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <h2 class="fw-bold text-body-emphasis lh-1">Academic Performance</h2>
+            <div class="d-flex align-items-center gap-2 ms-2">
+                <a href="{% url 'resume' user.pk %}" target="_blank">
+                    <span
+                        class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                        <div class="rounded-circle m-2">
+                            <i class="bi bi-person-lines-fill fs-5"></i>
+                        </div>
+                        <div class="text-start">
+                            <strong class="fw-bold text-body-emphasis lh-1">
+                                Resume
+                            </strong>
+                            <small class="d-block text-body-secondary">View</small>
+                        </div>
+                    </span>
+                </a>
+                <span
+                    class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                    <div class="rounded-circle m-2">
+                        <i class="bi bi-mortarboard fs-5"></i>
+                    </div>
+                    <div class="text-start">
+                        <strong class="fw-bold text-body-emphasis lh-1">
+                            {{ profile.cgpa }}
+                        </strong>
+                        <small class="d-block text-body-secondary">CGPA</small>
+                    </div>
+                </span>
+                <span
+                    class="badge d-flex align-items-center py-0 ps-1 pe-3 {% if profile.backlog_count == 0 %} text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle {% else %} text-danger-emphasis bg-danger-subtle border border-danger-subtle {% endif %} rounded-pill">
+                    <div class="rounded-circle m-2">
+                        <i class="bi bi-backspace fs-5"></i>
+                    </div>
+                    <div class="text-start">
+                        <strong class="fw-bold text-body-emphasis lh-1">
+                            {{ profile.backlog_count }}
+                        </strong>
+                        <small class="d-block text-body-secondary">Backlogs</small>
+                    </div>
+                </span>
+            </div>
+        </div>
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 align-items-center g-0">
             {% for semester_report_card in semester_report_cards %}
             <div class="col-12 col-sm-6 col-md-4 p-2">
                 <div class="card">
                     <div class="card-header d-flex align-items-center gap-3">
                         <span class="fw-bold text-body-emphasis fs-3">
-                            {{ forloop.counter }}
+                            {{ semester_report_card.0.semester }}
                         </span>
                         <div class="flex-fill">
                             <strong class="fw-bold text-body-emphasis fs-5 lh-1">
-                                {% if forloop.counter|slugify == '1' %}
+                                {% if semester_report_card.0.semester|slugify == '1' %}
                                 First
                                 {% endif %}
-                                {% if forloop.counter|slugify == '2' %}
+                                {% if semester_report_card.0.semester|slugify == '2' %}
                                 Second
                                 {% endif %}
-                                {% if forloop.counter|slugify == '3' %}
+                                {% if semester_report_card.0.semester|slugify == '3' %}
                                 Third
                                 {% endif %}
-                                {% if forloop.counter|slugify == '4' %}
+                                {% if semester_report_card.0.semester|slugify == '4' %}
                                 Fourth
                                 {% endif %}
-                                {% if forloop.counter|slugify == '5' %}
+                                {% if semester_report_card.0.semester|slugify == '5' %}
                                 Fifth
                                 {% endif %}
-                                {% if forloop.counter|slugify == '6' %}
+                                {% if semester_report_card.0.semester|slugify == '6' %}
                                 Sixth
                                 {% endif %}
-                                {% if forloop.counter|slugify == '7' %}
+                                {% if semester_report_card.0.semester|slugify == '7' %}
                                 Seventh
                                 {% endif %}
-                                {% if forloop.counter|slugify == '8' %}
+                                {% if semester_report_card.0.semester|slugify == '8' %}
                                 Eight
                                 {% endif %}
                             </strong>
@@ -280,11 +352,11 @@
                         {% if request.user in semester_report_card.0.edit_users %}
                         <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                             data-bs-target="#edit-semester-report-card-modal"
-                            onclick="populateDynamicForm('semester-report-card-{{ forloop.counter }}-form', '{{ forloop.counter }}')">
+                            onclick="populateDynamicForm('semester-report-card-{{ semester_report_card.0.semester }}-form', '{{ semester_report_card.0.semester }}')">
                             <i class="bi bi-pen"></i>
                         </a>
                         <form action="{% url 'change_semester_report_card' semester_report_card.0.pk %}" method="POST"
-                            id="semester-report-card-{{ forloop.counter }}-form" class="d-none">
+                            id="semester-report-card-{{ semester_report_card.0.semester }}-form" class="d-none">
                             {{semester_report_card.1}}
                         </form>
                         {% endif %}
@@ -376,6 +448,13 @@
             const formData = new FormData(form);
             const jsonData = {};
             for (const [key, value] of formData.entries()) {
+                if (key == "is_complete") {
+                    if (value == 'on')
+                        document.getElementById('semester-report-card-dynamic-form-is-complete').checked = true;
+                    else
+                        document.getElementById('semester-report-card-dynamic-form-is-complete').checked = false;
+                    continue;
+                }
                 if (!jsonData[key]) {
                     try {
                         jsonData[key] = JSON.parse(value);
@@ -396,6 +475,10 @@
             const formData = new FormData(form);
             const jsonData = {};
             for (const [key, value] of formData.entries()) {
+                if (key=="is_complete") {
+                    jsonData[key] = value;
+                    continue;
+                }
                 if (!jsonData[key]) {
                     jsonData[key] = [];
                 }

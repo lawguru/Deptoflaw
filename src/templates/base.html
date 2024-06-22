@@ -1,17 +1,7 @@
+{% extends "skeleton.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}TPC | CSE | AUS{% endblock %}</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
-    <script src="{% static 'scripts/replaceabbreviations.js' %}"></script>
-</head>
-
-<body data-bs-spy="scroll" data-bs-target="#nav" data-bs-smooth-scroll="true" class="cursor-none" tabindex="0"
-    data-bs-theme="light">
+{% block body %}
     <div id="nav-div">
         <div class="fixed-top">
             <div class="position-relative">
@@ -121,7 +111,14 @@
                         <i class="bi bi-person-circle"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end me-3 me-sm-0">
-                        <li><a href="{% url 'build_profile' request.user.pk %}" class="dropdown-item">View Profile</a></li>
+                        {% if request.user.role == 'student' %}
+                        <li><a href="{% url 'academic_info' request.user.student_profile.pk %}" class="dropdown-item">View Profile</a></li>
+                        <li><a href="{% url 'resume' request.user.pk %}" target="_blank" class="dropdown-item">View Resume</a></li>
+                        {% elif request.user.role == 'staff' %}
+                        <li><a href="{% url 'staff_info' request.user.staff_profile.pk %}" class="dropdown-item">View Profile</a></li>
+                        {% elif request.user.role == 'recruiter' %}
+                        <li><a href="{% url 'recruiter_info' request.user.recruiter_profile.pk %}" class="dropdown-item">View Profile</a></li>
+                        {% endif %}
                         <li><a href="{% url 'build_profile' request.user.pk %}" class="dropdown-item">Build Profile</a></li>
                         <li><a href="{% url 'sign_out' %}?next={{ request.path }}" class="dropdown-item">Logout</a></li>
                     </ul>
@@ -138,10 +135,5 @@
     <div id="content">
         {% block content %}{% endblock %}
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="{% static 'scripts/main.js' %}"></script>
     <script src="{% static 'scripts/navbar.js' %}"></script>
-</body>
-
-</html>
+{% endblock %}

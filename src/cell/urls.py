@@ -16,6 +16,7 @@ urlpatterns = [
     path('recruitmentpost/<int:pk>/apply/', AddRecruitmentApplication.as_view(), name='apply_recruitment_post'),
     path('recruitmentpost/<int:pk>/shareupdate/', AddRecruitmentPostUpdate.as_view(), name='add_recruitment_post_update'),
     path('recruitmentpost/<int:pk>/applications/', RecruitmentApplications.as_view(), name='recruitment_applications'),
+    path('recruitmentpost/<int:pk>/applications/csv/', RecruitmentApplicationsCSV.as_view(), name='recruitment_applications_csv'),
     path('recruitmentpost/<int:pk>/skillautocomplete/', SkillAutocomplete.as_view(), name='recruitment_post_skill_autocomplete'),
     path('recruitmentpostupdate/<int:pk>/change/', ChangeRecruitmentPostUpdate.as_view(), name='change_recruitment_post_update'),
     path('recruitmentapplication/<int:pk>/select/', SelectRecruitmentApplication.as_view(), name='select_recruitment_application'),
