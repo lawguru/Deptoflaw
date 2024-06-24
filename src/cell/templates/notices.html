@@ -45,7 +45,7 @@
                             <li>
                                 <input type="submit"
                                     onclick="document.getElementById('sort-by-form-input').value='{{choice.0}}'" value="{{choice.1}}"
-                                    class="dropdown-item {% if sorting == '{{choice.0}}' %} active {% endif %}">
+                                    class="dropdown-item {% if sorting == choice.0 %} active {% endif %}">
                             </li>
                             {% endfor %}
                         </ul>
