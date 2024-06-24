@@ -12,16 +12,20 @@
                 Notices
             {% endif %}
         </strong>
-        {% if type_filter == 'post-update' %}
-        <small class="d-block">for
-            <a href="{% url 'view_recruitment_post' post.pk %}">
-                {{post.title}} at {{post.company}}
-            </a>
-        </small>
-        {% endif %}
         {% if user_filter == 'me' %}
         <small class="d-block text-body-secondary">
             By {{user.full_name}}
+        </small>
+        {% endif %}
+        {% if type_filter == 'post-update' %}
+        <small class="d-block">for
+            {% if recruitment_post_filter == 'by-me' %}
+            Recruitment Posts by Me
+            {% elif recruitment_post_filter == 'applied-by-me' %}
+            Recruitment Posts Applied by Me
+            {% else %}
+            Any Recruitment Posts
+            {% endif %}
         </small>
         {% endif %}
     </div>
@@ -143,7 +147,7 @@
                                     <li>
                                         <input type="submit"
                                             onclick="document.getElementById('recruitment-post-filter-form-input').value=''"
-                                            value="All"
+                                            value="Any"
                                             class="dropdown-item {% if recruitment_post_filter == '' %} active {% endif %}">
                                     </li>
                                     {% if request.user.is_superuser or request.user.is_coordinator or request.user.role == 'recruiter' %}
