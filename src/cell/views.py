@@ -249,9 +249,9 @@ class ListNotice(ListView):
         recruitment_post_filter = self.request.GET.get(
             'recruitment-post-filter')
         if recruitment_post_filter == 'by-me':
-            query &= Q(recruitment_post__user=self.request.user)
+            query &= Q(recruitmentpostupdate__recruitment_post__user=self.request.user)
         elif recruitment_post_filter == 'applied-by-me':
-            query &= Q(recruitment_post__applications__user=self.request.user)
+            query &= Q(recruitmentpostupdate__recruitment_post__applications__user=self.request.user)
         return query
 
     def get_context_data(self, **kwargs):
@@ -389,7 +389,7 @@ class ListRecruitmentPost(ListView):
             query &= Q(user=self.request.user)
         elif post_filter == 'applied-by-me':
             query &= Q(
-                applications__user=self.request.user).distinct()
+                applications__user=self.request.user)
         return query
 
     def apply_active_filter(self, query):

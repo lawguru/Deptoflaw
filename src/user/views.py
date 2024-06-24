@@ -68,7 +68,7 @@ class UserListView(ListView):
             query = self.apply_recruiter_filters(query)
 
         queryset = super().get_queryset()
-        queryset = self.apply_prefetch_related(queryset).filter(query)
+        queryset = self.apply_prefetch_related(queryset).filter(query).distinct()
 
         queryset = self.apply_sorting(queryset)
         queryset = self.apply_ordering(queryset)
