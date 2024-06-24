@@ -14,15 +14,15 @@
         </strong>
         {% if user_filter == 'me' %}
         <small class="d-block text-body-secondary">
-            By {{user.full_name}}
+            By Me
         </small>
         {% endif %}
         {% if type_filter == 'post-update' %}
-        <small class="d-block">for
+        <small class="d-block text-body-secondary">for
             {% if recruitment_post_filter == 'by-me' %}
             Recruitment Posts by Me
             {% elif recruitment_post_filter == 'applied-by-me' %}
-            Recruitment Posts Applied by Me
+            Recruitment Posts applied by Me
             {% else %}
             Any Recruitment Posts
             {% endif %}
