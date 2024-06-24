@@ -21,12 +21,6 @@ class Notice(models.Model):
 
     class Meta:
         base_manager_name = 'objects'
-        constraints = [
-            models.CheckConstraint(
-                check=models.Q(kind='N'),
-                name='notice_kind_check'
-            )
-        ]
 
     kind_choices = [
         ('N', 'Notice'),
@@ -219,12 +213,6 @@ class RecruitmentPostUpdate(Notice):
 
     class Meta:
         base_manager_name = 'objects'
-        constraints = [
-            models.CheckConstraint(
-                check=models.Q(kind='U'),
-                name='update_kind_check'
-            )
-        ]
 
     recruitment_post = models.ForeignKey(
         RecruitmentPost, on_delete=models.RESTRICT, related_name='updates')
