@@ -21,7 +21,19 @@ class Notice(models.Model):
 
     class Meta:
         base_manager_name = 'objects'
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(kind='N'),
+                name='notice_kind_check'
+            )
+        ]
 
+    kind_choices = [
+        ('N', 'Notice'),
+        ('U', 'Update'),
+    ]
+
+    kind = models.CharField(max_length=1, choices=kind_choices, default='N', editable=False)
     title = models.CharField(max_length=150)
     description = models.TextField()
     date = models.DateTimeField(auto_now_add=True, editable=False)
@@ -196,8 +208,8 @@ class RecruitmentPost(models.Model):
         return self.apply_by >= datetime.now().date()
 
 
-class RecruitmentPostUpdate(models.Model):
-    class Manager(models.Manager):
+class RecruitmentPostUpdate(Notice):
+    class Manager(Notice.Manager):
         def get_create_permission(self, post, user):
             if user.is_superuser or user.is_coordinator or (user.role == 'recruiter' and user == post.user):
                 return True
@@ -207,19 +219,19 @@ class RecruitmentPostUpdate(models.Model):
 
     class Meta:
         base_manager_name = 'objects'
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(kind='U'),
+                name='update_kind_check'
+            )
+        ]
 
-    title = models.CharField(max_length=150)
-    description = models.TextField()
     recruitment_post = models.ForeignKey(
         RecruitmentPost, on_delete=models.RESTRICT, related_name='updates')
-    user = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name='recruitment_post_updates')
-    date = models.DateTimeField(auto_now_add=True, editable=False)
-    date_edited = models.DateTimeField(auto_now=True, editable=False)
-
-    @property
-    def edit_users(self):
-        return User.objects.filter(is_superuser=True).distinct()
+    
+    def save(self, *args, **kwargs):
+        self.kind = 'U'
+        super().save()
 
 
 class RecruitmentApplication(models.Model):

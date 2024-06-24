@@ -41,31 +41,13 @@
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
+                            {% for choice in sorting_options %}
                             <li>
                                 <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='date'"
-                                    value="Posted On"
-                                    class="dropdown-item {% if sorting == 'date' %} active {% endif %}">
+                                    onclick="document.getElementById('sort-by-form-input').value='{{choice.0}}'" value="{{choice.1}}"
+                                    class="dropdown-item {% if sorting == '{{choice.0}}' %} active {% endif %}">
                             </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='user'"
-                                    value="Posted By"
-                                    class="dropdown-item {% if sorting == 'user' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='title'" value="Title"
-                                    class="dropdown-item {% if sorting == 'title' %} active {% endif %}">
-                            </li>
-                            {% if type_filter == 'post_update' %}
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='recruitment_post_user'"
-                                    value="Recruiter"
-                                    class="dropdown-item {% if sorting == 'recruitment_post_user' %} active {% endif %}">
-                            </li>
-                            {% endif %}
+                            {% endfor %}
                         </ul>
                     </form>
                 </div>

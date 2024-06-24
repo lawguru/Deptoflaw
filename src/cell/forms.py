@@ -130,19 +130,10 @@ class SkillForm(forms.Form):
         self.label_suffix = ''
 
 
-class RecruitmentPostUpdateForm(forms.ModelForm):
+class RecruitmentPostUpdateForm(NoticeForm):
     class Meta:
         model = RecruitmentPostUpdate
-        exclude = ['user', 'recruitment_post']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.label_suffix = ''
-        for visible in self.visible_fields():
-            visible.field.widget.attrs['class'] = 'form-control'
-            visible.field.widget.attrs['placeholder'] = visible.field.label
-            if isinstance(visible.field.widget, forms.Textarea):
-                visible.field.widget.attrs['style'] = 'height: 8rem'
+        fields = ['title', 'description']
 
 
 class RecruitmentApplicationForm(forms.ModelForm):

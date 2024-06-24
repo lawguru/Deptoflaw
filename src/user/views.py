@@ -34,8 +34,8 @@ class UserListView(ListView):
     course_choices = StudentProfile.course_choices
     designation_choices = StaffProfile.qualification_choices
     qualification_choices = StaffProfile.qualification_choices
-    sort_choices = [('name', 'Name')]
-    student_sort_choices = [
+    sorting_options = [('name', 'Name')]
+    student_sorting_options = [
         ('registration_year', 'Registration Year'),
         ('course', 'Course'),
         ('year', 'Year'),
@@ -43,11 +43,11 @@ class UserListView(ListView):
         ('backlogs', 'Backlogs'),
         ('total_skills', 'Total Skills')
     ]
-    staff_sort_choices = [
+    staff_sorting_options = [
         ('designation', 'Designation'),
         ('qualification', 'Qualification')
     ]
-    recruiter_sort_choices = [
+    recruiter_sorting_options = [
         ('company', 'Company'),
         ('designation', 'Designation')
     ]
@@ -291,7 +291,7 @@ class UserListView(ListView):
         context = super().get_context_data(**kwargs)
         context['skills_dict'] = {}
 
-        context['sort_choices'] = self.sort_choices
+        context['sorting_options'] = self.sorting_options
         context['roles'] = self.role_choices
 
         context['role_filter'] = self.request.GET.get('role-filter', '')
@@ -314,7 +314,7 @@ class UserListView(ListView):
         return context
 
     def add_student_context(self, context):
-        context['sort_choices'] += self.student_sort_choices
+        context['sorting_options'] += self.student_sorting_options
         context['courses'] = self.course_choices
         context['skills'] = Skill.objects.all()
         self.populate_skills_dict(context)
@@ -340,7 +340,7 @@ class UserListView(ListView):
             self.add_drop_out_year_context(context)
 
     def add_staff_context(self, context):
-        context['sort_choices'] += self.staff_sort_choices
+        context['sorting_options'] += self.staff_sorting_options
         context['designations'] = StaffProfile.designation_choices
         context['qualifications'] = StaffProfile.qualification_choices
         context['designation_filters'] = self.request.GET.getlist(
@@ -349,7 +349,7 @@ class UserListView(ListView):
             'qualification-filters', [])
 
     def add_recruiter_context(self, context):
-        context['sort_choices'] += self.recruiter_sort_choices
+        context['sorting_options'] += self.recruiter_sorting_options
         context['company_filter'] = self.request.GET.get('company-filter', '')
         context['designation_filter'] = self.request.GET.get(
             'designation-filter', '')
