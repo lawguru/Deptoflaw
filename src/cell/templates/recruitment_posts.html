@@ -10,11 +10,14 @@
         <strong class="display-6 fw-bold text-body-emphasis lh-1">
             Recruitment Posts
         </strong>
-        {% if user_filter %}
+        {% if post_filter %}
         <small class="d-block text-body-secondary">
-            By {{user.full_name}}
+            {% if post_filter == 'by-me' %}
+            By Me
+            {% elif post_filter == 'applied-by-me' %}
+            Applied by Me
+            {% endif %}
         </small>
-        {% endif %}
     </diV>
 
     <nav class="navbar navbar-expand-xxl bg-body p-0 mb-3 border rounded-2">
