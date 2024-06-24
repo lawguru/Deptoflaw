@@ -212,7 +212,7 @@ class ListNotice(ListView):
         queryset = super().get_queryset()
         queryset = queryset.filter(query)
 
-        sorting = self.request.GET.get('sorting')
+        sorting = self.request.GET.get('sorting', 'date')
         if sorting:
             if sorting == 'date':
                 queryset = queryset.order_by('date')
@@ -259,16 +259,16 @@ class ListNotice(ListView):
         context['page_obj'].object_list = [(notice, RecruitmentPostUpdateForm(instance=notice) if notice.kind == 'U' else NoticeForm(instance=notice))
                                            for notice in context['page_obj'].object_list]
         context['sorting_options'] = self.sorting_options
-        context['user_filter'] = self.request.GET.get('user-filter') or ''
-        context['type_filter'] = self.request.GET.get('type-filter') or ''
+        context['user_filter'] = self.request.GET.get('user-filter')
+        context['type_filter'] = self.request.GET.get('type-filter')
         if context['type_filter'] == 'post-update':
             context['sorting_options'] += self.post_sorting_options
             context['recruitment_post_filters'] = self.request.GET.getlist(
                 'recruitment-post-filters') or []
             context['recruitment_post_filter'] = self.request.GET.get(
                 'recruitment-post-filter') or ''
-        context['sorting'] = self.request.GET.get('sorting') or 'date'
-        context['ordering'] = self.request.GET.get('ordering') or 'asc'
+        context['sorting'] = self.request.GET.get('sorting', 'date')
+        context['ordering'] = self.request.GET.get('ordering', 'asc')
         return context
 
 
@@ -531,6 +531,17 @@ class RecruitmentApplications(ListView):
 
     course_choices = StudentProfile.course_choices
     status_choices = RecruitmentApplication.status_choices
+    sorting_options = [
+        ('applied_on', 'Applied On'),
+        ('name', 'Name'),
+        ('total_skills', 'Total Skills'),
+        ('skill_matches', 'Skill Matches'),
+        ('other_skills_count', 'Other Skills Count'),
+        ('course', 'Course'),
+        ('year', 'Year'),
+        ('cgpa', 'CGPA'),
+        ('backlogs', 'Backlogs'),
+    ]
 
     def get_queryset(self):
         skill_filters = self.request.GET.get('skill-filters')
@@ -614,7 +625,10 @@ class RecruitmentApplications(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
         context['post'] = RecruitmentPost.objects.get(pk=self.kwargs['pk'])
+        context['sorting_options'] = self.sorting_options
+
         skill_filters = self.request.GET.get('skill-filters', [])
         course_filters = self.request.GET.getlist('course-filters', [])
         year_lower_limit = self.request.GET.get('year-lower-limit', 0)
