@@ -5,7 +5,20 @@
 {% block content %}
 <div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
     <div class="my-5">
-        <strong class="display-6 fw-bold text-body-emphasis lh-1">Notices</strong>
+        <strong class="display-6 fw-bold text-body-emphasis lh-1">
+            {% if type_filter == 'post-update' %}
+                Updates
+            {% else %}
+                Notices
+            {% endif %}
+        </strong>
+        {% if type_filter == 'post-update' %}
+        <small class="d-block">for
+            <a href="{% url 'view_recruitment_post' post.pk %}">
+                {{post.title}} at {{post.company}}
+            </a>
+        </small>
+        {% endif %}
         {% if user_filter == 'me' %}
         <small class="d-block text-body-secondary">
             By {{user.full_name}}

@@ -259,14 +259,14 @@ class ListNotice(ListView):
         context['page_obj'].object_list = [(notice, RecruitmentPostUpdateForm(instance=notice) if notice.kind == 'U' else NoticeForm(instance=notice))
                                            for notice in context['page_obj'].object_list]
         context['sorting_options'] = self.sorting_options
-        context['user_filter'] = self.request.GET.get('user-filter')
-        context['type_filter'] = self.request.GET.get('type-filter')
+        context['user_filter'] = self.request.GET.get('user-filter', '')
+        context['type_filter'] = self.request.GET.get('type-filter', '')
         if context['type_filter'] == 'post-update':
             context['sorting_options'] += self.post_sorting_options
             context['recruitment_post_filters'] = self.request.GET.getlist(
-                'recruitment-post-filters') or []
+                'recruitment-post-filters', [])
             context['recruitment_post_filter'] = self.request.GET.get(
-                'recruitment-post-filter') or ''
+                'recruitment-post-filter', '')
         context['sorting'] = self.request.GET.get('sorting', 'date')
         context['ordering'] = self.request.GET.get('ordering', 'asc')
         return context
@@ -625,7 +625,7 @@ class RecruitmentApplications(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
+
         context['post'] = RecruitmentPost.objects.get(pk=self.kwargs['pk'])
         context['sorting_options'] = self.sorting_options
 
