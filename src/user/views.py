@@ -6,6 +6,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import ListView
 from django.views.generic.base import TemplateView
+from django.db.models import Q
 from views import AddObject, ChangeObject, AddUserKeyObject, ChangeUserKeyObject, DeleteUserKeyObject
 from student.models import StudentProfile
 from staff.models import StaffProfile
@@ -28,97 +29,129 @@ class UserListView(ListView):
     ordering = ['id']
     paginate_by = 50
 
-    def get_queryset(self):
-        queryset = self.model.objects.all()
+    role_choices = User.role_choices
+    course_choices = StudentProfile.course_choices
+    designation_choices = StaffProfile.qualification_choices
+    qualification_choices = StaffProfile.qualification_choices
+    sort_choices = [
+        ('name', 'Name'),
+    ]
+    student_sort_choices = [
+        ('registration_year', 'Registration Year'),
+        ('course', 'Course'),
+        ('year', 'Year'),
+        ('cgpa', 'CGPA'),
+        ('backlogs', 'Backlogs'),
+        ('total_skills', 'Total Skills')
+    ]
+    staff_sort_choices = [
+        ('designation', 'Designation'),
+        ('qualification', 'Qualification')
+    ]
+    recruiter_sort_choices = [
+        ('company', 'Company'),
+        ('designation', 'Designation')
+    ]
 
-        queryset = self.apply_approval_filter(queryset)
-        queryset = self.apply_role_filter(queryset)
-        queryset = self.apply_skill_filters(queryset)
+    def get_queryset(self):
+        query = Q()
+
+        query = self.apply_approval_filter(query)
+        query = self.apply_role_filter(query)
+        query = self.apply_skill_filters(query)
 
         role_filter = self.request.GET.get('role-filter')
         if role_filter == 'student':
-            queryset = self.apply_student_filters(queryset)
+            query = self.apply_student_filters(query)
         elif role_filter == 'staff':
-            queryset = self.apply_staff_filters(queryset)
+            query = self.apply_staff_filters(query)
         elif role_filter == 'recruiter':
-            queryset = self.apply_recruiter_filters(queryset)
+            query = self.apply_recruiter_filters(query)
+
+        queryset = super().get_queryset().filter(query)
 
         queryset = self.apply_sorting(queryset)
         queryset = self.apply_ordering(queryset)
 
         return queryset
 
-    def apply_approval_filter(self, queryset):
+    def apply_approval_filter(self, query):
         is_approved_filter = self.request.GET.get('is-approved-filter')
         if is_approved_filter == 'False' and (self.request.user.is_superuser or self.request.user.is_coordinator):
-            return queryset.filter(is_approved=False)
-        return queryset.filter(is_approved=True)
-
-    def apply_role_filter(self, queryset):
+            query &= Q(is_approved=False)
+        return query
+    
+    def apply_role_filter(self, query):
         role_filter = self.request.GET.get('role-filter')
-        if role_filter:
-            return queryset.filter(role=role_filter)
-        return queryset
+        if role_filter in [role[0] for role in self.role_choices]:
+            query &= Q(role=role_filter)
+        return query
 
-    def apply_skill_filters(self, queryset):
+    def apply_skill_filters(self, query):
         skill_filters = self.request.GET.get('skill-filters')
-        if skill_filters:
-            for and_filter in json.loads(skill_filters):
-                queryset = queryset.filter(skills__in=and_filter).distinct()
-        return queryset
+        try:
+            if skill_filters:
+                for and_filter in json.loads(skill_filters):
+                    query &= Q(skills__in=and_filter)
+        except:
+            pass
+        return query
 
-    def apply_student_filters(self, queryset):
-        queryset = self.apply_course_filters(queryset)
-        queryset = self.apply_year_filters(queryset)
-        queryset = self.apply_cgpa_filter(queryset)
-        queryset = self.apply_backlogs_filter(queryset)
-        queryset = self.apply_registration_year_filters(queryset)
-        queryset = self.apply_enrollment_status_filter(queryset)
-        return queryset
+    def apply_student_filters(self, query):
+        query = self.apply_course_filters(query)
+        query = self.apply_year_filters(query)
+        query = self.apply_cgpa_filter(query)
+        query = self.apply_backlogs_filter(query)
+        query = self.apply_registration_year_filters(query)
+        query = self.apply_enrollment_status_filter(query)
+        return query
 
-    def apply_course_filters(self, queryset):
+    def apply_course_filters(self, query):
         course_filters = self.request.GET.getlist('course-filters')
+        for course in course_filters:
+            if course not in [course[0] for course in self.course_choices]:
+                course_filters.remove(course)
         if course_filters:
-            return queryset.filter(student_profile__course__in=course_filters)
-        return queryset
+            query &= Q(student_profile__course__in=course_filters)
+        return query
 
-    def apply_year_filters(self, queryset):
+    def apply_year_filters(self, query):
         year_lower_limit = self.request.GET.get('year-lower-limit')
         year_upper_limit = self.request.GET.get('year-upper-limit')
         if year_lower_limit or year_upper_limit:
             students = StudentProfile.objects
-            if year_lower_limit:
+            if year_lower_limit.isdigit():
                 students = students.filter(year__gte=year_lower_limit)
-            if year_upper_limit:
+            if year_upper_limit.isdigit():
                 students = students.filter(year__lte=year_upper_limit)
-            return queryset.filter(student_profile__in=students)
-        return queryset
+            query &= Q(student_profile__in=students)
+        return query
 
-    def apply_cgpa_filter(self, queryset):
+    def apply_cgpa_filter(self, query):
         cgpa_lower_limit = self.request.GET.get('cgpa-lower-limit')
-        if cgpa_lower_limit:
-            return queryset.filter(student_profile__cgpa__gte=cgpa_lower_limit)
-        return queryset
+        if cgpa_lower_limit.replace('.', '', 1).isdigit():
+            query &= Q(student_profile__cgpa__gte=cgpa_lower_limit)
+        return query
 
-    def apply_backlogs_filter(self, queryset):
+    def apply_backlogs_filter(self, query):
         backlogs_upper_limit = self.request.GET.get('backlogs-upper-limit')
-        if backlogs_upper_limit:
-            return queryset.filter(student_profile__backlog_count__lte=backlogs_upper_limit)
-        return queryset
+        if backlogs_upper_limit.isdigit():
+            query &= Q(student_profile__backlog_count__lte=backlogs_upper_limit)
+        return query
 
-    def apply_registration_year_filters(self, queryset):
+    def apply_registration_year_filters(self, query):
         registration_year_upper_limit = self.request.GET.get('registration-year-upper-limit')
         registration_year_lower_limit = self.request.GET.get('registration-year-lower-limit', 2000)
         if registration_year_upper_limit or registration_year_lower_limit:
             students = StudentProfile.objects
-            if registration_year_lower_limit:
+            if registration_year_lower_limit.isdigit():
                 students = students.filter(registration_year__gte=registration_year_lower_limit)
-            if registration_year_upper_limit:
+            if registration_year_upper_limit.isdigit():
                 students = students.filter(registration_year__lte=registration_year_upper_limit)
-            return queryset.filter(student_profile__in=students)
-        return queryset
+            query &= Q(student_profile__in=students)
+        return query
 
-    def apply_enrollment_status_filter(self, queryset):
+    def apply_enrollment_status_filter(self, query):
         enrollment_status = self.request.GET.get('enrollment-status')
         if enrollment_status:
             students = StudentProfile.objects.all()
@@ -128,8 +161,8 @@ class UserListView(ListView):
                 students = self.apply_pass_out_year_filters(StudentProfile.objects.filter(passed_out=True))
             elif enrollment_status == 'dropped_out':
                 students = self.apply_drop_out_year_filters(StudentProfile.objects.filter(dropped_out=True))
-            return queryset.filter(student_profile__in=students)
-        return queryset
+            query &= Q(student_profile__in=students)
+        return query
 
     def apply_pass_out_year_filters(self, students):
         pass_out_year_lower_limit = self.request.GET.get('pass-out-year-lower-limit')
@@ -149,39 +182,43 @@ class UserListView(ListView):
             students = students.filter(drop_out_year__lte=drop_out_year_upper_limit)
         return students
 
-    def apply_staff_filters(self, queryset):
-        queryset = self.apply_designation_filters(queryset)
-        queryset = self.apply_qualification_filters(queryset)
-        return queryset
+    def apply_staff_filters(self, query):
+        query = self.apply_designation_filters(query)
+        query = self.apply_qualification_filters(query)
+        return query
 
-    def apply_designation_filters(self, queryset):
+    def apply_designation_filters(self, query):
         designation_filters = self.request.GET.getlist('designation-filters')
+        for designation in designation_filters:
+            if designation not in [designation[0] for designation in self.designation_choices]:
+                designation_filters.remove(designation)
         if designation_filters:
-            return queryset.filter(staff_profile__designation__in=designation_filters)
-        return queryset
+            query &= Q(staff_profile__designation__in=designation_filters)
+        return query
 
-    def apply_qualification_filters(self, queryset):
+    def apply_qualification_filters(self, query):
         qualification_filters = self.request.GET.getlist('qualification-filters')
+        for qualification in qualification_filters:
+            if qualification not in [qualification[0] for qualification in self.qualification_choices]:
+                qualification_filters.remove(qualification)
         if qualification_filters:
-            return queryset.filter(staff_profile__qualification__in=qualification_filters)
-        return queryset
+            query &= Q(staff_profile__qualification__in=qualification_filters)
+        return query
 
-    def apply_recruiter_filters(self, queryset):
+    def apply_recruiter_filters(self, query): # is it injection safe?
         company_filter = self.request.GET.get('company-filter')
         if company_filter:
-            queryset = queryset.filter(recruiter_profile__company_name__icontains=company_filter)
+            query &= Q(recruiter_profile__company_name__icontains=company_filter)
         designation_filter = self.request.GET.get('designation-filter')
         if designation_filter:
-            queryset = queryset.filter(recruiter_profile__designation__icontains=designation_filter)
-        return queryset
+            query &= Q(recruiter_profile__designation__icontains=designation_filter)
+        return query
 
     def apply_sorting(self, queryset):
         sorting = self.request.GET.get('sorting')
         role_filter = self.request.GET.get('role-filter')
         if sorting:
-            if sorting == 'total_skills':
-                queryset = queryset.annotate(skills_count=Count('skills')).order_by('skills_count')
-            elif role_filter == 'student':
+            if role_filter == 'student':
                 return self.apply_student_sorting(queryset, sorting)
             elif role_filter == 'staff':
                 return self.apply_staff_sorting(queryset, sorting)
@@ -200,6 +237,8 @@ class UserListView(ListView):
             return queryset.order_by('student_profile__cgpa')
         elif sorting == 'backlogs':
             return queryset.order_by('student_profile__backlog_count')
+        elif sorting == 'total_skills':
+            return queryset.annotate(skills_count=Count('skills')).order_by('skills_count')
         return queryset
 
     def apply_staff_sorting(self, queryset, sorting):
@@ -225,10 +264,14 @@ class UserListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['skills_dict'] = {}
-        context['roles'] = User.role_choices
+
+        context['sort_choices'] = self.sort_choices
+        context['roles'] = self.role_choices
+        
         context['role_filter'] = self.request.GET.get('role-filter', '')
         context['skill_filters'] = self.request.GET.get('skill-filters', '[]')
         context['is_approved_filter'] = True
+        
         is_approved_filter = self.request.GET.get('is-approved-filter')
         if is_approved_filter == 'False' and (self.request.user.is_superuser or self.request.user.is_coordinator):
             context['is_approved_filter'] = False
@@ -238,15 +281,15 @@ class UserListView(ListView):
         elif context['role_filter'] == 'staff':
             self.add_staff_context(context)
         elif context['role_filter'] == 'recruiter':
-            context['company_filter'] = self.request.GET.get('company-filter', '')
-            context['designation_filter'] = self.request.GET.get('designation-filter', '')
+            self.add_recruiter_context(context)
 
         context['sorting'] = self.request.GET.get('sorting', 'name')
         context['ordering'] = self.request.GET.get('ordering', 'asc')
         return context
 
     def add_student_context(self, context):
-        context['courses'] = StudentProfile.course_choices
+        context['sort_choices'] += self.student_sort_choices
+        context['courses'] = self.course_choices
         context['skills'] = Skill.objects.all()
         self.populate_skills_dict(context)
         context['course_filters'] = self.request.GET.getlist('course-filters', [])
@@ -263,10 +306,16 @@ class UserListView(ListView):
             self.add_drop_out_year_context(context)
 
     def add_staff_context(self, context):
+        context['sort_choices'] += self.staff_sort_choices
         context['designations'] = StaffProfile.designation_choices
         context['qualifications'] = StaffProfile.qualification_choices
         context['designation_filters'] = self.request.GET.getlist('designation-filters', [])
         context['qualification_filters'] = self.request.GET.getlist('qualification-filters', [])
+
+    def add_recruiter_context(self, context):
+        context['sort_choices'] += self.recruiter_sort_choices
+        context['company_filter'] = self.request.GET.get('company-filter', '')
+        context['designation_filter'] = self.request.GET.get('designation-filter', '')
 
     def populate_skills_dict(self, context):
         skill_filters = json.loads(context['skill_filters'])

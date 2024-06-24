@@ -49,75 +49,13 @@
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
+                            {% for choice in sort_choices %}
                             <li>
                                 <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='name'" value="Name"
-                                    class="dropdown-item {% if sorting == 'name' %} active {% endif %}">
+                                    onclick="document.getElementById('sort-by-form-input').value='{{choice.0}}'" value="{{choice.1}}"
+                                    class="dropdown-item {% if sorting == '{{choice.0}}' %} active {% endif %}">
                             </li>
-                            {% if role_filter == 'student' %}
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='registration_year'"
-                                    value="Registration Year"
-                                    class="dropdown-item {% if sorting == 'registration_year' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='course'"
-                                    value="Course"
-                                    class="dropdown-item {% if sorting == 'course' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='year'" value="Year"
-                                    class="dropdown-item {% if sorting == 'year' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='cgpa'" value="CGPA"
-                                    class="dropdown-item {% if sorting == 'cgpa' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='backlogs'"
-                                    value="Backlogs"
-                                    class="dropdown-item {% if sorting == 'backlogs' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='total_skills'"
-                                    value="Total Skills"
-                                    class="dropdown-item {% if sorting == 'total_skills' %} active {% endif %}">
-                            </li>
-                            {% endif %}
-                            {% if role_filter == 'staff' %}
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='designation'"
-                                    value="Designation"
-                                    class="dropdown-item {% if sorting == 'designation' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='qualification'"
-                                    value="Qualification"
-                                    class="dropdown-item {% if sorting == 'qualification' %} active {% endif %}">
-                            </li>
-                            {% endif %}
-                            {% if role_filter == 'recruiter' %}
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='company'"
-                                    value="Company"
-                                    class="dropdown-item {% if sorting == 'company' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='designation'"
-                                    value="Designation"
-                                    class="dropdown-item {% if sorting == 'designation' %} active {% endif %}">
-                            </li>
-                            {% endif %}
+                            {% endfor %}
                         </ul>
                     </form>
                 </div>
