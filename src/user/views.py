@@ -93,7 +93,7 @@ class UserListView(ListView):
         if is_approved_filter == 'False' and (self.request.user.is_superuser or self.request.user.is_coordinator):
             query &= Q(is_approved=False)
         else:
-            query &= Q(is_approved=False)
+            query &= Q(is_approved=True)
         return query
 
     def apply_role_filter(self, query):
