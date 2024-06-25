@@ -228,7 +228,7 @@
                             <small class="d-block badge p-0 text-start text-body-secondary lh-1">
                                 Received {{ message.0.date|naturaltime }}
                                 {% if message.0.handled %}
-                                | Handled {{message.0.date_edited|naturaltime}} by {{ message.0.handled_by }}
+                                | Handled {{message.0.date_edited|naturaltime}}
                                 {% endif %}
                             </small>
                         </div>
@@ -314,10 +314,15 @@
                     </div>
                     {% if message.0.handled %}
                     <div>
-                        <strong class="fw-bold text-body-emphasis lh-1">
+                        <strong class="text-body-emphasis lh-1">
                             Handled Notes
                         </strong>
-                        {{message.0.handled_notes}}
+                        <small class="d-block badge p-0 text-start text-body-secondary lh-1">
+                            by {{ message.0.handled_by.full_name }}
+                        </small>
+                        <div>
+                            {{message.0.handled_notes}}
+                        </div>
                     </div>
                     {% endif %}
                 </div>

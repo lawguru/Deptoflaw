@@ -499,7 +499,7 @@ class MessageListView(ListView):
         ('unhandled', 'Unhandled'),
     ]
     sorting_options = [
-        ('date', 'Date'),
+        ('date', 'Date Received'),
         ('sender', 'Sender\'s Name'),
         ('sender_company', 'Company'),
         ('sender_designation', 'Designation'),
@@ -507,7 +507,7 @@ class MessageListView(ListView):
         ('sender_email', 'Email'),
     ]
     handled_sorting_option = [
-        ('date_edited', 'Date Handled')
+        ('handled_on', 'Date Handled')
     ]
 
     def get_queryset(self):
@@ -557,8 +557,8 @@ class MessageListView(ListView):
                 if sorting == 'date' or status_filter == 'unhandled':
                     queryset = queryset.order_by('date')
                 else:
-                    if sorting == 'date_edited':
-                        queryset = queryset.order_by('date_edited')
+                    if sorting == 'handled_on':
+                        queryset = queryset.order_by('handled_on')
                     else:
                         queryset = queryset.order_by('date')
 
@@ -618,7 +618,7 @@ class MessageSetHandled(View):
             message.handled_by = request.user
             message.handled_notes = form.cleaned_data['handled_notes']
             message.save()
-        return JsonResponse({'handled': message.handled})
+        return redirect(reverse('messages')+f'?status-filter=handled&sorting=handled_on&ordering=desc')
 
 
 @method_decorator(login_required, name="dispatch")
