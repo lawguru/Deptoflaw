@@ -307,13 +307,12 @@ class ListRecruitmentPost(ListView):
     workplace_type_choices = RecruitmentPost.workplace_type_choices
     start_date_type_choices = RecruitmentPost.start_date_type_choices
     applications_status_choices = RecruitmentApplication.status_choices
-    post_choices = [
-        ('', 'Any Post'),
-    ]
     recruiter_post_choices = [
+        ('', 'Any Post'),
         ('by-me', 'By me'),
     ]
     student_post_choices = [
+        ('', 'Any Post'),
         ('applied-by-me', 'Applied by me'),
     ]
 
@@ -491,15 +490,14 @@ class ListRecruitmentPost(ListView):
             'is-active-filter', 'true')
 
         context['post_filter'] = self.request.GET.get('post-filter', '')
-        context['post_choices'] = self.post_choices.copy()
         if self.request.user.is_authenticated and self.request.user.role == 'student':
-            context['post_choices'] += self.student_post_choices
+            context['post_choices'] = self.student_post_choices
             context['applied_status_filters'] = self.request.GET.getlist(
                 'applied-status-filters', [])
             context['applied_status_choices'] = self.applications_status_choices
 
         if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter'):
-            context['post_choices'] += self.recruiter_post_choices
+            context['post_choices'] = self.recruiter_post_choices
             if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_coordinator or (self.request.user.role == 'recruiter' and context['post_filter'] == 'by-me')):
                 context['applications_status_filters'] = self.request.GET.getlist(
                     'applications-status-filters', [])

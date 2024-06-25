@@ -304,6 +304,7 @@
                         </div>
                     </li>
                     {% endif %}
+                    {% if post_choices %}
                     <li class="nav-item">
                         <div class="nav-link dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
@@ -344,6 +345,7 @@
                             </ul>
                         </div>
                     </li>
+                    {% endif %}
                 </ul>
                 <div style="width: fit-content;">
                     <div class="rounded-circle m-2" onclick="location.href=window.location.href.split('?')[0]"
