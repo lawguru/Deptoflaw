@@ -47,6 +47,24 @@ class MessageHandledForm(forms.ModelForm):
         self.label_suffix = ''
 
 
+class QuoteForm(forms.ModelForm):
+    class Meta:
+        model = Quote
+        fields = ['user', 'quote', 'author', 'source', 'fictional']
+
+        widgets = {
+            'user': forms.HiddenInput(),
+            'quote': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Quote', 'style': 'height: 8rem;', 'required': 'required'}),
+            'author': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Author', 'required': 'required'}),
+            'source': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Source'}),
+            'fictional': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_suffix = ''
+
+
 class NoticeForm(forms.ModelForm):
     class Meta:
         model = Notice

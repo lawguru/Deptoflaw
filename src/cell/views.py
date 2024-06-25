@@ -90,6 +90,10 @@ class Dashboard(TemplateView):
         if Notice.objects.get_create_permission(user):
             context['add_notice_form'] = NoticeForm()
 
+        if Quote.objects.get_create_permission(user):
+            context['add_quote_form'] = QuoteForm(initial={'user': user})
+            context['quotes_count'] = Quote.objects.count()
+
         if user.role == 'student':
             self.add_student_context(context, user)
 
@@ -430,12 +434,12 @@ class ListRecruitmentPost(ListView):
             'applied-status-filters')
         applied_status_filters = [status for status in applied_status_filters if status in [
             status[0] for status in self.applications_status_choices]]
-        
+
         if len(applied_status_filters):
             applications = RecruitmentApplication.objects.filter(
                 user=self.request.user, status__in=applied_status_filters)
             query &= Q(applications__in=applications)
-        
+
         return query
 
     def apply_applications_status_filters(self, query):
@@ -443,7 +447,7 @@ class ListRecruitmentPost(ListView):
             'applications-status-filters', [])
         applications_status_filters = [status for status in applications_status_filters if status in [
             status[0] for status in self.applications_status_choices]]
-        
+
         if applications_status_filters:
             query &= Q(
                 applications__status__in=applications_status_filters)
@@ -500,7 +504,7 @@ class ListRecruitmentPost(ListView):
                 context['applications_status_filters'] = self.request.GET.getlist(
                     'applications-status-filters', [])
                 context['applications_status_choices'] = self.applications_status_choices
-                
+
         context['sorting_options'] = [
             ('apply_by', 'Apply By date'),
             ('start_date', 'Start date'),
@@ -623,6 +627,99 @@ class MessageListView(ListView):
         if request.user.is_superuser or request.user.is_coordinator:
             return super().get(request)
         raise PermissionDenied()
+
+
+@method_decorator(login_required, name="dispatch")
+class QuoteListView(ListView):
+    model = Quote
+    template_name = 'quotes.html'
+    paginate_by = 50
+
+    sorting_options = [
+        ('date', 'Date'),
+        ('date_edited', 'Date Edited'),
+        ('author', 'Author'),
+        ('quote', 'Quote'),
+        ('source', 'Source'),
+    ]
+    user_options = [
+        ('', 'Anyone'),
+        ('me', 'Me'),
+    ]
+    fictional_options = [
+        ('on', 'Fictional'),
+        ('off', 'Non-Fictional'),
+    ]
+
+    def get_queryset(self):
+        query = Q()
+
+        author_filter = self.request.GET.get('author-filter')
+        if author_filter:
+            query &= Q(author__icontains=author_filter)
+
+        quote_filter = self.request.GET.get('quote-filter')
+        if quote_filter:
+            query &= Q(quote__icontains=quote_filter)
+
+        source_filter = self.request.GET.get('source-filter')
+        if source_filter:
+            query &= Q(source__icontains=source_filter)
+
+        user_filter = self.request.GET.get('user-filter', '')
+        if user_filter == 'me':
+            query &= Q(user=self.request.user)
+
+        fictional_filters = self.request.GET.getlist('fictional-filters')
+        fictional_filters = [fictional for fictional in fictional_filters if fictional in [
+            fictional[0] for fictional in self.fictional_options]]
+        fictional_filters = [True if fictional ==
+                             'on' else False for fictional in fictional_filters]
+        if fictional_filters:
+            query &= Q(fictional__in=fictional_filters)
+
+        queryset = super().get_queryset().filter(query)
+
+        sorting = self.request.GET.get('sorting', 'date')
+        if sorting:
+            if sorting == 'date_edited':
+                queryset = queryset.order_by('date_edited')
+            elif sorting == 'author':
+                queryset = queryset.order_by('author')
+            elif sorting == 'quote':
+                queryset = queryset.order_by('quote')
+            elif sorting == 'source':
+                queryset = queryset.order_by('source')
+            else:
+                queryset = queryset.order_by('date')
+
+        ordering = self.request.GET.get('ordering', 'asc')
+        if ordering == 'desc':
+            queryset = queryset.reverse()
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['page_obj'].object_list = [(quote, QuoteForm(
+            instance=quote)) for quote in context['page_obj'].object_list]
+
+        context['sorting_options'] = self.sorting_options
+        context['user_options'] = self.user_options
+        context['fictional_options'] = self.fictional_options
+
+        context['sorting'] = self.request.GET.get('sorting', 'date')
+        context['ordering'] = self.request.GET.get('ordering', 'asc')
+
+        context['author_filter'] = self.request.GET.get('author-filter', '')
+        context['quote_filter'] = self.request.GET.get('quote-filter', '')
+        context['source_filter'] = self.request.GET.get('source-filter', '')
+        context['user_filter'] = self.request.GET.get('user-filter', '')
+        context['fictional_filters'] = self.request.GET.getlist(
+            'fictional-filters', [])
+
+        return context
 
 
 @method_decorator(login_required, name="dispatch")
@@ -963,6 +1060,32 @@ class ChangeNotice(View):
             return redirect(reverse('notices') + f'#notice-{notice.id}')
         else:
             raise BadRequest()
+
+
+@method_decorator(login_required, name="dispatch")
+class AddQuote(AddUserKeyObject):
+    model = Quote
+    form = QuoteForm
+    redirect_url_name = 'quotes'
+
+    def get_redirect_url_args(self, request, *args, **kwargs):
+        return []
+
+    def get_redirect_url_params(self, request, *args, **kwargs):
+        return f'?sorting=date&ordering=desc'
+
+
+@method_decorator(login_required, name="dispatch")
+class ChangeQuote(ChangeUserKeyObject):
+    model = Quote
+    form = QuoteForm
+    redirect_url_name = 'quotes'
+
+    def get_redirect_url_args(self, request, pk, *args, **kwargs):
+        return []
+
+    def get_redirect_url_params(self, request, *args, **kwargs):
+        return f'?sorting=date_edited&ordering=desc'
 
 
 @method_decorator(login_required, name="dispatch")

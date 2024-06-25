@@ -45,6 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_coordinator = models.BooleanField(editable=False, default=False)
     is_developer = models.BooleanField(editable=False, default=False)
     is_doctor = models.BooleanField(editable=False, default=False)
+    is_quoter = models.BooleanField(editable=False, default=False)
 
     @property
     def subtext(self):
@@ -149,7 +150,18 @@ class User(AbstractBaseUser, PermissionsMixin):
             return User.objects.none()
         if self.is_coordinator:
             return User.objects.filter(is_superuser=True)
-        
+    
+    @property
+    def make_quoter_users(self):
+        if self.is_quoter or not self.is_approved:
+            return User.objects.none()
+        return User.objects.filter(is_superuser=True)
+    
+    @property
+    def remove_quoter_users(self):
+        if not self.is_quoter:
+            return User.objects.none()
+        return User.objects.filter(is_superuser=True)
 
     @property
     def make_cr_users(self):

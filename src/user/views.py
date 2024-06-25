@@ -498,6 +498,16 @@ class UserPerformAction(View):
                 raise PermissionDenied()
             user.is_coordinator = False
             user.save()
+        elif action == 'make_quoter':
+            if request.user not in user.make_quoter_users:
+                raise PermissionDenied()
+            user.is_quoter = True
+            user.save()
+        elif action == 'remove_quoter':
+            if request.user not in user.remove_quoter_users:
+                raise PermissionDenied()
+            user.is_quoter = False
+            user.save()
         elif action == 'make_cr':
             if request.user not in user.make_cr_users:
                 raise PermissionDenied()
@@ -549,6 +559,16 @@ class UserPerformAction(View):
             actions.append({
                 'name': 'Remove Coordinator',
                 'url': reverse('remove_coordinator', args=[pk])
+            })
+        if request.user in user.make_quoter_users:
+            actions.append({
+                'name': 'Make Quoter',
+                'url': reverse('make_quoter', args=[pk])
+            })
+        if request.user in user.remove_quoter_users:
+            actions.append({
+                'name': 'Remove Quoter',
+                'url': reverse('remove_quoter', args=[pk])
             })
         if request.user in user.make_cr_users:
             actions.append({
@@ -602,6 +622,18 @@ class MakeCoordinator(UserPerformAction):
 class RemoveCoordinator(UserPerformAction):
     def post(self, request, pk):
         return super().post(request, pk, 'remove_coordinator')
+
+
+@method_decorator(login_required, name="dispatch")
+class MakeQuoter(UserPerformAction):
+    def post(self, request, pk):
+        return super().post(request, pk, 'make_quoter')
+
+
+@method_decorator(login_required, name="dispatch")
+class RemoveQuoter(UserPerformAction):
+    def post(self, request, pk):
+        return super().post(request, pk, 'remove_quoter')
 
 
 @method_decorator(login_required, name="dispatch")

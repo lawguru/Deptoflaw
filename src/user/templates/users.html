@@ -593,7 +593,7 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <small>Joined {{user.date_joined|naturaltime}}</small>
 
-                        {% if request.user in user.approve_users or request.user in user.delete_users or request.user in user.make_superuser_users or request.user in user.make_coordinator_users or request.user in user.remove_coordinator_users or request.user in user.staff_profile.make_hod_users or request.user in user.staff_profile.make_tpc_head_users %}
+                        {% if request.user in user.approve_users or request.user in user.delete_users or request.user in user.make_superuser_users or request.user in user.make_coordinator_users or request.user in user.remove_coordinator_users or request.user in user.make_quoter_users or request.user in user.remove_quoter_users or request.user in user.staff_profile.make_hod_users or request.user in user.staff_profile.make_tpc_head_users %}
                         <div class="dropdown">
                             <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Action
@@ -634,6 +634,22 @@
                                 <li>
                                     <form action="{% url 'remove_coordinator' user.pk %}" method="POST">
                                         <input type="submit" class="btn dropdown-item" value="Remove Coordinator">
+                                    </form>
+                                </li>
+                                {% endif %}
+
+                                {% if request.user in user.make_quoter_users %}
+                                <li>
+                                    <form action="{% url 'make_quoter' user.pk %}" method="POST">
+                                        <input type="submit" class="btn dropdown-item" value="Make Quoter">
+                                    </form>
+                                </li>
+                                {% endif %}
+
+                                {% if request.user in user.remove_quoter_users %}
+                                <li>
+                                    <form action="{% url 'remove_quoter' user.pk %}" method="POST">
+                                        <input type="submit" class="btn dropdown-item" value="Remove Quoter">
                                     </form>
                                 </li>
                                 {% endif %}

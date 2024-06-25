@@ -72,8 +72,8 @@ class Message(models.Model):
 
 class Quote(models.Model):
     class Manager(models.Manager):
-        def get_create_permission(self, user):
-            if user.is_superuser:
+        def get_create_permission(self, user, current_user):
+            if (user == current_user and current_user.is_quoter) or current_user.is_superuser:
                 return True
             return False
 
@@ -82,13 +82,17 @@ class Quote(models.Model):
     class Meta:
         base_manager_name = 'objects'
 
+    user = models.ForeignKey(
+        User, null=True, on_delete=models.SET_NULL, related_name='quotes')
     quote = models.TextField()
     author = models.CharField(max_length=150)
     source = models.CharField(max_length=150, blank=True, null=True)
     fictional = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now_add=True, editable=False)
+    date_edited = models.DateTimeField(auto_now=True, editable=False)
 
     def edit_users(self):
-        return User.objects.filter(is_superuser=True)
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
     def __str__(self):
         return self.quote + ' - ' + self.author
