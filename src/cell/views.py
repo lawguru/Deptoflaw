@@ -49,12 +49,17 @@ class Index(TemplateView):
 
         context['message_from_hod'] = message_from_hod.value
         context['message_from_tpc_head'] = message_from_tpc_head.value
-        context['hod'] = StaffProfile.objects.get(
-            is_hod=True) if StaffProfile.objects.filter(is_hod=True).exists() else None
-        context['tpc_head'] = StaffProfile.objects.get(
-            is_tpc_head=True) if StaffProfile.objects.filter(is_tpc_head=True).exists() else None
-        context['coordinators'] = User.objects.filter(
-            groups__name='coordinators') if User.objects.filter(groups__name='coordinators').exists() else None
+        context['hod'] = User.objects.filter(staff_profile__is_hod=True)
+        context['tpc_head'] = User.objects.filter(
+            staff_profile__is_tpc_head=True).exclude(staff_profile__is_hod=True)
+        context['developers'] = User.objects.filter(is_developer=True).exclude(Q(staff_profile__is_hod=True) | Q(
+            staff_profile__is_tpc_head=True))
+        context['superusers'] = User.objects.filter(is_superuser=True).exclude(Q(staff_profile__is_hod=True) | Q(
+            staff_profile__is_tpc_head=True) | Q(is_developer=True))
+        context['coordinators'] = User.objects.filter(is_coordinator=True).exclude(Q(staff_profile__is_hod=True) | Q(
+            staff_profile__is_tpc_head=True) | Q(is_developer=True) | Q(is_superuser=True))
+        context['team'] = list(chain(context['hod'], context['tpc_head'],
+                               context['developers'], context['superusers'], context['coordinators']))
         return context
 
 
@@ -293,10 +298,20 @@ class ListRecruitmentPost(ListView):
     model = RecruitmentPost
     template_name = 'recruitment_posts.html'
     paginate_by = 50
+
     job_type_choices = RecruitmentPost.job_type_choices
     workplace_type_choices = RecruitmentPost.workplace_type_choices
     start_date_type_choices = RecruitmentPost.start_date_type_choices
     applications_status_choices = RecruitmentApplication.status_choices
+    post_choices = [
+        ('', 'Any Post'),
+    ]
+    recruiter_post_choices = [
+        ('by-me', 'By me'),
+    ]
+    student_post_choices = [
+        ('applied-by-me', 'Applied by me'),
+    ]
 
     def get_queryset(self):
         query = Q()
@@ -310,11 +325,10 @@ class ListRecruitmentPost(ListView):
         query = self.apply_start_date_filter(query)
         query = self.apply_skill_filter(query)
         query = self.apply_post_filter(query)
+        query = self.apply_applications_status_filters(query)
         query = self.apply_active_filter(query)
 
-        queryset = super().get_queryset().filter(query).prefetch_related(
-            'user', 'skills', 'applications', 'applications__user')
-        queryset = self.apply_applications_filter(queryset).distinct()
+        queryset = super().get_queryset().filter(query).distinct()
 
         sorting = self.request.GET.get('sorting')
         if sorting:
@@ -401,43 +415,47 @@ class ListRecruitmentPost(ListView):
         return query
 
     def apply_post_filter(self, query):
-        post_filter = self.request.GET.get('post-filter')
+        if not self.request.user.is_authenticated:
+            return query
+        post_filter = self.request.GET.get('post-filter', '')
         if post_filter == 'by-me':
             query &= Q(user=self.request.user)
         elif post_filter == 'applied-by-me':
+            query &= Q(applications__user=self.request.user)
+            query = self.apply_applied_status_filter(query)
+        return query
+
+    def apply_applied_status_filter(self, query):
+        applied_status_filters = self.request.GET.getlist(
+            'applied-status-filters')
+        applied_status_filters = [status for status in applied_status_filters if status in [
+            status[0] for status in self.applications_status_choices]]
+        
+        if len(applied_status_filters):
+            applications = RecruitmentApplication.objects.filter(
+                user=self.request.user, status__in=applied_status_filters)
+            query &= Q(applications__in=applications)
+        
+        return query
+
+    def apply_applications_status_filters(self, query):
+        applications_status_filters = self.request.GET.getlist(
+            'applications-status-filters', [])
+        applications_status_filters = [status for status in applications_status_filters if status in [
+            status[0] for status in self.applications_status_choices]]
+        
+        if applications_status_filters:
             query &= Q(
-                applications__user=self.request.user)
+                applications__status__in=applications_status_filters)
+
         return query
 
     def apply_active_filter(self, query):
         is_active_filter = self.request.GET.get('is-active-filter', 'true')
         if is_active_filter is not None:
             if is_active_filter.lower() != 'false':
-                query &= Q(
-                    apply_by__gte=datetime.today().date())
+                query &= Q(apply_by__gte=datetime.today().date())
         return query
-
-    def apply_applications_filter(self, queryset):
-        if self.request.user.is_authenticated and self.request.user.role == 'recruiter' and not self.request.GET.get('post-filter') == 'applied-by-me':
-            return queryset
-        elif self.request.user.is_authenticated and not self.request.user.is_superuser and not self.request.user.is_coordinator:
-            return queryset
-
-        applications_filter_lower_limit = self.request.GET.get(
-            'applications-filter-lower-limit', 0)
-        if applications_filter_lower_limit and applications_filter_lower_limit.isdigit():
-            queryset = queryset.annotate(application_count=Count('applications')).filter(
-                application_count__gte=applications_filter_lower_limit)
-
-        applications_status_filters = self.request.GET.getlist(
-            'applications-status-filters')
-        applications_status_filters = [status for status in applications_status_filters if status in [
-            status[0] for status in self.applications_status_choices]]
-        if applications_status_filters:
-            queryset = queryset.filter(
-                applications__status__in=applications_status_filters).distinct()
-
-        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -467,16 +485,22 @@ class ListRecruitmentPost(ListView):
         context['skill_filter'] = self.request.GET.getlist('skill-filter')
         context['is_active_filter'] = self.request.GET.get(
             'is-active-filter', 'true')
-        if (self.request.user.is_authenticated and self.request.user.role == 'recruiter' and self.request.GET.get('post-filter') == 'applied-by-me') or (self.request.user.is_authenticated and self.request.user.is_superuser and self.request.user.is_coordinator):
-            context['applications_filter_lower_limit'] = self.request.GET.get(
-                'applications-filter-lower-limit', 0)
-            context['applications_status_filters'] = self.request.GET.getlist(
-                'applications-status-filters', [])
-        context['post_filter'] = self.request.GET.get('post-filter', '')
-        if self.request.user.is_authenticated and self.request.user.role == 'student':
-            context['applied_posts'] = RecruitmentPost.objects.filter(
-                applications__user=self.request.user).distinct()
 
+        context['post_filter'] = self.request.GET.get('post-filter', '')
+        context['post_choices'] = self.post_choices.copy()
+        if self.request.user.is_authenticated and self.request.user.role == 'student':
+            context['post_choices'] += self.student_post_choices
+            context['applied_status_filters'] = self.request.GET.getlist(
+                'applied-status-filters', [])
+            context['applied_status_choices'] = self.applications_status_choices
+
+        if self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter':
+            context['post_choices'] += self.recruiter_post_choices
+            if self.request.user.is_superuser or self.request.user.is_coordinator or (self.request.user.role == 'recruiter' and context['post_filter'] == 'by-me'):
+                context['applications_status_filters'] = self.request.GET.getlist(
+                    'applications-status-filters', [])
+                context['applications_status_choices'] = self.applications_status_choices
+                
         context['sorting_options'] = [
             ('apply_by', 'Apply By date'),
             ('start_date', 'Start date'),

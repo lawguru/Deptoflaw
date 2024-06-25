@@ -43,6 +43,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     short_name = models.CharField(
         max_length=150, editable=False, blank=True, default='')
     is_coordinator = models.BooleanField(editable=False, default=False)
+    is_developer = models.BooleanField(editable=False, default=False)
     is_doctor = models.BooleanField(editable=False, default=False)
 
     @property
@@ -56,6 +57,10 @@ class User(AbstractBaseUser, PermissionsMixin):
                 subtext = self.student_profile.course + ' ' + 'Drop Out'
             elif self.student_profile.passed_out:
                 subtext = self.student_profile.course + ' ' + 'Alumni'
+            subtext = (subtext +
+                       (', TPC Website Developer' if self.is_developer else '') +
+                       (', TPC Website Administrator' if self.is_superuser and not self.is_developer else '') +
+                       (', TPC Coordinator' if self.is_coordinator and not self.is_superuser else ''))[::-1].replace(',', 'dna ', 1)[::-1]
         if self.role == 'staff':
             subtext = (self.staff_profile.designation +
                        (', Coordinator' if self.is_coordinator and not self.staff_profile.is_tpc_head and not self.staff_profile.is_hod else '') +

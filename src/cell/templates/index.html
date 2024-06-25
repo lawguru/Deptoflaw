@@ -12,7 +12,7 @@
             <h1 class="fw-bold text-body-emphasis lh-1 my-3">Training & Placement Cell</h1>
             <p>
                 Training & Placement Cell (TPC) handles all aspects of campus placements for the graduating students of
-                the Department. TPC of Assam University\'s Department of Computer Science and Engineering (CSE) is well
+                the Department. TPC of Assam University's Department of Computer Science and Engineering (CSE) is well
                 equipped with excellent infrastructure to support each and every stage of the placement processes. TPC
                 staff members and student team assist in arranging Pre-Placement Talks, Written Tests, Group
                 Discussions, and Interviews etc. as per the requirements of the Organizations and Recruiters.
@@ -38,111 +38,56 @@
         </figure>
     </div>
     {% endif %}
-    <div class="row align-items-center gap-4 g-0">
-        {% if hod %}
-        <div class="card col-12 col-lg rounded-4 border shadow-lg">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-person-circle fs-1"></i>
-                    <div class="w-100">
-                        <h5 class="card-title">{{ hod.user.get_full_name }}</h5>
-                        <h6 class="card-subtitle mb-2 text-body-secondary">{{ hod.designation }} and HOD of CSE</h6>
+    <div id="team-members">
+        {% if team %}
+        <div class="my-5">
+            <h1 class="fw-bold text-body-emphasis lh-1 text-center mb-5">Our Team</h1>
+            <div class="d-flex flex-wrap align-items-stretch justify-content-evenly gap-4">
+                {% for member in team %}
+                <div class="card rounded-4 border shadow-lg" style="min-width: 320px;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="bi bi-person-circle fs-1"></i>
+                            <div class="w-100">
+                                <h5 class="card-title placeholder-glow mb-0 lh-1">{{ member.get_full_name }}</span>
+                                </h5>
+                                <h6 class="card-subtitle badge p-0 m-0 mb-2 text-body-secondary">{{ member.subtext }}</h6>
+                            </div>
+                        </div>
+                        {% if member.primary_phone_number %}
+                        <a href="tel:{{member.primary_phone_number}}" target="_blank">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="bi bi-telephone"></i><span>{{ member.primary_phone_number }}</span>
+                                <h6 class="card-subtitle text-body-secondary">
+                                </h6>
+                            </div>
+                        </a>
+                        {% endif %}
+                        {% if member.primary_email %}
+                        <a href="mailto:{{member.primary_email}}" target="_blank">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="bi bi-envelope"></i>
+                                <h6 class="card-subtitle text-body-secondary"><span>{{ member.primary_email }}</span>
+                                </h6>
+                            </div>
+                        </a>
+                        {% endif %}
+                        {% for link in member.links.all %}
+                        {% if link.title == 'Portfolio' or link.title == 'Website' or link.title == 'GitHub' or link.title == 'LinkedIn' %}
+                        <a href="{{ link.url }}" target="_blank">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="{{link.icon}}"></i>
+                                <h6 class="card-subtitle text-body-secondary"><span>{{ link.title }}</span></h6>
+                            </div>
+                        </a>
+                        {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
-                {% if hod.user.phone_numbers.count > 0 %}
-                <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-telephone"></i><span>{{ hod.user.primary_phone_number }}</span>
-                    <h6 class="card-subtitle text-body-secondary">
-                    </h6>
-                </div>
-                {% endif %}
-                {% if hod.user.emails.count > 0 %}
-                <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-envelope"></i>
-                    <h6 class="card-subtitle text-body-secondary"><span>{{ hod.user.primary_email }}</span>
-                    </h6>
-                </div>
-                {% endif %}
-                {% if message_from_hod %}
-                <div class="mt-3">
-                    <h5 class="card-title">Message</h5>
-                    <p class="card-text">
-                        {{ message_from_hod }}
-                    </p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
-        {% if tpc_head %}
-        <div class="card col-12 col-lg rounded-4 border shadow-lg">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-person-circle fs-1"></i>
-                    <div class="w-100">
-                        <h5 class="card-title">{{ tpc_head.user.get_full_name }}</h5>
-                        <h6 class="card-subtitle mb-2 text-body-secondary placeholder-glow">{{ tpc_head.designation }}
-                            and Head of TPC</h6>
-                    </div>
-                </div>
-                {% if tpc_head.user.phone_numbers.count > 0 %}
-                <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-telephone"></i><span>{{ tpc_head.user.primary_phone_number }}</span>
-                    <h6 class="card-subtitle text-body-secondary">
-                    </h6>
-                </div>
-                {% endif %}
-                {% if tpc_head.user.emails.count > 0 %}
-                <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-envelope"></i>
-                    <h6 class="card-subtitle text-body-secondary"><span>{{ tpc_head.user.primary_email }}</span>
-                    </h6>
-                </div>
-                {% endif %}
-                {% if message_from_tpc_head %}
-                <div class="mt-3">
-                    <h5 class="card-title">Message</h5>
-                    <p class="card-text">
-                        {{ message_from_tpc_head }}
-                    </p>
-                </div>
-                {% endif %}
+                {% endfor %}
             </div>
         </div>
         {% endif %}
     </div>
-    {% if coordinators %}
-    <h1 class="fw-bold text-body-emphasis lh-1 mb-5 text-center">Coordinators</h1>
-    <div class="d-flex flex-wrap align-items-center justify-content-evenly gap-4 g-0">
-        {% for coordinator in coordinators %}
-        <div class="card rounded-4 border shadow-lg" style="min-width: fit-content;">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-person-circle fs-1"></i>
-                    <div class="w-100">
-                        <h5 class="card-title placeholder-glow">{{ coordinator.get_full_name }}</span>
-                        </h5>
-                        <h6 class="card-subtitle mb-2 text-body-secondary">{{ coordinator.subtext }}</h6>
-                    </div>
-                </div>
-                {% if coordinator.phone_numbers.count > 0 %}
-                <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-telephone"></i>
-                    <h6 class="card-subtitle text-body-secondary"><span>{{ coordinator.primary_phone_number }}</span>
-                    </h6>
-                </div>
-                {% endif %}
-                {% if coordinator.emails.count > 0 %}
-                <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-envelope"></i>
-                    <h6 class="card-subtitle text-body-secondary"><span>{{ coordinator.primary_email }}</span>
-                    </h6>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
 </div>
 {% endblock %}

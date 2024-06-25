@@ -12122,12 +12122,12 @@ svg {
   fill: currentColor;
 }
 
-a {
+a:not(.link) {
   text-decoration: none;
   color: var(--bs-primary-text-emphasis);
 }
 
-a:hover:not(.no-shadow) * {
+a:hover:not(.no-shadow) {
   text-shadow: 0px 0px 10px var(--bs-primary-text-emphasis);
   color: var(--bs-primary-text-emphasis);
 }
