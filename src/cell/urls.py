@@ -12,6 +12,7 @@ urlpatterns = [
     path('quote/', QuoteListView.as_view(), name='quotes'),
     path('quote/add/', AddQuote.as_view(), name='add_quote'),
     path('quote/<int:pk>/change/', ChangeQuote.as_view(), name='change_quote'),
+    path('quote/<int:pk>/delete/', DeleteQuote.as_view(), name='delete_quote'),
     path('recruitmentpost/', ListRecruitmentPost.as_view(), name='recruitment_posts'),
     path('recruitmentpost/add/', AddRecruitmentPost.as_view(), name='add_recruitment_post'),
     path('recruitmentpost/<int:pk>/', ViewRecruitmentPost.as_view(), name='view_recruitment_post'),

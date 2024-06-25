@@ -91,7 +91,12 @@ class Quote(models.Model):
     date = models.DateTimeField(auto_now_add=True, editable=False)
     date_edited = models.DateTimeField(auto_now=True, editable=False)
 
+    @property
     def edit_users(self):
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
+
+    @property
+    def delete_users(self):
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
     def __str__(self):

@@ -90,7 +90,7 @@ class Dashboard(TemplateView):
         if Notice.objects.get_create_permission(user):
             context['add_notice_form'] = NoticeForm()
 
-        if Quote.objects.get_create_permission(user):
+        if Quote.objects.get_create_permission(user, user):
             context['add_quote_form'] = QuoteForm(initial={'user': user})
             context['quotes_count'] = Quote.objects.count()
 
@@ -1086,6 +1086,18 @@ class ChangeQuote(ChangeUserKeyObject):
 
     def get_redirect_url_params(self, request, *args, **kwargs):
         return f'?sorting=date_edited&ordering=desc'
+
+
+@method_decorator(login_required, name="dispatch")
+class DeleteQuote(DeleteUserKeyObject):
+    model = Quote
+    redirect_url_name = 'quotes'
+
+    def get_redirect_url_args(self, request, pk, *args, **kwargs):
+        return []
+
+    def get_redirect_url_params(self, request, *args, **kwargs):
+        return ''
 
 
 @method_decorator(login_required, name="dispatch")

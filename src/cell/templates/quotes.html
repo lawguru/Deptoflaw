@@ -184,7 +184,7 @@
         {% for quote in page_obj %}
         <li class="list-group-item border-0 py-4">
             <div class="d-flex justify-content-center">
-                <figure class="mb-0">
+                <figure class="mb-1">
                     <blockquote class="blockquote">
                         <p class="fs-4 fw-bold text-body-emphasis mb-4 text-center fst-italic">"{{ quote.0.quote }}"</p>
                     </blockquote>
@@ -202,27 +202,25 @@
                     <div>
                         <strong>Added by {{ quote.0.user.full_name }}</strong>
                     </div>
-                    {% if request.user in quote.0.edit_users %}
                     <div>
+                        {% if request.user in quote.0.edit_users %}
                         <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
                             data-bs-target="#change-quote-{{ quote.0.pk }}-modal">
                             <i class="bi bi-pen"></i>
                         </a>
-                        <div class="modal fade" id="change-quote-{{ quote.0.pk }}-modal" data-bs-backdrop="static"
-                        data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                            <div
-                                class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                        <div class="modal fade" id="change-quote-{{ quote.0.pk }}-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                            tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <strong class="modal-title fs-3 fw-bold text-body-emphasis">
                                             Edit Quote
                                         </strong>
-                                        <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
+                                        <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <form id="change-quote-{{ quote.0.pk }}-form"
-                                            action="{% url 'change_quote' quote.0.pk %}" method="POST">
+                                        <form id="change-quote-{{ quote.0.pk }}-form" action="{% url 'change_quote' quote.0.pk %}"
+                                            method="POST">
                                             {% csrf_token %}
                                             <div class="d-none">
                                                 {{quote.1.user}}
@@ -253,8 +251,44 @@
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
+                        {% if request.user in quote.0.delete_users %}
+                        <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                            data-bs-target="#delete-quote-{{ quote.0.pk }}-modal">
+                            <i class="bi bi-x-circle"></i>
+                        </a>
+                        <div class="modal fade" id="delete-quote-{{ quote.0.pk }}-modal" data-bs-backdrop="static"
+                            data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                            Confirmation
+                                        </strong>
+                                        <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>
+                                            {{ quote.0.quote }}
+                                        </p>
+                                        <p>
+                                            By {{ quote.0.author }}
+                                        </p>
+                                        <p class="mb-0">
+                                            Delete this Quote?
+                                        </p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <form class="w-100 m-0" action="{% url 'delete_quote' quote.0.pk %}" method="POST">
+                                            {% csrf_token %}
+                                            <input type="submit" class="btn btn-danger btn-lg border border-0 w-100 m-0" value="Delete">
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
             </div>
         </li>
