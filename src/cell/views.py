@@ -281,14 +281,14 @@ class ListNotice(ListView):
         context['type_filter'] = self.request.GET.get('type-filter', '')
         context['user_filter'] = self.request.GET.get('user-filter', '')
 
-        if self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter' or self.request.user.role == 'staff':
+        if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter' or self.request.user.role == 'staff'):
             context['user_options'] = self.user_options
 
         if context['type_filter'] == 'post-update':
             context['recruitment_post_options'] = self.recruitment_post_options
-            if self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter':
+            if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter'):
                 context['recruitment_post_options'] += self.poster_recruitment_post_options
-            if self.request.user.role == 'student':
+            if self.request.user.is_authenticated and self.request.user.role == 'student':
                 context['recruitment_post_options'] += self.studnet_recruitment_post_options
             context['sorting_options'] += self.post_sorting_options
             context['recruitment_post_filter'] = self.request.GET.get(
@@ -498,9 +498,9 @@ class ListRecruitmentPost(ListView):
                 'applied-status-filters', [])
             context['applied_status_choices'] = self.applications_status_choices
 
-        if self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter':
+        if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter'):
             context['post_choices'] += self.recruiter_post_choices
-            if self.request.user.is_superuser or self.request.user.is_coordinator or (self.request.user.role == 'recruiter' and context['post_filter'] == 'by-me'):
+            if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_coordinator or (self.request.user.role == 'recruiter' and context['post_filter'] == 'by-me')):
                 context['applications_status_filters'] = self.request.GET.getlist(
                     'applications-status-filters', [])
                 context['applications_status_choices'] = self.applications_status_choices
