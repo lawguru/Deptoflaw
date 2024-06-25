@@ -140,6 +140,7 @@ class Dashboard(TemplateView):
             recruitment_post__in=RecruitmentPost.objects.filter(
                 apply_by__gte=datetime.today().date())
         )
+        messages = Message.objects.all()
 
         context.update({
             'unapproved_user_count': unapproved_users.count(),
@@ -149,6 +150,9 @@ class Dashboard(TemplateView):
             'student_count': students.count(),
             'current_student_count': students.filter(is_current=True).count(),
             'alumni_count': students.filter(passed_out=True).count(),
+            'messages_count': messages.count(),
+            'handled_messages_count': messages.filter(handled=True).count(),
+            'unhandled_messages_count': messages.filter(handled=False).count(),
             'applicant_count': applicants.count(),
             'pending_applicant_count': applicants.filter(status='P').count(),
             'selected_applicant_count': applicants.filter(status='S').count(),
@@ -191,10 +195,28 @@ class ListNotice(ListView):
         ('user', 'Posted by'),
         ('title', 'Title'),
     ]
-
     post_sorting_options = [
         ('recruitment_post__user', 'Recruitment Posted by'),
     ]
+    user_options = [
+        ('', 'Any'),
+        ('me', 'Me'),
+    ]
+    type_options = [
+        ('', 'Any'),
+        ('notice', 'Notice'),
+        ('post-update', 'Recruitment Post Update'),
+    ]
+    recruitment_post_options = [
+        ('', 'Any'),
+    ]
+    poster_recruitment_post_options = [
+        ('by-me', 'By me'),
+    ]
+    studnet_recruitment_post_options = [
+        ('applied-by-me', 'Applied by me'),
+    ]
+
 
     def get_queryset(self):
         query = Q()
@@ -206,7 +228,6 @@ class ListNotice(ListView):
             query &= Q(kind='U')
 
         query = self.apply_user_filter(query)
-        query = self.apply_recruitment_post_filters(query)
         query = self.apply_recruitment_post_filter(query)
 
         queryset = super().get_queryset()
@@ -236,35 +257,38 @@ class ListNotice(ListView):
             query &= Q(user=self.request.user)
         return query
 
-    def apply_recruitment_post_filters(self, query):
-        recruitment_post_filters = self.request.GET.getlist(
-            'recruitment-post-filters')
-        recruitment_post_filters = [
-            int(post) for post in recruitment_post_filters if post.isdigit()]
-        if recruitment_post_filters:
-            query &= Q(recruitment_post__id__in=recruitment_post_filters)
-        return query
-
     def apply_recruitment_post_filter(self, query):
         recruitment_post_filter = self.request.GET.get(
             'recruitment-post-filter')
         if recruitment_post_filter == 'by-me':
-            query &= Q(recruitmentpostupdate__recruitment_post__user=self.request.user)
+            query &= Q(
+                recruitmentpostupdate__recruitment_post__user=self.request.user)
         elif recruitment_post_filter == 'applied-by-me':
-            query &= Q(recruitmentpostupdate__recruitment_post__applications__user=self.request.user)
+            query &= Q(
+                recruitmentpostupdate__recruitment_post__applications__user=self.request.user)
         return query
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['page_obj'].object_list = [(notice, RecruitmentPostUpdateForm(instance=notice) if notice.kind == 'U' else NoticeForm(instance=notice))
+        context['page_obj'].object_list = [(RecruitmentPostUpdate.objects.get(notice_ptr_id=notice.id) if notice.kind == 'U' else notice, RecruitmentPostUpdateForm(instance=notice) if notice.kind == 'U' else NoticeForm(instance=notice))
                                            for notice in context['page_obj'].object_list]
         context['sorting_options'] = self.sorting_options
-        context['user_filter'] = self.request.GET.get('user-filter', '')
+
+        context['type_options'] = self.type_options
+
         context['type_filter'] = self.request.GET.get('type-filter', '')
+        context['user_filter'] = self.request.GET.get('user-filter', '')
+
+        if self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter' or self.request.user.role == 'staff':
+            context['user_options'] = self.user_options
+
         if context['type_filter'] == 'post-update':
+            context['recruitment_post_options'] = self.recruitment_post_options
+            if self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter':
+                context['recruitment_post_options'] += self.poster_recruitment_post_options
+            if self.request.user.role == 'student':
+                context['recruitment_post_options'] += self.studnet_recruitment_post_options
             context['sorting_options'] += self.post_sorting_options
-            context['recruitment_post_filters'] = self.request.GET.getlist(
-                'recruitment-post-filters', [])
             context['recruitment_post_filter'] = self.request.GET.get(
                 'recruitment-post-filter', '')
         context['sorting'] = self.request.GET.get('sorting', 'date')
@@ -393,7 +417,7 @@ class ListRecruitmentPost(ListView):
         return query
 
     def apply_active_filter(self, query):
-        is_active_filter = self.request.GET.get('is-active-filter')
+        is_active_filter = self.request.GET.get('is-active-filter', 'true')
         if is_active_filter is not None:
             if is_active_filter.lower() != 'false':
                 query &= Q(
@@ -449,7 +473,7 @@ class ListRecruitmentPost(ListView):
         context['start_date_type_choices'] = self.start_date_type_choices
         context['skill_filter'] = self.request.GET.getlist('skill-filter')
         context['is_active_filter'] = self.request.GET.get(
-            'is-active-filter', 'any')
+            'is-active-filter', 'true')
         if (self.request.user.is_authenticated and self.request.user.role == 'recruiter' and self.request.GET.get('post-filter') == 'applied-by-me') or (self.request.user.is_authenticated and self.request.user.is_superuser and self.request.user.is_coordinator):
             context['applications_filter_lower_limit'] = self.request.GET.get(
                 'applications-filter-lower-limit', 0)
@@ -469,6 +493,136 @@ class ListRecruitmentPost(ListView):
         context['ordering'] = self.request.GET.get('ordering', 'asc')
 
         return context
+
+
+@method_decorator(login_required, name="dispatch")
+class MessageListView(ListView):
+    model = Message
+    template_name = 'messages.html'
+    paginate_by = 50
+    status_options = [
+        ('', 'Any'),
+        ('handled', 'Handled'),
+        ('unhandled', 'Unhandled'),
+    ]
+    sorting_options = [
+        ('date', 'Date'),
+        ('sender', 'Sender\'s Name'),
+        ('sender_company', 'Company'),
+        ('sender_designation', 'Designation'),
+        ('sender_phone', 'Phone'),
+        ('sender_email', 'Email'),
+    ]
+    handled_sorting_option = [
+        ('date_edited', 'Date Handled')
+    ]
+
+    def get_queryset(self):
+        query = Q()
+
+        status_filter = self.request.GET.get('status-filter', '')
+        if status_filter == 'handled':
+            query &= Q(handled=True)
+        elif status_filter == 'unhandled':
+            query &= Q(handled=False)
+
+        company_filter = self.request.GET.get('company-filter')
+        if company_filter:
+            query &= Q(sender_company__icontains=company_filter)
+
+        designation_filter = self.request.GET.get('designation-filter')
+        if designation_filter:
+            query &= Q(sender_designation__icontains=designation_filter)
+
+        phone_filter = self.request.GET.get('phone-filter')
+        if phone_filter:
+            query &= Q(sender_phone__icontains=phone_filter)
+
+        email_filter = self.request.GET.get('email-filter')
+        if email_filter:
+            query &= Q(sender_email__icontains=email_filter)
+
+        name_filter = self.request.GET.get('name-filter')
+        if name_filter:
+            query &= Q(sender__icontains=name_filter)
+
+        queryset = super().get_queryset().filter(query)
+
+        sorting = self.request.GET.get('sorting', 'date')
+        if sorting:
+            if sorting == 'sender_company':
+                queryset = queryset.order_by('sender_company')
+            elif sorting == 'sender_designation':
+                queryset = queryset.order_by('sender_designation')
+            elif sorting == 'sender_phone':
+                queryset = queryset.order_by('sender_phone')
+            elif sorting == 'sender_email':
+                queryset = queryset.order_by('sender_email')
+            elif sorting == 'sender':
+                queryset = queryset.order_by('sender')
+            else:
+                if sorting == 'date' or status_filter == 'unhandled':
+                    queryset = queryset.order_by('date')
+                else:
+                    if sorting == 'date_edited':
+                        queryset = queryset.order_by('date_edited')
+                    else:
+                        queryset = queryset.order_by('date')
+
+        ordering = self.request.GET.get('ordering')
+        if ordering == 'desc':
+            queryset = queryset.reverse()
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['page_obj'].object_list = [(message, MessageHandledForm(
+            instance=message)) for message in context['page_obj'].object_list]
+
+        context['sorting_options'] = self.sorting_options
+        context['status_options'] = self.status_options
+
+        context['sorting'] = self.request.GET.get('sorting', 'date')
+        context['ordering'] = self.request.GET.get('ordering', 'asc')
+
+        context['status_filter'] = self.request.GET.get(
+            'status-filter', '')
+        if context['status_filter'] == 'handled':
+            context['sorting_options'] = self.handled_sorting_option + context['sorting_options']
+    
+        context['company_filter'] = self.request.GET.get('company-filter', '')
+        context['designation_filter'] = self.request.GET.get(
+            'designation-filter', '')
+        context['phone_filter'] = self.request.GET.get('phone-filter', '')
+        context['email_filter'] = self.request.GET.get('email-filter', '')
+        context['name_filter'] = self.request.GET.get('name-filter', '')
+
+        return context
+
+    def get(self, request):
+        if request.user.is_superuser or request.user.is_coordinator:
+            return super().get(request)
+        raise PermissionDenied()
+
+@method_decorator(login_required, name="dispatch")
+class MessageSetHandled(View):
+    form = MessageHandledForm
+    def post(self, request, pk):
+        if not Message.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        message = Message.objects.get(pk=pk)
+        if request.user not in message.handle_users:
+            raise PermissionDenied()
+        form = self.form(request.POST, instance=message)
+        if form.is_valid():
+            message.handled = True
+            message.handled_on = datetime.now()
+            message.handled_by = request.user
+            message.handled_notes = form.cleaned_data['handled_notes']
+            message.save()
+        return JsonResponse({'handled': message.handled})
 
 
 @method_decorator(login_required, name="dispatch")
@@ -614,7 +768,7 @@ class RecruitmentApplications(ListView):
                 queryset = queryset.order_by(f'skill_matches')
             elif sorting == 'other_skills_count':
                 queryset = queryset.order_by(f'other_skills_count')
-            elif sorting == 'applied_on':
+            else:
                 queryset = queryset.order_by(f'applied_on')
 
         if ordering:
@@ -679,6 +833,13 @@ class RecruitmentApplications(ListView):
         if ordering:
             context['ordering'] = ordering
         return context
+
+    def get(self, request, pk):
+        if not RecruitmentPost.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        if request.user not in RecruitmentPost.objects.get(pk=pk).view_application_users:
+            raise PermissionDenied()
+        return super().get(request, pk=pk)
 
 
 @method_decorator(login_required, name="dispatch")

@@ -50,10 +50,20 @@ class Message(models.Model):
     sender_phone = models.CharField(max_length=150)
     sender_email = models.EmailField()
     message = models.TextField()
+    handled = models.BooleanField(default=False)
+    handled_by = models.ForeignKey(
+        User, null=True, on_delete=models.SET_NULL, related_name='handled_messages')
+    handled_on = models.DateTimeField(null=True, blank=True, editable=False)
+    handled_notes = models.TextField(blank=True, help_text='Notes on how the message was handled or responded to for future reference')
     date = models.DateTimeField(auto_now_add=True, editable=False)
     date_edited = models.DateTimeField(auto_now=True, editable=False)
 
+    @property
     def view_users(self):
+        return User.objects.filter(is_superuser=True, is_coordinator=True)
+    
+    @property
+    def handle_users(self):
         return User.objects.filter(is_superuser=True, is_coordinator=True)
 
     def __str__(self):
@@ -180,6 +190,10 @@ class RecruitmentPost(models.Model):
     @property
     def remove_skill_users(self):
         return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
+
+    @property
+    def view_application_users(self):
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
     @property
     def select_application_users(self):

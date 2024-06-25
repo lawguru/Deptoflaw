@@ -33,6 +33,20 @@ class ContactUsForm(forms.ModelForm):
         self.fields['sender_phone'].required = False
 
 
+class MessageHandledForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['handled_notes']
+
+        widgets = {
+            'handled_notes': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Handled Notes', 'style': 'height: 8rem;', 'required': 'required'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_suffix = ''
+
+
 class NoticeForm(forms.ModelForm):
     class Meta:
         model = Notice
@@ -123,7 +137,8 @@ class TPCChangeRecruitmentPostForm(RecruitmentPostForm):
 
 
 class SkillForm(forms.Form):
-    name = forms.CharField(max_length=150, label='Skill', widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Skill', 'id': 'id-skill-name', 'list': 'skill-data-list', 'autocomplete': 'off'}))
+    name = forms.CharField(max_length=150, label='Skill', widget=forms.TextInput(attrs={
+                           'class': 'form-control', 'placeholder': 'Skill', 'id': 'id-skill-name', 'list': 'skill-data-list', 'autocomplete': 'off'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

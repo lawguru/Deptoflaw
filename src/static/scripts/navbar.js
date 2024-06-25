@@ -12,8 +12,10 @@ function Menu(e) {
         document.getElementById("nav-menu-hamicon").classList.remove("responsive")
     } else {
         if (e)
-            if (e.getAttribute("id")=="nav-menu")
+            if (e.getAttribute("id")=="nav-menu") {
                 document.getElementById('nav2').setAttribute("onmouseleave", "");
+                document.getElementById('content').setAttribute("onclick", "Menu()");
+            }
         document.getElementById("nav2").classList.add("responsive");
         document.getElementById("nav-menu-hamicon").classList.add("responsive");
     }
@@ -26,9 +28,9 @@ function Menu(e) {
     }
 }
 
-var prevScrollpos = window.pageYOffset;
+var prevScrollpos = window.scrollY;
 window.onscroll = function() {
-var currentScrollPos = window.pageYOffset;
+var currentScrollPos = window.scrollY;
   if (prevScrollpos > currentScrollPos) {
     document.getElementById("navbar").classList.remove("hidden");
     document.getElementById("nav").classList.remove("hidden");

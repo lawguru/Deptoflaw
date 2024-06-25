@@ -12104,10 +12104,6 @@ body {
   font-size: 1rem;
 }
 
-body::-webkit-scrollbar {
-  display: none;
-}
-
 button {
   font-weight: bold;
   padding: 0.5rem;

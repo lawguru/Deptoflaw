@@ -179,6 +179,41 @@
                     </div>
                 </div>
             </li>
+            <li class="list-group-item list-group-item-accent p-4">
+                <div class="d-flex align-items-start gap-4">
+                    <i class="bi bi-chat-left-text display-5"></i>
+                    <div class="flex-fill">
+                        <h2 class="fw-bold text-body-emphasis lh-1">Messages</h2>
+                        <div class="mb-3">Messages received through the <a href="{% url 'contact' %}">Contact Us</a> page.</div>
+                        <div class="font-monospace" style="width: fit-content;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span style="width: 15ch;">Total:</span>
+                                <span class="me-3">{{messages_count|intword}}</span>
+                                <a class="btn btn-link rounded-pill m-0 p-0"
+                                    href="{% url 'messages' %}">
+                                    View
+                                </a>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span style="width: 15ch;">Handled:</span>
+                                <span class="me-3">{{handled_messages_count|intword}}</span>
+                                <a class="btn btn-link rounded-pill m-0 p-0"
+                                    href="{% url 'messages' %}?status-filter=handled">
+                                    View
+                                </a>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span style="width: 15ch;">Unhandled:</span>
+                                <span class="me-3">{{unhandled_messages_count|intword}}</span>
+                                <a class="btn btn-link rounded-pill m-0 p-0"
+                                    href="{% url 'messages' %}?status-filter=unhandled">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
             {% endif %}
             <li class="list-group-item list-group-item-accent p-4">
                 <div class="d-flex align-items-start gap-4">
