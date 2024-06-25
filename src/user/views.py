@@ -381,6 +381,11 @@ class UserListView(ListView):
         context['drop_out_year_upper_limit'] = self.request.GET.get(
             'drop-out-year-upper-limit', '')
 
+    def get(self, request):
+        if not request.user.is_superuser and not request.user.is_coordinator and request.user.role != 'staff' :
+            raise PermissionDenied()
+        return super().get(request)
+
 
 @method_decorator(login_required, name="dispatch")
 class UserCSVView(UserListView):
