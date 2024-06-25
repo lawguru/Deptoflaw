@@ -81,7 +81,7 @@
         <ul class="list-group list-group-flush">
             {% for phone_number in phone_numbers %}
             <li class="list-group-item d-flex align-items-center justify-content-between pe-0">
-                <span>{{ phone_number }}</span>
+                <a href="tel:{{ phone_number }}">{{ phone_number }}</a>
                 <span class="d-flex">
                     {% if phone_number.user.primary_phone_number == phone_number %}
                     <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Primary"></i>
@@ -167,7 +167,7 @@
         <ul class="list-group list-group-flush">
             {% for email in emails %}
             <li class="list-group-item d-flex align-items-center justify-content-between pe-0">
-                <span>{{ email }}</span>
+                <a href="mailto:{{ email }}">{{ email }}</a>
                 <span class="d-flex">
                     {% if email.user.primary_email == email %}
                     <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Primary"></i>
