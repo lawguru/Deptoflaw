@@ -194,7 +194,7 @@ class StudentProfile(models.Model):
                         self.pass_out_year = datetime.now().year
                     else:
                         self.pass_out_year = None
-                while self.semester_report_cards.count() < self.semester - 1:
+                while self.semester_report_cards.count() < self.semester:
                     SemesterReportCard.objects.create(student_profile=self)
         if self.is_cr:
             self.user.is_approved = True
