@@ -168,14 +168,8 @@ class Dashboard(TemplateView):
     def add_general_context(self):
         active_posts = RecruitmentPost.objects.filter(
             apply_by__gte=datetime.today().date())
-        user_notices = list(chain(
-            Notice.objects.filter(user=self.request.user),
-            RecruitmentPostUpdate.objects.filter(user=self.request.user)
-        ))
-        all_notices = list(chain(
-            Notice.objects.all(),
-            RecruitmentPostUpdate.objects.all()
-        ))
+        user_notices = Notice.objects.filter(user=self.request.user)
+        all_notices = Notice.objects.all()
 
         return {
             'post_count': RecruitmentPost.objects.count(),
