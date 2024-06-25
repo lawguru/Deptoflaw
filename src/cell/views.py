@@ -211,7 +211,6 @@ class ListNotice(ListView):
         ('applied-by-me', 'Applied by me'),
     ]
 
-
     def get_queryset(self):
         query = Q()
 
@@ -584,8 +583,9 @@ class MessageListView(ListView):
         context['status_filter'] = self.request.GET.get(
             'status-filter', '')
         if context['status_filter'] == 'handled':
-            context['sorting_options'] = self.handled_sorting_option + context['sorting_options']
-    
+            context['sorting_options'] = self.handled_sorting_option + \
+                context['sorting_options']
+
         context['company_filter'] = self.request.GET.get('company-filter', '')
         context['designation_filter'] = self.request.GET.get(
             'designation-filter', '')
@@ -600,9 +600,11 @@ class MessageListView(ListView):
             return super().get(request)
         raise PermissionDenied()
 
+
 @method_decorator(login_required, name="dispatch")
 class MessageSetHandled(View):
     form = MessageHandledForm
+
     def post(self, request, pk):
         if not Message.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
@@ -841,6 +843,11 @@ class RecruitmentApplicationsCSV(RecruitmentApplications):
     content_type = 'text/csv'
 
     def get(self, request, pk):
+        if not RecruitmentPost.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        if request.user not in RecruitmentPost.objects.get(pk=pk).view_application_users:
+            raise PermissionDenied()
+
         queryset = self.get_queryset()
 
         response = HttpResponse(content_type='text/csv')

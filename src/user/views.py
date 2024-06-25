@@ -392,6 +392,9 @@ class UserCSVView(UserListView):
     content_type = 'text/csv'
 
     def get(self, request):
+        if not request.user.is_superuser and not request.user.is_coordinator and request.user.role != 'staff' :
+            raise PermissionDenied()
+
         if self.request.GET.get('role-filter') != 'student':
             return redirect(reverse('user_csv') + '?role-filter=student' + ''.join([f'&{key}={value}' for key, value in self.request.GET.items() if key != 'role-filter']))
 
