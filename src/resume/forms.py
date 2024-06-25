@@ -1,4 +1,5 @@
 from django import forms
+import datetime
 from .models import *
 
 
@@ -39,9 +40,16 @@ class CertificationForm(forms.ModelForm):
             if isinstance(visible.field.widget, forms.Textarea):
                 visible.field.widget.attrs['style'] = 'height: 8rem'
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('issue_date'):
+            if cleaned_data.get('issue_date') > datetime.date.today():
+                self.add_error('issue_date', 'Issue date cannot be in future')
+
 
 class SkillForm(forms.Form):
-    name = forms.CharField(max_length=150, label='Skill', widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Skill', 'id': 'id-skill-name', 'list': 'skill-data-list', 'autocomplete': 'off'}))
+    name = forms.CharField(max_length=150, label='Skill', widget=forms.TextInput(attrs={
+                           'class': 'form-control', 'placeholder': 'Skill', 'id': 'id-skill-name', 'list': 'skill-data-list', 'autocomplete': 'off'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -49,7 +57,8 @@ class SkillForm(forms.Form):
 
 
 class LanguageForm(forms.Form):
-    name = forms.CharField(max_length=150, label='Language', widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Language', 'id': 'id-language-name', 'list': 'language-data-list', 'autocomplete': 'off'}))
+    name = forms.CharField(max_length=150, label='Language', widget=forms.TextInput(attrs={
+                           'class': 'form-control', 'placeholder': 'Language', 'id': 'id-language-name', 'list': 'language-data-list', 'autocomplete': 'off'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -60,7 +69,7 @@ class WorkExperienceForm(forms.ModelForm):
     class Meta:
         model = WorkExperience
         exclude = []
-        widgets= {
+        widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),
         }
@@ -73,6 +82,13 @@ class WorkExperienceForm(forms.ModelForm):
             visible.field.widget.attrs['placeholder'] = visible.field.label
             if isinstance(visible.field.widget, forms.Textarea):
                 visible.field.widget.attrs['style'] = 'height: 8rem'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('start_date') and cleaned_data.get('end_date'):
+            if cleaned_data.get('start_date') > cleaned_data.get('end_date'):
+                self.add_error(
+                    'end_date', 'End date cannot be before start date')
 
 
 class ProjectForm(forms.ModelForm):
@@ -93,6 +109,13 @@ class ProjectForm(forms.ModelForm):
             if isinstance(visible.field.widget, forms.Textarea):
                 visible.field.widget.attrs['style'] = 'height: 8rem'
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('start_date') and cleaned_data.get('end_date'):
+            if cleaned_data.get('start_date') > cleaned_data.get('end_date'):
+                self.add_error(
+                    'end_date', 'End date cannot be before start date')
+
 
 class PublicationForm(forms.ModelForm):
     class Meta:
@@ -110,6 +133,13 @@ class PublicationForm(forms.ModelForm):
             visible.field.widget.attrs['placeholder'] = visible.field.label
             if isinstance(visible.field.widget, forms.Textarea):
                 visible.field.widget.attrs['style'] = 'height: 8rem'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('publication_date'):
+            if cleaned_data.get('publication_date') > datetime.date.today():
+                self.add_error('publication_date',
+                               'Publication date cannot be in future')
 
 
 class PatentForm(forms.ModelForm):
@@ -129,6 +159,12 @@ class PatentForm(forms.ModelForm):
             if isinstance(visible.field.widget, forms.Textarea):
                 visible.field.widget.attrs['style'] = 'height: 8rem'
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('issue_date'):
+            if cleaned_data.get('issue_date') > datetime.date.today():
+                self.add_error('issue_date', 'Issue date cannot be in future')
+
 
 class AchievementForm(forms.ModelForm):
     class Meta:
@@ -147,6 +183,12 @@ class AchievementForm(forms.ModelForm):
             if isinstance(visible.field.widget, forms.Textarea):
                 visible.field.widget.attrs['style'] = 'height: 8rem'
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('date'):
+            if cleaned_data.get('date') > datetime.date.today():
+                self.add_error('date', 'Date cannot be in future')
+
 
 class PresentationForm(forms.ModelForm):
     class Meta:
@@ -164,6 +206,12 @@ class PresentationForm(forms.ModelForm):
             visible.field.widget.attrs['placeholder'] = visible.field.label
             if isinstance(visible.field.widget, forms.Textarea):
                 visible.field.widget.attrs['style'] = 'height: 8rem'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('date'):
+            if cleaned_data.get('date') > datetime.date.today():
+                self.add_error('date', 'Date cannot be in future')
 
 
 class OtherInfoForm(forms.ModelForm):
