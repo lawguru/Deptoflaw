@@ -101,6 +101,26 @@ class StudentProfileForm(forms.ModelForm):
                 visible.field.widget.attrs['max'] = 99999999999
 
 
+class ManualAcademicPerformanceForm(forms.ModelForm):
+    class Meta:
+        model = StudentProfile
+        fields = ['cgpa', 'pass_out_year', 'passed_semesters', 'backlog_count', 'manually_specify_cgpa']
+
+        widgets = {
+            'manually_specify_cgpa': forms.CheckboxInput(attrs={'class': 'form-check-input', 'required': 'required'}),
+            'cgpa': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'CGPA'}),
+            'backlog_count': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Backlog Count'}),
+            'passed_semesters': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Passed Semesters'}),
+            'pass_out_year': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Pass Out Year'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_suffix = ''
+        for visible in self.visible_fields():
+            visible.field.widget.attrs['placeholder'] = visible.field.label
+
+
 class SemesterReportCardForm(forms.ModelForm):
     class Meta:
         model = SemesterReportCard

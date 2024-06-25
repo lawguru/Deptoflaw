@@ -91,6 +91,9 @@ class AcademicInfo(TemplateView):
         if self.request.user in profile.edit_users:
             context['change_profile_form'] = StudentProfileForm(
                 instance=profile)
+        
+        if self.request.user.student_profile.course_duration + self.request.user.student_profile.registration_year <= datetime.datetime.now().year:
+            context['manual_academic_performance_form'] = ManualAcademicPerformanceForm(instance=profile)
 
         return context
 
@@ -100,6 +103,26 @@ class ChangeStudentProfile(ChangeUserKeyObject):
     model = StudentProfile
     form = StudentProfileForm
     redirect_url_name = 'student_profile'
+
+    def get_redirect_url_args(self, request, pk):
+        return [pk]
+
+    def get(self, request, pk, *args, **kwargs):
+        raise BadRequest()
+
+
+@method_decorator(login_required, name="dispatch")
+class ManualAcademicPerformance(ChangeUserKeyObject):
+    model = StudentProfile
+    form = ManualAcademicPerformanceForm
+    redirect_url_name = 'student_profile'
+
+    def check_permission(self, request, pk, *args, **kwargs):
+        if not super().check_permission(request, pk, *args, **kwargs):
+            return False
+        if request.user.student_profile.course_duration + request.user.student_profile.registration_year > datetime.datetime.now().year:
+            return False
+        return True 
 
     def get_redirect_url_args(self, request, pk):
         return [pk]

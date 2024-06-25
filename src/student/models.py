@@ -18,12 +18,6 @@ class StudentProfile(models.Model):
             return super().get_queryset().annotate(
                 academic_half=models.Value(
                     current_academic_half, output_field=models.CharField()),
-                course_duration=models.Case(
-                    models.When(course='B.Tech', then=4),
-                    models.When(course='M.Tech', then=2),
-                    models.When(course='PhD', then=6),
-                    output_field=models.IntegerField()
-                ),
                 passed_out=models.ExpressionWrapper(models.Case(
                     models.When(passed_semesters__gte=models.F(
                         'course_duration') * 2, then=True),
@@ -38,9 +32,14 @@ class StudentProfile(models.Model):
                 ), output_field=models.BooleanField()),
                 year=models.Case(
                     models.When(
-                        is_current=True,
-                        then=datetime.now().year - models.F('registration_year')),
-                    default=0,
+                        passed_out=True,
+                        then=models.F('course_duration')),
+                    models.When(
+                        registration_year__lte=datetime.now().year - models.F('course_duration'),
+                        then=models.F('course_duration')
+                    ),
+                    default=models.ExpressionWrapper(datetime.now(
+                    ).year - models.F('registration_year'), output_field=models.IntegerField()),
                     output_field=models.IntegerField()
                 ),
                 semester=models.Case(
@@ -55,6 +54,11 @@ class StudentProfile(models.Model):
                         is_current=True,
                         then=models.ExpressionWrapper(models.functions.Concat(models.F('semester'), datetime.now(
                         ).year % 100, models.F('registration_year') % 100), output_field=models.CharField())
+                    ),
+                    models.When(
+                        passed_out=True,
+                        then=models.ExpressionWrapper(models.functions.Concat(models.F('semester'), models.F(
+                            'pass_out_year') % 100, models.F('registration_year') % 100), output_field=models.CharField())
                     ),
                     default=models.Value(
                         'SSYYRR', output_field=models.CharField()),
@@ -109,12 +113,14 @@ class StudentProfile(models.Model):
         max_length=15, editable=False, default='YYCSEXXXXX')
     registration_year = models.PositiveIntegerField(
         editable=False, default=2000)
-    backlog_count = models.PositiveSmallIntegerField(editable=False, default=0)
+    backlog_count = models.PositiveSmallIntegerField(default=0)
     pass_out_year = models.PositiveIntegerField(
-        editable=False, null=True, blank=True, default=None)
+        null=True, blank=True, default=None, help_text='Year of Passing Out. Specify only if all semesters are passed successfully.')
     passed_semesters = models.PositiveSmallIntegerField(
-        editable=False, default=0)
-    cgpa = models.FloatField(editable=False, default=0)
+        default=0, help_text='How many Semesters have you passed successfully?')
+    cgpa = models.FloatField(default=0)
+    course_duration = models.PositiveSmallIntegerField()
+    manually_specify_cgpa = models.BooleanField(default=False)
 
     @property
     def edit_users(self):
@@ -173,19 +179,23 @@ class StudentProfile(models.Model):
     def save(self, *args, **kwargs):
         self.registration_year = int(f'{self.registration_number}'[:4])
         self.id_card = f'{self.registration_year % 100}CSE{"BTC" if self.course == "B.Tech" else "MTC" if self.course == "M.Tech" else "PHD"}{self.id_number:03d}'
+        self.course_duration = 4 if self.course == 'B.Tech' else 2 if self.course == 'M.Tech' else 6
         if self.pk and StudentProfile.objects.filter(pk=self.pk).exists():
-            self.cgpa = self.calculate_cgpa()
-            self.backlog_count = sum(
-                [semester_report_card.backlogs for semester_report_card in self.semester_report_cards.all()])
-            self.passed_semesters = sum(
-                [1 for semester_report_card in self.semester_report_cards.all() if semester_report_card.passed])
-            if StudentProfile.objects.get(pk=self.pk).backlog_count > 0:
-                if self.backlog_count == 0 and not self.is_current and not self.dropped_out:
-                    self.pass_out_year = datetime.now().year
-                else:
-                    self.pass_out_year = None
-            while self.semester_report_cards.count() < self.semester:
-                SemesterReportCard.objects.create(student_profile=self)
+            if self.manually_specify_cgpa:
+                self.semester_report_cards.all().delete()
+            else:
+                self.cgpa = self.calculate_cgpa()
+                self.backlog_count = sum(
+                    [semester_report_card.backlogs for semester_report_card in self.semester_report_cards.all()])
+                self.passed_semesters = sum(
+                    [1 for semester_report_card in self.semester_report_cards.all() if semester_report_card.passed])
+                if StudentProfile.objects.get(pk=self.pk).backlog_count > 0:
+                    if self.backlog_count == 0 and not self.is_current and not self.dropped_out:
+                        self.pass_out_year = datetime.now().year
+                    else:
+                        self.pass_out_year = None
+                while self.semester_report_cards.count() < self.semester - 1:
+                    SemesterReportCard.objects.create(student_profile=self)
         if self.is_cr:
             self.user.is_approved = True
         super().save(*args, **kwargs)
@@ -232,14 +242,15 @@ class SemesterReportCard(models.Model):
                     partition_by=[models.F('student_profile')],
                     order_by=models.F('id').asc()
                 ),
-                roll=models.ExpressionWrapper(models.functions.Concat(models.F('semester'), datetime.now(
-                ).year % 100, models.F('student_profile__registration_year') % 100), output_field=models.CharField()),
+                # roll=models.ExpressionWrapper(models.functions.Concat(models.F('semester'), models.F('year_of_exam') % 100, models.F('student_profile__registration_year') % 100), output_field=models.CharField()),
             )
 
     objects = SemesterReportCardManager()
 
     student_profile = models.ForeignKey(
         StudentProfile, on_delete=models.CASCADE, related_name='semester_report_cards')
+    year_of_exam = models.PositiveIntegerField(
+        default=datetime.now().year, validators=[MinValueValidator(2000), MaxValueValidator(datetime.now().year)])
     subjects = models.JSONField(default=list, blank=True, null=True)
     subject_codes = models.JSONField(default=list, blank=True, null=True)
     subject_credits = models.JSONField(default=list, blank=True, null=True)
