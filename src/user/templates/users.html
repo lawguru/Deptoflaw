@@ -708,15 +708,26 @@
                         {% if user.primary_email %}
                         <a href="mailto:{{user.primary_email}}" target="_blank">
                             <span
-                                class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                class="badge d-flex align-items-center py-0 ps-1 pe-3
+                                    {% if not user.primary_email.is_verified %}
+                                    text-danger-emphasis bg-danger-subtle border border-danger-subtle
+                                    {% else %}
+                                    text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle
+                                    {% endif %}
+                                    rounded-pill">
                                 <div class="rounded-circle m-2">
                                     <i class="bi bi-envelope fs-5"></i>
                                 </div>
                                 <div class="text-start">
-                                    <strong class="fw-bold text-body-emphasis lh-1">
+                                    <strong class="fw-bold lh-1">
                                         {{ user.primary_email }}
                                     </strong>
-                                    <small class="d-block text-body-secondary">Email</small>
+                                    <small class="d-block text-body-secondary">
+                                        Email
+                                        {% if not user.primary_email.is_verified %}
+                                        not verified
+                                        {% endif %}
+                                    </small>
                                 </div>
                             </span>
                         </a>

@@ -499,6 +499,9 @@ class ResetPassword(View):
             else:
                 raise BadRequest()
         elif code == email.verify_code and email.verify_code_valid:
+            if not email.is_verified:
+                email.is_verified = True
+                email.save()
             return render(request, 'reset_password.html', {'form': ResetPasswordForm()})
         else:
             return render(request, 'reset_password_failed.html')
@@ -512,6 +515,9 @@ class ResetPassword(View):
         if not email.user:
             raise PermissionDenied()
         if code == email.verify_code and email.verify_code_valid:
+            if not email.is_verified:
+                email.is_verified = True
+                email.save()
             form = ResetPasswordForm(request.POST)
             if form.is_valid():
                 password = form.cleaned_data['password']
