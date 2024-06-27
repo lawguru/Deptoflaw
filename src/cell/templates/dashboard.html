@@ -489,7 +489,7 @@
                             <div class="my-3">
                                 {% if request.user.is_superuser or request.user.is_coordinator %}
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 20ch;">Total posts:</span>
+                                    <span style="width: 17ch;">Total posts:</span>
                                     <span class="me-3">{{post_count|intword}}</span>
                                     <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'recruitment_posts' %}?is-active-filter=False">
                                         View
@@ -505,7 +505,7 @@
                                 </div>
                                 {% endif %}
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 20ch;">Total Active posts:</span>
+                                    <span style="width: 17ch;">Active posts:</span>
                                     <span class="me-3">{{active_post_count|intword}}</span>
                                     <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'recruitment_posts' %}">
                                         View
@@ -521,7 +521,7 @@
                                 </div>
                                 {% if request.user.role == 'recruiter' or request.user.is_superuser or request.user.is_coordinator %}
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 20ch;">My Posts:</span>
+                                    <span style="width: 17ch;">My Posts:</span>
                                     <span class="me-3">{{user_post_count|intword}}</span>
                                     <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'recruitment_posts' %}?post-filter=by-me">
                                         View
@@ -536,7 +536,7 @@
                                     </a>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 20ch;">My Active posts:</span>
+                                    <span style="width: 17ch;">My Active posts:</span>
                                     <span class="me-3">{{user_active_post_count|intword}}</span>
                                     <a class="btn btn-link rounded-pill link m-0 p-0"
                                         href="{% url 'recruitment_posts' %}?post-filter=by-me&is-active-filter=False">
@@ -567,7 +567,7 @@
                         <div class="font-monospace" style="width: fit-content;">
                             <div class="my-3">
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <strong style="width: 27ch;">Total:</strong>
+                                    <strong style="width: 13ch;">Total:</strong>
                                     <span class="me-3">{{user_application_count|intword}}</span>
                                     <a class="btn btn-link rounded-pill link m-0 p-0"
                                         href="{% url 'recruitment_posts' %}?post-filter=applied-by-me">
@@ -575,7 +575,7 @@
                                     </a>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Pending:</span>
+                                    <span style="width: 13ch;">Pending:</span>
                                     <span class="me-3">{{pending_user_application_count|intword}}</span>
                                     <a class="btn btn-link rounded-pill link m-0 p-0"
                                         href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filters=P">
@@ -583,7 +583,7 @@
                                     </a>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Selected:</span>
+                                    <span style="width: 13ch;">Selected:</span>
                                     <span class="me-3">{{selected_user_application_count|intword}}</span>
                                     <a class="btn btn-link rounded-pill link m-0 p-0"
                                         href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filters=S">
@@ -591,7 +591,7 @@
                                     </a>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Rejected:</span>
+                                    <span style="width: 13ch;">Rejected:</span>
                                     <span class="me-3">{{rejected_user_application_count|intword}}</span>
                                     <a class="btn btn-link rounded-pill link m-0 p-0"
                                         href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filters=R">
@@ -599,7 +599,7 @@
                                     </a>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Shortlisted:</span>
+                                    <span style="width: 13ch;">Shortlisted:</span>
                                     <span class="me-3">{{shortlisted_user_application_count|intword}}</span>
                                     <a class="btn btn-link rounded-pill link m-0 p-0"
                                         href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filters=I">
