@@ -7,6 +7,6 @@
     <h1 class="display-5 fw-bold text-body-emphasis lh-1">Email Verification Failed</h1>
     <p class="text-body-emphasis">Your email {{email}} was not verified.</p>
     <p class="text-body-emphasis">You may have clicked on an invalid link or the link may have expired.</p>
-    <p class="text-body-emphasis">Please try again by clicking the link in the email you received or request a new verification email from your personal and contact info page.</p>
+    <p class="text-body-emphasis">Please try again by clicking the link in the email you received or request a new verification email from your <a href="{% url 'self_user' %}">personal and contact info</a> page.</p>
 </div>
 {% endblock %}

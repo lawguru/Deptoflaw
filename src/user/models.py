@@ -276,8 +276,7 @@ class Email(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True, blank=True, related_name='emails')
     is_verified = models.BooleanField(default=False)
-    verify_code = models.CharField(
-        max_length=6, editable=False, blank=True, null=True)
+    verify_code = models.CharField(max_length=12, editable=False, blank=True, null=True)
 
     @property
     def set_primary_users(self):
