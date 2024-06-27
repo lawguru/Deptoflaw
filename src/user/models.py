@@ -288,11 +288,12 @@ class Email(models.Model):
     is_verified = models.BooleanField(default=False)
     verify_code = models.CharField(max_length=12, editable=False, blank=True, null=True)
     verify_code_time = models.DateTimeField(editable=False, blank=True, null=True)
+    verify_code_valid_for = models.SmallIntegerField(default=5, editable=False)
     
     @property
     def verify_code_valid(self):
         if self.verify_code and self.verify_code_time:
-            return (datetime.datetime.now(datetime.timezone.utc) - self.verify_code_time.astimezone(datetime.timezone.utc)).seconds < 300
+            return (datetime.datetime.now(datetime.timezone.utc) - self.verify_code_time.astimezone(datetime.timezone.utc)).seconds < (self.verify_code_valid_for * 60)
         return False
 
     @property
@@ -325,6 +326,7 @@ class Email(models.Model):
             'email_verification.html',
             {
                 'verification_url': request.build_absolute_uri(reverse('verify_email', args=[self.pk, self.verify_code])),
+                'valid_for': self.verify_code_valid_for,
             }
         )
         try:

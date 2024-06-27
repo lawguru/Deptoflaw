@@ -484,8 +484,8 @@ class ResetPassword(View):
             email.verify_code = str(randint(100000000000, 999999999999))
             email.save()
             html_message = render_to_string('reset_password_email.html', {
-                'email': email.email,
-                'url': request.build_absolute_uri(reverse('reset_password', args=[email.email, email.verify_code]))
+                'url': request.build_absolute_uri(reverse('reset_password', args=[email.email, email.verify_code])),
+                'valid_for': email.verify_code_valid_for,
             })
             sent = send_mail(
                 subject='Reset Password',
