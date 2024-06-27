@@ -74,6 +74,8 @@ class AcademicInfo(TemplateView):
         if not StudentProfile.objects.filter(pk=pk).exists():
             raise ObjectDoesNotExist()
         profile = StudentProfile.objects.get(pk=self.kwargs['pk'])
+        if not profile.manually_specify_cgpa and profile.semester_report_cards.count() < profile.semester:
+            profile.save()
         if request.user not in profile.view_users:
             raise PermissionDenied()
         return super().get(request, pk)

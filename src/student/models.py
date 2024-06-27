@@ -184,18 +184,18 @@ class StudentProfile(models.Model):
             if self.manually_specify_cgpa:
                 self.semester_report_cards.all().delete()
             else:
+                while self.semester_report_cards.count() < self.semester:
+                    SemesterReportCard.objects.create(student_profile=self)
                 self.cgpa = self.calculate_cgpa()
                 self.backlog_count = sum(
                     [semester_report_card.backlogs for semester_report_card in self.semester_report_cards.all()])
                 self.passed_semesters = sum(
                     [1 for semester_report_card in self.semester_report_cards.all() if semester_report_card.passed])
                 if StudentProfile.objects.get(pk=self.pk).backlog_count > 0:
-                    if self.backlog_count == 0 and not self.is_current and not self.dropped_out:
-                        self.pass_out_year = datetime.now().year
+                    if self.backlog_count == 0 and self.passed_semesters >= self.course_duration * 2:
+                        self.pass_out_year = max([semester_report_card.year_of_exam for semester_report_card in self.semester_report_cards.all()])
                     else:
                         self.pass_out_year = None
-                while self.semester_report_cards.count() < self.semester:
-                    SemesterReportCard.objects.create(student_profile=self)
         if self.is_cr:
             self.user.is_approved = True
         super().save(*args, **kwargs)

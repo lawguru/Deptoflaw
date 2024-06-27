@@ -391,6 +391,10 @@
                                 Check this to Consider for CGPA Calculation
                             </label>
                         </div>
+                        <div class="form-floating mb-3">
+                            <input type="number" class="form-control" id="semester-report-card-dynamic-form-year-of-exam" name="year_of_exam" placeholder="Year of Exam" required>
+                            <label for="year_of_exam">Year of Exam</label>
+                        </div>
                         <table class="table table-primary table-striped m-0 rounded-3 overflow-hidden">
                             <tbody id="semester-report-card-dynamic-form-fields">
                             </tbody>
@@ -544,6 +548,10 @@
             const formData = new FormData(form);
             const jsonData = {};
             for (const [key, value] of formData.entries()) {
+                if (key == "year_of_exam") {
+                    document.getElementById('semester-report-card-dynamic-form-year-of-exam').value = value;
+                    continue;
+                }
                 if (key == "is_complete") {
                     if (value == 'on')
                         document.getElementById('semester-report-card-dynamic-form-is-complete').checked = true;
@@ -571,6 +579,10 @@
             const formData = new FormData(form);
             const jsonData = {};
             for (const [key, value] of formData.entries()) {
+                if (key == "year_of_exam") {
+                    jsonData[key] = value;
+                    continue;
+                }
                 if (key == "is_complete") {
                     jsonData[key] = value;
                     continue;
