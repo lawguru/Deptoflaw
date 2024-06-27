@@ -292,7 +292,7 @@ class Email(models.Model):
     @property
     def verify_code_valid(self):
         if self.verify_code and self.verify_code_time:
-            return (datetime.datetime.now() - self.verify_code_time).seconds < 300
+            return (datetime.datetime.now(datetime.timezone.utc) - self.verify_code_time.astimezone(datetime.timezone.utc)).seconds < 300
         return False
 
     @property
