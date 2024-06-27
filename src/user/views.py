@@ -488,7 +488,7 @@ class ResetPassword(View):
                 'valid_for': email.verify_code_valid_for,
             })
             sent = send_mail(
-                subject='Reset Password',
+                subject='Reset Password | TPC | CSE | AUS',
                 message=strip_tags(html_message),
                 from_email=None,
                 recipient_list=[email.email],

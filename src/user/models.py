@@ -321,7 +321,7 @@ class Email(models.Model):
     def send_verification_email(self, request):
         self.verify_code = str(randint(100000000000, 999999999999))
         self.save()
-        subject = 'Email Verification'
+        subject = 'Email Verification | TPC | CSE | AUS'
         html_message = render_to_string(
             'email_verification.html',
             {
