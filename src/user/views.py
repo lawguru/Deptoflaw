@@ -853,7 +853,7 @@ class VerifyEmail(View):
         email = Email.objects.get(pk=pk)
         if email.is_verified:
             return render(request, 'email_verified.html', {'email': email.email})
-        if code == 'request' and email.send_verification_email():
+        if code == 'request' and email.send_verification_email(request):
             return render(request, 'email_verification_sent.html', {'email': email.email})
         if email.verification_code == code:
             email.is_verified = True

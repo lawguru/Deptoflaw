@@ -300,14 +300,14 @@ class Email(models.Model):
             return User.objects.none()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
-    def send_verification_email(self):
+    def send_verification_email(self, request):
         self.verify_code = str(randint(100000000000, 999999999999))
         self.save()
         subject = 'Email Verification'
         html_message = render_to_string(
             'email_verification.html',
             {
-                'verification_url': reverse('verify_email', args=[self.pk, self.verify_code]),
+                'verification_url': request.build_absolute_uri(reverse('verify_email', args=[self.pk, self.verify_code])),
             }
         )
         plain_message = strip_tags(html_message)
