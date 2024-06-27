@@ -340,7 +340,7 @@ class Email(models.Model):
         if hasattr(self, 'primary_of') and self.primary_of:
             self.user = self.primary_of
         if self.verify_code:
-            self.verify_code_time = self.verify_code_time or datetime.datetime.now()
+            self.verify_code_time = datetime.datetime.now()
         else:
             self.verify_code_time = None
 
