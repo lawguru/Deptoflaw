@@ -93,11 +93,11 @@ class Quote(models.Model):
 
     @property
     def edit_users(self):
-        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user)).distinct()
 
     @property
     def delete_users(self):
-        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user)).distinct()
 
     def __str__(self):
         return self.quote + ' - ' + self.author
@@ -186,6 +186,8 @@ class RecruitmentPost(models.Model):
 
     @property
     def edit_users(self):
+        if self.user == None:
+            User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True)).distinct()
         if self.user.is_superuser:
             return User.objects.filter(is_superuser=True)
         if self.user.is_coordinator:
@@ -194,30 +196,44 @@ class RecruitmentPost(models.Model):
 
     @property
     def add_skill_users(self):
+        if self.user == None:
+            User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True)).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
 
     @property
     def remove_skill_users(self):
+        if self.user == None:
+            User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True)).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
 
     @property
     def view_application_users(self):
+        if self.user == None:
+            User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
     @property
     def select_application_users(self):
+        if self.user == None:
+            User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
     @property
     def reject_application_users(self):
+        if self.user == None:
+            User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
     @property
     def shortlist_application_users(self):
+        if self.user == None:
+            User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
     @property
     def pending_application_users(self):
+        if self.user == None:
+            User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
     @property
@@ -294,7 +310,7 @@ class RecruitmentApplication(models.Model):
         ('I', 'Shortlisted for Interview'),
     ]
     user = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name='job_applications')
+        User, null=True, on_delete=models.CASCADE, related_name='job_applications')
     recruitment_post = models.ForeignKey(
         RecruitmentPost, on_delete=models.RESTRICT, related_name='applications')
     cover_letter = models.TextField(
