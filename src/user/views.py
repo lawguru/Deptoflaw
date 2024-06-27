@@ -12,11 +12,15 @@ from student.models import StudentProfile
 from staff.models import StaffProfile
 from recruiter.models import RecruiterProfile
 from resume.models import Skill
-from .forms import UserForm, PhoneNumberForm, EmailForm, AddressForm, LinkForm
+from .forms import *
 from .models import User, PhoneNumber, Email, Address, Link
 from django.db.models import Count
 from django.contrib.auth import logout
 from django.http import JsonResponse, HttpResponse
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from random import randint
 import csv
 
 # Create your views here.
@@ -467,6 +471,57 @@ class SignOut(View):
         return redirect('sign_in')
 
 
+class ResetPassword(View):
+    def get(self, request, email, code):
+        if email == 'specify':
+            return render(request, 'reset_password_specify.html', {'form': ResetPasswordSpecifyForm()})
+        if not Email.objects.filter(email=email).exists():
+            raise ObjectDoesNotExist()
+        email = Email.objects.get(email=email)
+        if not email.user:
+            raise PermissionDenied()
+        if code == 'request' or email.verify_code == None:
+            email.verify_code = str(randint(100000000000, 999999999999))
+            email.save()
+            html_message = render_to_string('reset_password_email.html', {
+                'email': email.email,
+                'url': request.build_absolute_uri(reverse('reset_password', args=[email.email, email.verify_code]))
+            })
+            sent = send_mail(
+                subject='Reset Password',
+                message=strip_tags(html_message),
+                recipient_list=[email.email],
+                html_message=html_message
+            )
+            if sent:
+                return render(request, 'reset_password_link_sent.html', {'email': email.email})
+            else:
+                raise BadRequest()
+        elif code == email.verify_code:
+            return render(request, 'reset_password.html', {'form': ResetPasswordForm()})
+
+    def post(self, request, email, code):
+        if not Email.objects.filter(email=email).exists():
+            raise ObjectDoesNotExist()
+        email = Email.objects.get(email=email)
+        if not email.user:
+            raise PermissionDenied()
+        if code == email.verify_code and email.verify_code_valid:
+            form = ResetPasswordForm(request.POST)
+            if form.is_valid():
+                password = form.cleaned_data['password']
+                user = email.user
+                user.set_password(password)
+                user.save()
+                email.verify_code = None
+                email.save()
+                return redirect('sign_in')
+            else:
+                return render(request, 'reset_password.html', {'form': form})
+        else:
+            return render(request, 'reset_password_failed.html')
+
+
 @method_decorator(login_required, name="dispatch")
 class UserPerformAction(View):
     def post(self, request, pk, action):
@@ -855,7 +910,8 @@ class VerifyEmail(View):
             return render(request, 'email_verified.html', {'email': email.email})
         if code == 'request' and email.send_verification_email(request):
             return render(request, 'email_verification_sent.html', {'email': email.email})
-        if email.verify_code == code:
+        if email.verify_code == code and email.verify_code_valid:
+            email.verify_code = None
             email.is_verified = True
             email.save()
             return render(request, 'email_verified.html', {'email': email.email})

@@ -74,6 +74,11 @@
             <p class="replace-abbreviation">{{ user.bio }}</p>
         </div>
         {% endif %}
+        {% if request.user in user.reset_password_users and user.primary_email.is_verified %}
+        <a class="btn btn-primary btn-lg w-100 mx-3 my-4" href="{% url 'reset_password' user.primary_email.email 'request' %}">
+            Reset Password
+        </a>
+        {% endif %}
     </div>
     {% if phone_numbers|length or phone_number_form %}
     <div id="phone-numbers" class="my-5">

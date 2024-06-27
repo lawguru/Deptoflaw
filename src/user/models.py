@@ -2,11 +2,11 @@ from django.db import models
 from django.db.models import Q
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.core.mail import send_mail
-from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from random import randint
 from django.urls import reverse
+import datetime
 
 # Create your models here.
 
@@ -99,6 +99,16 @@ class User(AbstractBaseUser, PermissionsMixin):
             return f'Dr. {self.last_name}'
         else:
             return self.first_name
+
+    @property
+    def reset_password_users(self):
+        return User.objects.filter(pk=self.pk)
+
+    @property
+    def set_password_users(self):
+        if self.is_superuser:
+            return User.objects.filter(pk=self.pk)
+        return User.objects.filter(is_superuser=True)
 
     @property
     def edit_users(self):
@@ -277,6 +287,13 @@ class Email(models.Model):
         User, on_delete=models.CASCADE, null=True, blank=True, related_name='emails')
     is_verified = models.BooleanField(default=False)
     verify_code = models.CharField(max_length=12, editable=False, blank=True, null=True)
+    verify_code_time = models.DateTimeField(editable=False, blank=True, null=True)
+    
+    @property
+    def verify_code_valid(self):
+        if self.verify_code and self.verify_code_time:
+            return (datetime.datetime.now() - self.verify_code_time).seconds < 300
+        return False
 
     @property
     def set_primary_users(self):
@@ -310,12 +327,8 @@ class Email(models.Model):
                 'verification_url': request.build_absolute_uri(reverse('verify_email', args=[self.pk, self.verify_code])),
             }
         )
-        plain_message = strip_tags(html_message)
-        from_email = settings.EMAIL_HOST_USER
-        to = self.email
         try:
-            return send_mail(subject, plain_message, from_email,
-                             [to], html_message=html_message)
+            return send_mail(subject=subject, message=strip_tags(html_message), recipient_list=[self.email], html_message=html_message)
         except:
             return 0
 
@@ -324,6 +337,11 @@ class Email(models.Model):
             self.user.primary_email = self
         if hasattr(self, 'primary_of') and self.primary_of:
             self.user = self.primary_of
+        if self.verify_code:
+            self.verify_code_time = self.verify_code_time or datetime.datetime.now()
+        else:
+            self.verify_code_time = None
+
         super().save(*args, **kwargs)
         if self.user:
             self.user.save()

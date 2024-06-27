@@ -9,6 +9,7 @@ urlpatterns = [
     path('list/csv/', UserCSVView.as_view(), name='user_csv'),
     path('signin/', SignIn.as_view(), name='sign_in'),
     path('signout/', SignOut.as_view(), name='sign_out'),
+    path('resetpassword/<str:email>/<str:code>/', ResetPassword.as_view(), name='reset_password'),
     path('<int:pk>/', BuildProfile.as_view(), name='build_profile'),
     path('<int:pk>/approve/', ApproveUser.as_view(), name='approve_user'),
     path('<int:pk>/reject/', RejectUser.as_view(), name='reject_user'),
