@@ -177,7 +177,7 @@
                 </a>
                 <span class="d-flex">
                     {% if request.user in email.verify_users %}
-                    <a class="btn border border-0 m-0" href="{% url 'verify_email' email.pk 'request' %}" data-bs-toggle="tooltip" data-bs-title="Verify Email">
+                    <a class="btn border border-0 m-0" target="_blank" href="{% url 'verify_email' email.pk 'request' %}" data-bs-toggle="tooltip" data-bs-title="Verify Email">
                         <i class="bi bi-check2-circle"></i>
                     </a>
                     {% endif %}
