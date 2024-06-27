@@ -328,7 +328,7 @@ class Email(models.Model):
             }
         )
         try:
-            return send_mail(subject=subject, message=strip_tags(html_message), recipient_list=[self.email], html_message=html_message)
+            return send_mail(subject=subject, message=strip_tags(html_message), from_email=None, recipient_list=[self.email], html_message=html_message)
         except:
             return 0
 

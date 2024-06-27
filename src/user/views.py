@@ -490,6 +490,7 @@ class ResetPassword(View):
             sent = send_mail(
                 subject='Reset Password',
                 message=strip_tags(html_message),
+                from_email=None,
                 recipient_list=[email.email],
                 html_message=html_message
             )
