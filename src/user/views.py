@@ -504,6 +504,8 @@ class ResetPassword(View):
             return render(request, 'reset_password_failed.html')
 
     def post(self, request, email, code):
+        if request.POST.get('email'):
+            return redirect(reverse('reset_password', args=[request.POST.get('email'), 'request']))
         if not Email.objects.filter(email=email).exists():
             raise ObjectDoesNotExist()
         email = Email.objects.get(email=email)
