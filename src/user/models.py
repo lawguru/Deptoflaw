@@ -138,7 +138,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def approve_users(self):
-        if self.is_approved:
+        if self.is_approved or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(Q(Q(is_superuser=True) | Q(is_coordinator=True))).distinct()
 
@@ -150,13 +150,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def make_superuser_users(self):
-        if self.is_superuser:
+        if self.is_superuser or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(is_superuser=True)
 
     @property
     def make_coordinator_users(self):
-        if self.is_coordinator:
+        if self.is_coordinator or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(Q(Q(is_superuser=True) | Q(is_coordinator=True))).distinct()
 
@@ -181,7 +181,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def make_cr_users(self):
-        if not hasattr(self, 'student_profile') or self.student_profile.is_cr:
+        if not hasattr(self, 'student_profile') or self.student_profile.is_cr or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(
             Q(is_superuser=True) | Q(is_coordinator=True) |
@@ -202,13 +202,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def make_hod_users(self):
-        if not hasattr(self, 'staff_profile') or self.staff_profile.is_hod:
+        if not hasattr(self, 'staff_profile') or self.staff_profile.is_hod or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(Q(is_superuser=True) | Q(staff_profile__is_hod=True)).distinct()
 
     @property
     def make_tpc_head_users(self):
-        if not hasattr(self, 'staff_profile') or self.staff_profile.is_tpc_head:
+        if not hasattr(self, 'staff_profile') or self.staff_profile.is_tpc_head or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(Q(is_superuser=True) | Q(staff_profile__is_hod=True) | Q(staff_profile__is_tpc_head=True)).distinct()
 
@@ -298,7 +298,7 @@ class Email(models.Model):
 
     @property
     def set_primary_users(self):
-        if self == self.user.primary_email:
+        if self == self.user.primary_email or not self.is_verified:
             return User.objects.none()
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
