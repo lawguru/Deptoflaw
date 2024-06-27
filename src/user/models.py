@@ -1,6 +1,12 @@
 from django.db import models
 from django.db.models import Q
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from django.core.mail import send_mail
+from django.conf import settings
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from random import randint
+from django.urls import reverse
 
 # Create your models here.
 
@@ -150,13 +156,13 @@ class User(AbstractBaseUser, PermissionsMixin):
             return User.objects.none()
         if self.is_coordinator:
             return User.objects.filter(is_superuser=True)
-    
+
     @property
     def make_quoter_users(self):
         if self.is_quoter or not self.is_approved:
             return User.objects.none()
         return User.objects.filter(is_superuser=True)
-    
+
     @property
     def remove_quoter_users(self):
         if not self.is_quoter:
@@ -269,6 +275,9 @@ class Email(models.Model):
     email = models.EmailField(unique=True)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True, blank=True, related_name='emails')
+    is_verified = models.BooleanField(default=False)
+    verify_code = models.CharField(
+        max_length=6, editable=False, blank=True, null=True)
 
     @property
     def set_primary_users(self):
@@ -285,6 +294,31 @@ class Email(models.Model):
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
+
+    @property
+    def verify_users(self):
+        if self.is_verified:
+            return User.objects.none()
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
+
+    def send_verification_email(self):
+        self.verify_code = str(randint(100000000000, 999999999999))
+        self.save()
+        subject = 'Email Verification'
+        html_message = render_to_string(
+            'email_verification.html',
+            {
+                'verification_url': reverse('verify_email', args=[self.pk, self.verify_code]),
+            }
+        )
+        plain_message = strip_tags(html_message)
+        from_email = settings.EMAIL_HOST_USER
+        to = self.email
+        try:
+            return send_mail(subject, plain_message, from_email,
+                             [to], html_message=html_message)
+        except:
+            return 0
 
     def save(self, *args, **kwargs):
         if not Email.objects.filter(user=self.user).exists() and self.user:

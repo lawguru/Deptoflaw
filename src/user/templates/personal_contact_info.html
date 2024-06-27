@@ -167,10 +167,19 @@
         <ul class="list-group list-group-flush">
             {% for email in emails %}
             <li class="list-group-item d-flex align-items-center justify-content-between pe-0">
-                <a href="mailto:{{ email }}">{{ email }}</a>
+                <a href="mailto:{{ email }}">
+                    <p class="d-block lh-1 mb-0">
+                        {{ email }}
+                    </p>
+                    {% if not email.is_verified %}
+                    <span class="badge text-danger-emphasis p-0 m-0 lh-1">Unverified</span>
+                    {% endif %}
+                </a>
                 <span class="d-flex">
-                    {% if email.user.primary_email == email %}
-                    <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Primary"></i>
+                    {% if request.user in email.verify_users %}
+                    <a class="btn border border-0 m-0" href="{% url 'verify_email' email.pk 'request' %}" data-bs-toggle="tooltip" data-bs-title="Verify Email">
+                        <i class="bi bi-check2-circle"></i>
+                    </a>
                     {% endif %}
                     {% if request.user in email.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
@@ -204,6 +213,9 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
+                    {% if email.user.primary_email == email %}
+                    <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Primary"></i>
                     {% endif %}
                     {% if request.user in email.set_primary_users %}
                     <form action="{% url 'set_primary_email' email.user.pk email.pk %}" method="POST">

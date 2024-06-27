@@ -846,6 +846,22 @@ class DeletePhoneNumber(DeleteUserKeyObject):
     redirect_url_name = 'phone_numbers'
 
 
+class VerifyEmail(View):
+    def get(self, request, pk, code):
+        if not Email.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        email = Email.objects.get(pk=pk)
+        if email.is_verified:
+            return render(request, 'email_verified.html', {'email': email.email})
+        if code == 'request' and email.send_verification_code():
+            return render(request, 'email_verification_sent.html', {'email': email.email})
+        if email.verification_code == code:
+            email.is_verified = True
+            email.save()
+            return render(request, 'email_verified.html', {'email': email.email})
+        return render(request, 'email_verification_failed.html', {'email': email.email})
+
+
 @method_decorator(login_required, name="dispatch")
 class AddEmail(AddUserKeyObject):
     model = Email

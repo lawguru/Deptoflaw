@@ -35,6 +35,7 @@ urlpatterns = [
     path('phonenumber/<int:pk>/delete/', DeletePhoneNumber.as_view(), name='delete_phone_number'),
     path('email/add/', AddEmail.as_view(), name='add_email'),
     path('email/<str:pk>/delete/', DeleteEmail.as_view(), name='delete_email'),
+    path('email/<str:pk>/<str:code>/', VerifyEmail.as_view(), name='verify_email'),
     path('address/add/', AddAddress.as_view(), name='add_address'),
     path('address/<int:pk>/', RedirectView.as_view(url='change/')),
     path('address/<int:pk>/change/', ChangeAddress.as_view(), name='change_address'),
