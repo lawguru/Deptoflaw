@@ -596,6 +596,10 @@
                 input = document.createElement('input');
                 input.name = key;
                 input.value = JSON.stringify(value);
+                if (key == "year_of_exam") {
+                    input.type = "number";
+                    input.value = value;
+                }
                 submitform.appendChild(input);
             }
             submitform.action = form.action

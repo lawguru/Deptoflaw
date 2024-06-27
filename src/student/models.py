@@ -232,6 +232,9 @@ class DroppedOutStudentProfile(StudentProfile):
         verbose_name_plural = 'Drop Out Students'
 
 
+def current_year():
+    return datetime.now().year
+
 class SemesterReportCard(models.Model):
     class SemesterReportCardManager(models.Manager):
 
@@ -250,7 +253,7 @@ class SemesterReportCard(models.Model):
     student_profile = models.ForeignKey(
         StudentProfile, on_delete=models.CASCADE, related_name='semester_report_cards')
     year_of_exam = models.PositiveIntegerField(
-        default=datetime.now().year, validators=[MinValueValidator(2000), MaxValueValidator(datetime.now().year)])
+        default=current_year, validators=[MinValueValidator(2000), MaxValueValidator(current_year)])
     subjects = models.JSONField(default=list, blank=True, null=True)
     subject_codes = models.JSONField(default=list, blank=True, null=True)
     subject_credits = models.JSONField(default=list, blank=True, null=True)
