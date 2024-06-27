@@ -498,8 +498,10 @@ class ResetPassword(View):
                 return render(request, 'reset_password_link_sent.html', {'email': email.email})
             else:
                 raise BadRequest()
-        elif code == email.verify_code:
+        elif code == email.verify_code and email.verify_code_valid:
             return render(request, 'reset_password.html', {'form': ResetPasswordForm()})
+        else:
+            return render(request, 'reset_password_failed.html')
 
     def post(self, request, email, code):
         if not Email.objects.filter(email=email).exists():
