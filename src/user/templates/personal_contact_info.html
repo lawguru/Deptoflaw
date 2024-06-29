@@ -74,6 +74,11 @@
             <p class="replace-abbreviation">{{ user.bio }}</p>
         </div>
         {% endif %}
+        {% if request.user in user.reset_password_users and user.primary_email.is_verified %}
+        <a class="btn btn-primary btn-lg w-100 mx-3 my-4" href="{% url 'reset_password' user.primary_email.email 'request' %}">
+            Reset Password
+        </a>
+        {% endif %}
     </div>
     {% if phone_numbers|length or phone_number_form %}
     <div id="phone-numbers" class="my-5">
@@ -81,7 +86,7 @@
         <ul class="list-group list-group-flush">
             {% for phone_number in phone_numbers %}
             <li class="list-group-item d-flex align-items-center justify-content-between pe-0">
-                <span>{{ phone_number }}</span>
+                <a href="tel:{{ phone_number }}">{{ phone_number }}</a>
                 <span class="d-flex">
                     {% if phone_number.user.primary_phone_number == phone_number %}
                     <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Primary"></i>
@@ -167,10 +172,19 @@
         <ul class="list-group list-group-flush">
             {% for email in emails %}
             <li class="list-group-item d-flex align-items-center justify-content-between pe-0">
-                <span>{{ email }}</span>
+                <a href="mailto:{{ email }}">
+                    <p class="d-block lh-1 mb-0">
+                        {{ email }}
+                    </p>
+                    {% if not email.is_verified %}
+                    <span class="badge text-danger-emphasis p-0 m-0 lh-1">Unverified</span>
+                    {% endif %}
+                </a>
                 <span class="d-flex">
-                    {% if email.user.primary_email == email %}
-                    <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Primary"></i>
+                    {% if request.user in email.verify_users %}
+                    <a class="btn border border-0 m-0" target="_blank" href="{% url 'verify_email' email.pk 'request' %}" data-bs-toggle="tooltip" data-bs-title="Verify Email">
+                        <i class="bi bi-check2-circle"></i>
+                    </a>
                     {% endif %}
                     {% if request.user in email.delete_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
@@ -204,6 +218,9 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
+                    {% if email.user.primary_email == email %}
+                    <i class="bi bi-star-fill btn border border-0 m-0" data-bs-toggle="tooltip" data-bs-title="Primary"></i>
                     {% endif %}
                     {% if request.user in email.set_primary_users %}
                     <form action="{% url 'set_primary_email' email.user.pk email.pk %}" method="POST">

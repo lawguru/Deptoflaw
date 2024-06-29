@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+
+{% block title %}Messages | TPC | CSE | AUS{% endblock %}
+{% load humanize %}
+{% block content %}
+<div class="container-lg col-xxl-10 p-3 p-sm-4 p-md-5">
+    <div class="my-5">
+        <strong class="display-6 fw-bold text-body-emphasis lh-1">
+            Messages
+        </strong>
+        <small class="d-block text-body-secondary">
+            {% if handled_filter == 'on' %}
+                Handled
+            {% else %}
+                Unhandled
+            {% endif %}
+        </small>
+    </div>
+
+    <nav class="navbar navbar-expand-xl bg-body p-0 mb-3 border rounded-2">
+        <div class="container-fluid">
+            <a class="lead text-body-emphasis me-3" href="#">Filters</a>
+            <div class="d-flex align-items-center gap-2">
+                <div class="nav-link dropdown">
+                    <a class="nav-link dropdown-toggle p-2" href="#" role="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        Sort By
+                    </a>
+                    <form action="#">
+                        <input id="sort-by-form-input" type="hidden" name="sorting" value="{{sorting}}">
+                        <input id="ordering-form-input" type="hidden" name="ordering" value="{{ordering}}">
+                        <ul class="dropdown-menu" onclick="event.stopPropagation()">
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('ordering-form-input').value='asc'"
+                                    value="Low to High"
+                                    class="dropdown-item {% if ordering != 'desc' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('ordering-form-input').value='desc'"
+                                    value="High to Low"
+                                    class="dropdown-item {% if ordering == 'desc' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            {% for choice in sorting_options %}
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('sort-by-form-input').value='{{choice.0}}'" value="{{choice.1}}"
+                                    class="dropdown-item {% if sorting == choice.0 %} active {% endif %}">
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </form>
+                </div>
+                <button class="navbar-toggler btn btn-outline-primary rounded-circle p-2 lh-1" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#filters-navbar" aria-controls="filters-navbar"
+                    aria-expanded="false" aria-label="Toggle filters nav">
+                    <span class="bi bi-funnel"></span>
+                </button>
+            </div>
+            <div class="collapse navbar-collapse" id="filters-navbar">
+                <ul class="navbar-nav me-auto mb-2 mb-xl-0">
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Status
+                            </a>
+                            <form action="#">
+                                <input id="status-form-input" type="hidden" name="status-filter">
+                                <ul class="dropdown-menu" onclick="event.stopPropagation()">
+                                    {% for option in status_options %}
+                                    <li>
+                                        <input type="submit"
+                                            onclick="document.getElementById('status-form-input').value='{{option.0}}'" value="{{option.1}}"
+                                            class="dropdown-item {% if status_filter == option.0 %} active {% endif %}">
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </form>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Sender
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        <div class="input-group" style="min-width: 32ch;">
+                                            <input type="text" class="form-control" name="name-filter"
+                                                id="name-filter" placeholder="Sender's Name"
+                                                value="{{name_filter}}">
+                                            <button type="submit" class="btn btn-outline-primary border m-0"
+                                                data-bs-toggle="tooltip" data-bs-title="Apply">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Company
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        <div class="input-group" style="min-width: 32ch;">
+                                            <input type="text" class="form-control" name="company-filter"
+                                                id="company-filter" placeholder="Sender's Company"
+                                                value="{{company_filter}}">
+                                            <button type="submit" class="btn btn-outline-primary border m-0"
+                                                data-bs-toggle="tooltip" data-bs-title="Apply">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Designation
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        <div class="input-group" style="min-width: 32ch;">
+                                            <input type="text" class="form-control" name="designation-filter"
+                                                id="designation-filter" placeholder="Sender's Designation"
+                                                value="{{designation_filter}}">
+                                            <button type="submit" class="btn btn-outline-primary border m-0"
+                                                data-bs-toggle="tooltip" data-bs-title="Apply">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Phone Number
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        <div class="input-group" style="min-width: 32ch;">
+                                            <input type="text" class="form-control" name="phone-filter"
+                                                id="phone-filter" placeholder="Sender's Phone Number"
+                                                value="{{phone_filter}}">
+                                            <button type="submit" class="btn btn-outline-primary border m-0"
+                                                data-bs-toggle="tooltip" data-bs-title="Apply">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Email
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        <div class="input-group" style="min-width: 32ch;">
+                                            <input type="text" class="form-control" name="email-filter"
+                                                id="email-filter" placeholder="Sender's Email"
+                                                value="{{email_filter}}">
+                                            <button type="submit" class="btn btn-outline-primary border m-0"
+                                                data-bs-toggle="tooltip" data-bs-title="Apply">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+                <div style="width: fit-content;">
+                    <div class="rounded-circle m-2" onclick="location.href=window.location.href.split('?')[0]"
+                        data-bs-toggle="tooltip" data-bs-title="Clear all Filters">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="accordion my-5" id="post-accordion">
+        {% for message in page_obj %}
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                <button class="accordion-button m-0 collapsed pe-5 pe-lg-3" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="true"
+                    aria-controls="collapse{{ forloop.counter }}">
+                    <div class="d-flex flex-fill flex-column flex-lg-row">
+                        <div>
+                            <strong class="fw-bold lead text-body-emphasis lh-1">
+                                From {{ message.0.sender }}
+                            </strong>
+                            <small class="d-block text-body-secondary lh-1">
+                                {{ message.0.sender_designation}} at
+                                {{ message.0.sender_company }}
+                            </small>
+                            <small class="d-block badge p-0 text-start text-body-secondary lh-1">
+                                Received {{ message.0.date|naturaltime }}
+                                {% if message.0.handled %}
+                                | Handled {{message.0.date_edited|naturaltime}}
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </button>
+            </h2>
+            <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse"
+                aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#post-accordion">
+                <div class="accordion-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center justify-content-start gap-2">
+                            <span
+                                class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                <div class="rounded-circle m-2">
+                                    <i class="bi bi-envelope fs-5"></i>
+                                </div>
+                                <div class="text-start">
+                                    <strong class="fw-bold text-body-emphasis lh-1">
+                                        {{ message.0.sender_email }}
+                                    </strong>
+                                    <small class="d-block text-body-secondary">Email</small>
+                                </div>
+                            </span>
+                            <span
+                                class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                <div class="rounded-circle m-2">
+                                    <i class="bi bi-telephone fs-5"></i>
+                                </div>
+                                <div class="text-start">
+                                    <strong class="fw-bold text-body-emphasis lh-1">
+                                        {{ message.0.sender_phone }}
+                                    </strong>
+                                    <small class="d-block text-body-secondary">Phone Number</small>
+                                </div>
+                            </span>
+                        </div>
+                        {% if request.user in message.0.handle_users %}
+                        <div>
+                            <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                                data-bs-target="#handle-message-{{ message.0.pk }}-modal">
+                                <i class="bi bi-check2-circle"></i>
+                            </a>
+                            <div class="modal fade" id="handle-message-{{ message.0.pk }}-modal" data-bs-backdrop="static"
+                            data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                <div
+                                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                                Set as Handled
+                                            </strong>
+                                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="handle-message-{{ message.0.pk }}-form"
+                                                action="{% url 'message_set_handled' message.0.pk %}" method="POST">
+                                                {% csrf_token %}
+                                                <div class="form-floating mb-3">
+                                                    {{ message.1.handled_notes }}
+                                                    {{ message.1.handled_notes.label_tag }}
+                                                </div>
+                                                {% if message.1.handled_notes.help_text %}
+                                                <div class="form-text">
+                                                    {{ message.1.handled_notes.help_text }}
+                                                </div>
+                                                {% endif %}
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <input type="submit" form="handle-message-{{ message.0.pk }}-form"
+                                                class="btn btn-primary btn-lg w-100 m-0" value="Save"
+                                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{message.0.message}}
+                    </div>
+                    {% if message.0.handled %}
+                    <div>
+                        <strong class="text-body-emphasis lh-1">
+                            Handled Notes
+                        </strong>
+                        <small class="d-block badge p-0 text-start text-body-secondary lh-1">
+                            by {{ message.0.handled_by.full_name }}
+                        </small>
+                        <div>
+                            {{message.0.handled_notes}}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between w-100">
+        <small class="lh-1 text-body-secondary">Shown {{page_obj.start_index}} to {{page_obj.end_index}} of
+            {{page_obj.paginator.count}} results</small>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center m-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link"
+                        href="?page=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">1</a></li>
+                {% if page_obj.previous_page_number > 1 %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ page_obj.previous_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">&laquo;</a>
+                </li>
+                {% endif %}
+                {% endif %}
+                <li class="page-item"><a class="page-link" href="#">Page {{page_obj.number}} of
+                        {{page_obj.paginator.num_pages}}</a></li>
+                {% if page_obj.has_next %}
+                {% if page_obj.paginator.num_pages > page_obj.next_page_number %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ page_obj.next_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">&raquo;</a>
+                </li>
+                {% endif %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ page_obj.paginator.num_pages }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">{{
+                        page_obj.paginator.num_pages }}</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+<script>
+    function getUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        let paramObj = {};
+        for (let [key, value] of params.entries()) {
+            // Check if key already exists in paramObj
+            if (paramObj[key]) {
+                // If key already exists and is an array, push the new value
+                if (Array.isArray(paramObj[key])) {
+                    paramObj[key].push(value);
+                } else { // If key is not an array, convert it to an array with existing and new values
+                    paramObj[key] = [paramObj[key], value];
+                }
+            } else { // If key doesn't exist in paramObj, set it to the new value
+                paramObj[key] = value;
+            }
+        }
+        return paramObj;
+    }
+
+    // Function to add hidden input fields with the current URL parameters
+    function addHiddenInputs() {
+        const params = getUrlParams();
+        const forms = document.querySelectorAll('form');
+        for (let key in params) {
+            forms.forEach(form => {
+                if (!form.elements[key]) {
+                    if (Array.isArray(params[key])) { // Handle multi-valued fields
+                        params[key].forEach(value => {
+                            let input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = key;
+                            input.value = value;
+                            form.appendChild(input);
+                        });
+                    } else { // Handle single-valued fields
+                        let input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = params[key];
+                        form.appendChild(input);
+                    }
+                }
+            });
+        }
+    }
+    window.onload = addHiddenInputs();
+</script>
+{% endblock %}

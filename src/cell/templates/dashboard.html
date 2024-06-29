@@ -20,13 +20,13 @@
                                 <span>Many features will be unavailable.</span>
                                 <div class="d-flex align-items-start flex-column my-3">
                                     <span>
-                                        Make sure your profile information is complete and accurate.
+                                        Make sure your profile information is complete, accurate and that you have verified your emails.
                                     </span>
                                     <span>
-                                        If still not approved, contact an Administrator or Coordinator.
+                                        If still not approved, <a href="{% url 'index' %}#team-members">contact a Coordinator or TPC member</a>.
                                     </span>
                                 </div>
-                                <a class="btn btn-link rounded-pill m-0 p-0" href="{% url 'build_profile' request.user.pk %}">
+                                <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'build_profile' request.user.pk %}">
                                     View Profile
                                 </a>
                             </div>
@@ -36,72 +36,145 @@
             </li>
             {% endif %}
             <li class="list-group-item list-group-item-accent p-4">
-                <div
-                    class="d-flex align-items-center justify-content-between m-0 icon-link icon-link-hover no-shadow">
-                    <div class="d-flex align-items-center gap-4 flex-fill">
-                        <i class="bi bi-bell display-5"></i>
-                        <div class="flex-fill">
-                            <div class="d-flex align-items-center justify-content-between w-100">
-                                <h2 class="fw-bold text-body-emphasis lh-1">Notices and Updates</h2>
-                                {% if add_notice_form %}
-                                <a class="btn border border-0 m-0 fs-5" href="#" data-bs-toggle="modal" data-bs-target="#add-notice-modal">
-                                    <i class="bi bi-plus-circle"></i>
-                                </a>
-                                <div class="modal fade" id="add-notice-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-                                    aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <strong class="modal-title fs-3 fw-bold text-body-emphasis">
-                                                    Add a Notice
-                                                </strong>
-                                                <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <form action="{% url 'add_notice' %}" id="add-notice-form" method="POST">
-                                                    {% csrf_token %}
-                                                    <div class="form-floating mb-3">
-                                                        {{ add_notice_form.title }}
-                                                        {{ add_notice_form.title.label_tag }}
-                                                    </div>
-                                                    <div class="form-floating">
-                                                        {{ add_notice_form.description }}
-                                                        {{ add_notice_form.description.label_tag }}
-                                                    </div>
-                                                </form>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <input type="submit" form="add-notice-form" class="btn btn-primary btn-lg w-100" value="Submit"
-                                                    onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true; this.value='Submitting...'; this.form.submit();">
-                                            </div>
+                <div class="d-flex align-items-center gap-4 flex-fill">
+                    <i class="bi bi-bell display-5"></i>
+                    <div class="flex-fill">
+                        <div class="d-flex align-items-center justify-content-between w-100">
+                            <h2 class="fw-bold text-body-emphasis lh-1">Notices and Updates</h2>
+                            {% if add_notice_form %}
+                            <a class="btn border border-0 m-0 fs-5" href="#" data-bs-toggle="modal"
+                                data-bs-target="#add-notice-modal">
+                                <i class="bi bi-plus-circle"></i>
+                            </a>
+                            <div class="modal fade" id="add-notice-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                <div
+                                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                                Add a Notice
+                                            </strong>
+                                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form action="{% url 'add_notice' %}" id="add-notice-form" method="POST">
+                                                {% csrf_token %}
+                                                <div class="form-floating mb-3">
+                                                    {{ add_notice_form.title }}
+                                                    {{ add_notice_form.title.label_tag }}
+                                                </div>
+                                                <div class="form-floating">
+                                                    {{ add_notice_form.description }}
+                                                    {{ add_notice_form.description.label_tag }}
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <input type="submit" form="add-notice-form" class="btn btn-primary btn-lg w-100"
+                                                value="Submit"
+                                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true; this.value='Submitting...'; this.form.submit();">
                                         </div>
                                     </div>
                                 </div>
-                                {% endif %}
                             </div>
-                            <div class="font-monospace" style="width: fit-content;">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 8ch;">Total:</span>
-                                    <span class="me-3">{{total_notice_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0" href="{% url 'notices' %}">
-                                        View
-                                    </a>
+                            {% endif %}
+                        </div>
+                        <div class="font-monospace" style="width: fit-content;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span style="width: 8ch;">Total:</span>
+                                <span class="me-3">{{total_notice_count|intword}}</span>
+                                <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'notices' %}">
+                                    View
+                                </a>
+                            </div>
+                            {% if request.user.is_superuser or request.user.is_coordinator or request.user.role == 'staff' or request.user.role == 'recruiter' %}
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span style="width: 8ch;">By Me:</span>
+                                <span class="me-3">{{user_notice_count|intword}}</span>
+                                <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'notices' %}?user-filter=me">
+                                    View
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </li>
+            {% if add_quote_form %}
+            <li class="list-group-item list-group-item-accent p-4">
+                <div class="d-flex align-items-start gap-4 flex-fill">
+                    <i class="bi bi-quote display-5"></i>
+                    <div class="flex-fill">
+                        <div class="d-flex align-items-center justify-content-between w-100">
+                            <div>
+                                <h2 class="fw-bold text-body-emphasis lh-1">Quotes</h2>
+                                <div>A Random Quote appears on the <a class="link" href="{% url 'index' %}">home page</a> on every
+                                    visit.</div>
+                            </div>
+                            <a class="btn border border-0 m-0 fs-5" href="#" data-bs-toggle="modal"
+                                data-bs-target="#add-quote-modal">
+                                <i class="bi bi-plus-circle"></i>
+                            </a>
+                            <div class="modal fade" id="add-quote-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                                tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                <div
+                                    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                                Add a Quote
+                                            </strong>
+                                            <button type="button" class="btn-close m-0" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form action="{% url 'add_quote' %}" id="add-quote-form" method="POST">
+                                                {% csrf_token %}
+                                                <div class="d-none">
+                                                    {{add_quote_form.user}}
+                                                </div>
+                                                <div class="form-floating mb-3">
+                                                    {{add_quote_form.quote }}
+                                                    {{add_quote_form.quote.label_tag }}
+                                                </div>
+                                                <div class="form-floating mb-3">
+                                                    {{add_quote_form.author }}
+                                                    {{add_quote_form.author.label_tag }}
+                                                </div>
+                                                <div class="form-floating mb-3">
+                                                    {{add_quote_form.source }}
+                                                    {{add_quote_form.source.label_tag }}
+                                                </div>
+                                                <div class="form-check">
+                                                    {{add_quote_form.fictional }}
+                                                    {{add_quote_form.fictional.label_tag }}
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <input type="submit" form="add-quote-form" class="btn btn-primary btn-lg w-100"
+                                                value="Submit"
+                                                onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled=true; this.value='Submitting...'; this.form.submit();">
+                                        </div>
+                                    </div>
                                 </div>
-                                {% if request.user.is_superuser or request.user.is_coordinator or request.user.role == 'staff' or request.user.role == 'recruiter' %}
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 8ch;">By You:</span>
-                                    <span class="me-3">{{user_notice_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'notices' %}?user-filter=me">
-                                        View
-                                    </a>
-                                </div>
-                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="font-monospace" style="width: fit-content;">
+                            <div class="d-flex align-items-center justify-content-between my-3">
+                                <span style="width: 8ch;">Total:</span>
+                                <span class="me-3">{{quotes_count|intword}}</span>
+                                <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'quotes' %}">
+                                    View
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
             </li>
+            {% endif %}
             {% if request.user.is_superuser or request.user.is_coordinator or request.user.role == 'staff' %}
             <li class="list-group-item list-group-item-accent p-4">
                 <div class="d-flex align-items-start gap-4">
@@ -116,7 +189,7 @@
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span style="width: 18ch;">Current Students:</span>
                                     <span class="me-3">{{current_student_count}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
+                                    <a class="btn btn-link rounded-pill link m-0 p-0"
                                         href="{% url 'user_list' %}?role-filter=student&enrollment-status=current">
                                         View
                                     </a>
@@ -124,7 +197,7 @@
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span style="width: 18ch;">Alumni:</span>
                                     <span class="me-3">{{alumni_count}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
+                                    <a class="btn btn-link rounded-pill link m-0 p-0"
                                         href="{% url 'user_list' %}?role-filter=student&enrollment-status=passed_out">
                                         View
                                     </a>
@@ -146,7 +219,7 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <span style="width: 15ch;">Total pending:</span>
                                 <span class="me-3">{{unapproved_user_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill m-0 p-0"
+                                <a class="btn btn-link rounded-pill link m-0 p-0"
                                     href="{% url 'user_list' %}?is-approved-filter=False">
                                     View
                                 </a>
@@ -154,7 +227,7 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <span style="width: 15ch;">Recruiters:</span>
                                 <span class="me-3">{{unapproved_recruiter_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill m-0 p-0"
+                                <a class="btn btn-link rounded-pill link m-0 p-0"
                                     href="{% url 'user_list' %}?is-approved-filter=False&role-filter=recruiter">
                                     View
                                 </a>
@@ -162,7 +235,7 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <span style="width: 15ch;">Student:</span>
                                 <span class="me-3">{{unapproved_student_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill m-0 p-0"
+                                <a class="btn btn-link rounded-pill link m-0 p-0"
                                     href="{% url 'user_list' %}?is-approved-filter=False&role-filter=student">
                                     View
                                 </a>
@@ -170,8 +243,43 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <span style="width: 15ch;">Staff:</span>
                                 <span class="me-3">{{unapproved_staff_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill m-0 p-0"
+                                <a class="btn btn-link rounded-pill link m-0 p-0"
                                     href="{% url 'user_list' %}?is-approved-filter=False&role-filter=staff">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item list-group-item-accent p-4">
+                <div class="d-flex align-items-start gap-4">
+                    <i class="bi bi-chat-left-text display-5"></i>
+                    <div class="flex-fill">
+                        <h2 class="fw-bold text-body-emphasis lh-1">Messages</h2>
+                        <div class="mb-3">Messages received through the <a class="link" href="{% url 'contact' %}">Contact Us</a> page.</div>
+                        <div class="font-monospace" style="width: fit-content;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span style="width: 15ch;">Total:</span>
+                                <span class="me-3">{{messages_count|intword}}</span>
+                                <a class="btn btn-link rounded-pill link m-0 p-0"
+                                    href="{% url 'messages' %}">
+                                    View
+                                </a>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span style="width: 15ch;">Handled:</span>
+                                <span class="me-3">{{handled_messages_count|intword}}</span>
+                                <a class="btn btn-link rounded-pill link m-0 p-0"
+                                    href="{% url 'messages' %}?status-filter=handled">
+                                    View
+                                </a>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span style="width: 15ch;">Unhandled:</span>
+                                <span class="me-3">{{unhandled_messages_count|intword}}</span>
+                                <a class="btn btn-link rounded-pill link m-0 p-0"
+                                    href="{% url 'messages' %}?status-filter=unhandled">
                                     View
                                 </a>
                             </div>
@@ -187,7 +295,7 @@
                         <div class="d-flex align-items-center justify-content-between w-100">
                             <div>
                                 <h2 class="fw-bold text-body-emphasis lh-1">Recruitments</h2>
-                                <div class="mb-3">Recruitments Posted by Recruiters that Students can Apply to.</div>
+                                <div>Recruitments Posted by Recruiters that Students can Apply to.</div>
                             </div>
                             {% if add_post_form %}
                             <a class="btn border border-0 m-0 fs-5" href="#" data-bs-toggle="modal" data-bs-target="#add-post-modal">
@@ -378,269 +486,127 @@
                         </div>
 
                         <div class="font-monospace" style="width: fit-content;">
-                            {% if request.user.is_superuser or request.user.is_coordinator %}
-                            <div class="d-flex align-items-center justify-content-between">
-                                <span style="width: 20ch;">Total posts:</span>
-                                <span class="me-3">{{post_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill m-0 p-0"
-                                    href="{% url 'recruitment_posts' %}?is-active-filter=False">
-                                    View
-                                </a>
+                            <div class="my-3">
+                                {% if request.user.is_superuser or request.user.is_coordinator %}
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span style="width: 17ch;">Total posts:</span>
+                                    <span class="me-3">{{post_count|intword}}</span>
+                                    <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'recruitment_posts' %}?is-active-filter=False">
+                                        View
+                                    </a>
+                                    <a role="button" class="rounded-pill p-0 m-0 ms-3" data-bs-toggle="popover"
+                                        data-bs-title="Out of {{applicant_count|intword}} received applications"
+                                        data-bs-content="                                {{pending_applicant_count}} pending,
+                                                                                                                    {{selected_applicant_count}} selected,
+                                                                                                                    {{rejected_applicant_count}} rejected and
+                                                                                                                    {{shortlisted_applicant_count}} shortlisted for interview">
+                                        <i class="bi bi-info-circle"></i>
+                                    </a>
+                                </div>
+                                {% endif %}
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span style="width: 17ch;">Active posts:</span>
+                                    <span class="me-3">{{active_post_count|intword}}</span>
+                                    <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'recruitment_posts' %}">
+                                        View
+                                    </a>
+                                    <a role="button" class="rounded-pill p-0 m-0 ms-3" data-bs-toggle="popover"
+                                        data-bs-title="Out of {{active_applicant_count|intword}} received applications"
+                                        data-bs-content="                                {{pending_applicant_count}} pending,
+                                                                                {{selected_active_applicant_count}} selected,
+                                                                                {{rejected_active_applicant_count}} rejected and
+                                                                                {{shortlisted_active_applicant_count}} shortlisted for interview">
+                                        <i class="bi bi-info-circle"></i>
+                                    </a>
+                                </div>
+                                {% if request.user.role == 'recruiter' or request.user.is_superuser or request.user.is_coordinator %}
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span style="width: 17ch;">My Posts:</span>
+                                    <span class="me-3">{{user_post_count|intword}}</span>
+                                    <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'recruitment_posts' %}?post-filter=by-me">
+                                        View
+                                    </a>
+                                    <a role="button" class="rounded-pill p-0 m-0 ms-3" data-bs-toggle="popover"
+                                        data-bs-title="Out of {{user_applicant_count|intword}} received applications"
+                                        data-bs-content="                                {{pending_applicant_count}} pending,
+                                                                                {{selected_user_applicant_count}} selected,
+                                                                                {{rejected_user_applicant_count}} rejected and
+                                                                                {{shortlisted_user_applicant_count}} shortlisted for interview">
+                                        <i class="bi bi-info-circle"></i>
+                                    </a>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span style="width: 17ch;">My Active posts:</span>
+                                    <span class="me-3">{{user_active_post_count|intword}}</span>
+                                    <a class="btn btn-link rounded-pill link m-0 p-0"
+                                        href="{% url 'recruitment_posts' %}?post-filter=by-me&is-active-filter=False">
+                                        View
+                                    </a>
+                                    <a role="button" class="rounded-pill p-0 m-0 ms-3" data-bs-toggle="popover"
+                                        data-bs-title="Out of {{user_active_applicant_count|intword}} received applications"
+                                        data-bs-content="                                {{pending_applicant_count}} pending,
+                                                                                {{selected_user_active_applicant_count}} selected,
+                                                                                {{rejected_user_active_applicant_count}} rejected and
+                                                                                {{shortlisted_user_active_applicant_count}} shortlisted for interview">
+                                        <i class="bi bi-info-circle"></i>
+                                    </a>
+                                </div>
+                                {% endif %}
                             </div>
-                            {% endif %}
-                            <div class="d-flex align-items-center justify-content-between">
-                                <span style="width: 20ch;">Total Active posts:</span>
-                                <span class="me-3">{{active_post_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill m-0 p-0" href="{% url 'recruitment_posts' %}">
-                                    View
-                                </a>
-                            </div>
-                            {% if request.user.role == 'recruiter' or request.user.is_superuser or request.user.is_coordinator %}
-                            <div class="d-flex align-items-center justify-content-between">
-                                <span style="width: 20ch;">Your Posts:</span>
-                                <span class="me-3">{{user_post_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill m-0 p-0"
-                                    href="{% url 'recruitment_posts' %}?post-filter=by-me">
-                                    View
-                                </a>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between">
-                                <span style="width: 20ch;">Your Active posts:</span>
-                                <span class="me-3">{{user_active_post_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill m-0 p-0"
-                                    href="{% url 'recruitment_posts' %}?post-filter=by-me&is-active-filter=False">
-                                    View
-                                </a>
-                            </div>
-                            {% endif %}
                         </div>
                     </div>
                 </div>
             </li>
-            {% if request.user.role == 'student' or request.user.role == 'recruiter' or request.user.is_superuser or request.user.is_coordinator %}
+            {% if request.user.role == 'student' %}
             <li class="list-group-item list-group-item-accent p-4">
                 <div class="d-flex align-items-start gap-4">
                     <i class="bi bi-person-up display-5"></i>
                     <div class="flex-fill">
-                        <h2 class="fw-bold text-body-emphasis lh-1">Applications</h2>
-                        <div class="mb-3">Applications received from Students.</div>
+                        <h2 class="fw-bold text-body-emphasis lh-1">My Applications</h2>
+                        <div class="mb-3">Applications submitted by you.</div>
                         <div class="font-monospace" style="width: fit-content;">
-                            {% if request.user.is_superuser or request.user.is_coordinator %}
                             <div class="my-3">
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <strong style="width: 27ch;">For all Posts:</strong>
-                                    <span class="me-3">{{applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?is-active-filter=False&applications-filter-lower-limit=1">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Pending:</span>
-                                    <span class="me-3">{{pending_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?is-active-filter=False&applications-filter-lower-limit=1&applications-status-filters=P">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Selected:</span>
-                                    <span class="me-3">{{selected_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?is-active-filter=False&applications-filter-lower-limit=1&applications-status-filters=S">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Rejected:</span>
-                                    <span class="me-3">{{rejected_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?is-active-filter=False&applications-filter-lower-limit=1&applications-status-filters=R">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Shortlisted for Interview:</span>
-                                    <span class="me-3">{{shortlisted_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?is-active-filter=False&applications-filter-lower-limit=1&applications-status-filters=S">
-                                        View
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="my-3">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <strong style="width: 27ch;">For Active Posts:</strong>
-                                    <span class="me-3">{{active_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?applications-filter-lower-limit=1">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Pending:</span>
-                                    <span class="me-3">{{pending_active_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?applications-filter-lower-limit=1&applications-status-filters=P">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Selected:</span>
-                                    <span class="me-3">{{selected_active_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?applications-filter-lower-limit=1&applications-status-filters=S">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Rejected:</span>
-                                    <span class="me-3">{{rejected_active_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?applications-filter-lower-limit=1&applications-status-filters=R">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Shortlisted for Interview:</span>
-                                    <span class="me-3">{{shortlisted_active_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?applications-filter-lower-limit=1&applications-status-filters=S">
-                                        View
-                                    </a>
-                                </div>
-                            </div>
-                            {% endif %}
-                            {% if request.user.role == 'recruiter' or request.user.is_superuser or request.user.is_coordinator %}
-                            <div class="my-3">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <strong style="width: 27ch;">For Your Posts:</strong>
-                                    <span class="me-3">{{user_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=by-me&is-active-filter=False&applications-filter-lower-limit=1">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Pending:</span>
-                                    <span class="me-3">{{pending_user_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=by-me&is-active-filter=False&applications-filter-lower-limit=1&applications-status-filters=P">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Selected:</span>
-                                    <span class="me-3">{{selected_user_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=by-me&is-active-filter=False&applications-filter-lower-limit=1&applications-status-filters=S">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Rejected:</span>
-                                    <span class="me-3">{{rejected_user_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=by-me&is-active-filter=False&applications-filter-lower-limit=1&applications-status-filters=R">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Shortlisted for Interview:</span>
-                                    <span class="me-3">{{shortlisted_user_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=by-me&is-active-filter=False&applications-filter-lower-limit=1&applications-status-filters=S">
-                                        View
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="my-3">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <strong style="width: 27ch;">For Your Active Posts:</strong>
-                                    <span class="me-3">{{user_active_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=by-me&applications-filter-lower-limit=1">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Pending:</span>
-                                    <span class="me-3">{{pending_user_active_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=by-me&applications-filter-lower-limit=1&applications-status-filters=P">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Selected:</span>
-                                    <span class="me-3">{{selected_user_active_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=by-me&applications-filter-lower-limit=1&applications-status-filters=S">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Rejected:</span>
-                                    <span class="me-3">{{rejected_user_active_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=by-me&applications-filter-lower-limit=1&applications-status-filters=R">
-                                        View
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Shortlisted for Interview:</span>
-                                    <span class="me-3">{{shortlisted_user_active_applicant_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=by-me&applications-filter-lower-limit=1&applications-status-filters=S">
-                                        View
-                                    </a>
-                                </div>
-                            </div>
-                            {% endif %}
-                            {% if request.user.role == 'student' %}
-                            <div class="my-3">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <strong style="width: 27ch;">Submitted by You:</strong>
+                                    <strong style="width: 13ch;">Total:</strong>
                                     <span class="me-3">{{user_application_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
+                                    <a class="btn btn-link rounded-pill link m-0 p-0"
                                         href="{% url 'recruitment_posts' %}?post-filter=applied-by-me">
                                         View
                                     </a>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Pending:</span>
+                                    <span style="width: 13ch;">Pending:</span>
                                     <span class="me-3">{{pending_user_application_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filter=P">
+                                    <a class="btn btn-link rounded-pill link m-0 p-0"
+                                        href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filters=P">
                                         View
                                     </a>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Selected:</span>
+                                    <span style="width: 13ch;">Selected:</span>
                                     <span class="me-3">{{selected_user_application_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filter=R">
+                                    <a class="btn btn-link rounded-pill link m-0 p-0"
+                                        href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filters=S">
                                         View
                                     </a>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Rejected:</span>
+                                    <span style="width: 13ch;">Rejected:</span>
                                     <span class="me-3">{{rejected_user_application_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filter=S">
+                                    <a class="btn btn-link rounded-pill link m-0 p-0"
+                                        href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filters=R">
                                         View
                                     </a>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <span style="width: 27ch;">Shortlisted for Interview:</span>
+                                    <span style="width: 13ch;">Shortlisted:</span>
                                     <span class="me-3">{{shortlisted_user_application_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill m-0 p-0"
-                                        href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filter=I">
+                                    <a class="btn btn-link rounded-pill link m-0 p-0"
+                                        href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filters=I">
                                         View
                                     </a>
                                 </div>
                             </div>
-                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -657,7 +623,7 @@
                             <div class="font-monospace" style="width: fit-content;">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span>View or Edit list of Subjects
-                                        <a class="btn btn-link rounded-pill m-0 p-0" href="{% url 'semester_report_card_template' %}">
+                                        <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'semester_report_card_template' %}">
                                             View
                                         </a>
                                     </span>

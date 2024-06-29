@@ -6,14 +6,25 @@
 
 <div class="container-fluid p-3 p-xl-5 min-vh-100">
 
-    <div class="d-flex flex-wrap align-items-center justify-content-between mb-2">
-        <h1 class="fw-bold text-body-emphasis mb-0">
-            {% if is_approved_filter %}
-            Users
-            {% else %}
-            Pending Approvals
-            {% endif %}
-        </h1>
+    <div class="d-flex flex-wrap align-items-center justify-content-between my-5">
+        <div>
+            <h1 class="fw-bold text-body-emphasis mb-0">
+                {% if role_filter == 'student' %}
+                    Students
+                {% elif role_filter == 'staff' %}
+                    Staff
+                {% elif role_filter == 'recruiter' %}
+                    Recruiters
+                {% else %}
+                    Users
+                {% endif %}
+            </h1>
+            <small class="d-block text-body-secondary">
+                {% if not is_approved_filter %}
+                    Pending Approvals
+                {% endif %}
+            </small>
+        </div>
         {% if role_filter == 'student' %}
         <form action="{% url 'user_csv' %}">
             <input type="submit" class="btn btn-primary" value="Download CSV">
@@ -49,75 +60,13 @@
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
+                            {% for choice in sorting_options %}
                             <li>
                                 <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='name'" value="Name"
-                                    class="dropdown-item {% if sorting == 'name' %} active {% endif %}">
+                                    onclick="document.getElementById('sort-by-form-input').value='{{choice.0}}'" value="{{choice.1}}"
+                                    class="dropdown-item {% if sorting == choice.0 %} active {% endif %}">
                             </li>
-                            {% if role_filter == 'student' %}
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='registration_year'"
-                                    value="Registration Year"
-                                    class="dropdown-item {% if sorting == 'registration_year' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='course'"
-                                    value="Course"
-                                    class="dropdown-item {% if sorting == 'course' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='year'" value="Year"
-                                    class="dropdown-item {% if sorting == 'year' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='cgpa'" value="CGPA"
-                                    class="dropdown-item {% if sorting == 'cgpa' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='backlogs'"
-                                    value="Backlogs"
-                                    class="dropdown-item {% if sorting == 'backlogs' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='total_skills'"
-                                    value="Total Skills"
-                                    class="dropdown-item {% if sorting == 'total_skills' %} active {% endif %}">
-                            </li>
-                            {% endif %}
-                            {% if role_filter == 'staff' %}
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='designation'"
-                                    value="Designation"
-                                    class="dropdown-item {% if sorting == 'designation' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='qualification'"
-                                    value="Qualification"
-                                    class="dropdown-item {% if sorting == 'qualification' %} active {% endif %}">
-                            </li>
-                            {% endif %}
-                            {% if role_filter == 'recruiter' %}
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='company'"
-                                    value="Company"
-                                    class="dropdown-item {% if sorting == 'company' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='designation'"
-                                    value="Designation"
-                                    class="dropdown-item {% if sorting == 'designation' %} active {% endif %}">
-                            </li>
-                            {% endif %}
+                            {% endfor %}
                         </ul>
                     </form>
                 </div>
@@ -369,7 +318,7 @@
                                     <li>
                                         <input type="submit"
                                             onclick="document.getElementById('enrollment-status-form-input').value=''"
-                                            value="All"
+                                            value="Any"
                                             class="dropdown-item {% if enrollment_status == '' %} active {% endif %}">
                                     </li>
                                     <li>
@@ -644,7 +593,7 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <small>Joined {{user.date_joined|naturaltime}}</small>
 
-                        {% if request.user in user.approve_users or request.user in user.delete_users or request.user in user.make_superuser_users or request.user in user.make_coordinator_users or request.user in user.remove_coordinator_users or request.user in user.staff_profile.make_hod_users or request.user in user.staff_profile.make_tpc_head_users %}
+                        {% if request.user in user.approve_users or request.user in user.delete_users or request.user in user.make_superuser_users or request.user in user.make_coordinator_users or request.user in user.remove_coordinator_users or request.user in user.make_quoter_users or request.user in user.remove_quoter_users or request.user in user.staff_profile.make_hod_users or request.user in user.staff_profile.make_tpc_head_users %}
                         <div class="dropdown">
                             <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Action
@@ -685,6 +634,22 @@
                                 <li>
                                     <form action="{% url 'remove_coordinator' user.pk %}" method="POST">
                                         <input type="submit" class="btn dropdown-item" value="Remove Coordinator">
+                                    </form>
+                                </li>
+                                {% endif %}
+
+                                {% if request.user in user.make_quoter_users %}
+                                <li>
+                                    <form action="{% url 'make_quoter' user.pk %}" method="POST">
+                                        <input type="submit" class="btn dropdown-item" value="Make Quoter">
+                                    </form>
+                                </li>
+                                {% endif %}
+
+                                {% if request.user in user.remove_quoter_users %}
+                                <li>
+                                    <form action="{% url 'remove_quoter' user.pk %}" method="POST">
+                                        <input type="submit" class="btn dropdown-item" value="Remove Quoter">
                                     </form>
                                 </li>
                                 {% endif %}
@@ -741,32 +706,47 @@
                         </a>
                         {% endif %}
                         {% if user.primary_email %}
-                        <span
-                            class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
-                            <div class="rounded-circle m-2">
-                                <i class="bi bi-envelope fs-5"></i>
-                            </div>
-                            <div class="text-start">
-                                <strong class="fw-bold text-body-emphasis lh-1">
-                                    {{ user.primary_email }}
-                                </strong>
-                                <small class="d-block text-body-secondary">Email</small>
-                            </div>
-                        </span>
+                        <a href="mailto:{{user.primary_email}}" target="_blank">
+                            <span
+                                class="badge d-flex align-items-center py-0 ps-1 pe-3
+                                    {% if not user.primary_email.is_verified %}
+                                    text-danger-emphasis bg-danger-subtle border border-danger-subtle
+                                    {% else %}
+                                    text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle
+                                    {% endif %}
+                                    rounded-pill">
+                                <div class="rounded-circle m-2">
+                                    <i class="bi bi-envelope fs-5"></i>
+                                </div>
+                                <div class="text-start">
+                                    <strong class="fw-bold lh-1">
+                                        {{ user.primary_email }}
+                                    </strong>
+                                    <small class="d-block text-body-secondary">
+                                        Email
+                                        {% if not user.primary_email.is_verified %}
+                                        not verified
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </span>
+                        </a>
                         {% endif %}
                         {% if user.primary_phone_number %}
-                        <span
-                            class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
-                            <div class="rounded-circle m-2">
-                                <i class="bi bi-telephone fs-5"></i>
-                            </div>
-                            <div class="text-start">
-                                <strong class="fw-bold text-body-emphasis lh-1">
-                                    {{ user.primary_phone_number }}
-                                </strong>
-                                <small class="d-block text-body-secondary">Phone number</small>
-                            </div>
-                        </span>
+                        <a href="tel:{{user.primary_phone_number}}" target="_blank">
+                            <span
+                                class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
+                                <div class="rounded-circle m-2">
+                                    <i class="bi bi-telephone fs-5"></i>
+                                </div>
+                                <div class="text-start">
+                                    <strong class="fw-bold text-body-emphasis lh-1">
+                                        {{ user.primary_phone_number }}
+                                    </strong>
+                                    <small class="d-block text-body-secondary">Phone number</small>
+                                </div>
+                            </span>
+                        </a>
                         {% endif %}
                         {% if user.primary_address.address %}
                         <span

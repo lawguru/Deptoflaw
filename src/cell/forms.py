@@ -33,6 +33,38 @@ class ContactUsForm(forms.ModelForm):
         self.fields['sender_phone'].required = False
 
 
+class MessageHandledForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['handled_notes']
+
+        widgets = {
+            'handled_notes': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Handled Notes', 'style': 'height: 8rem;', 'required': 'required'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_suffix = ''
+
+
+class QuoteForm(forms.ModelForm):
+    class Meta:
+        model = Quote
+        fields = ['user', 'quote', 'author', 'source', 'fictional']
+
+        widgets = {
+            'user': forms.HiddenInput(),
+            'quote': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Quote', 'style': 'height: 8rem;', 'required': 'required'}),
+            'author': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Author', 'required': 'required'}),
+            'source': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Source'}),
+            'fictional': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.label_suffix = ''
+
+
 class NoticeForm(forms.ModelForm):
     class Meta:
         model = Notice
@@ -123,26 +155,18 @@ class TPCChangeRecruitmentPostForm(RecruitmentPostForm):
 
 
 class SkillForm(forms.Form):
-    name = forms.CharField(max_length=150, label='Skill', widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Skill', 'id': 'id-skill-name', 'list': 'skill-data-list', 'autocomplete': 'off'}))
+    name = forms.CharField(max_length=150, label='Skill', widget=forms.TextInput(attrs={
+                           'class': 'form-control', 'placeholder': 'Skill', 'id': 'id-skill-name', 'list': 'skill-data-list', 'autocomplete': 'off'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_suffix = ''
 
 
-class RecruitmentPostUpdateForm(forms.ModelForm):
+class RecruitmentPostUpdateForm(NoticeForm):
     class Meta:
         model = RecruitmentPostUpdate
-        exclude = ['user', 'recruitment_post']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.label_suffix = ''
-        for visible in self.visible_fields():
-            visible.field.widget.attrs['class'] = 'form-control'
-            visible.field.widget.attrs['placeholder'] = visible.field.label
-            if isinstance(visible.field.widget, forms.Textarea):
-                visible.field.widget.attrs['style'] = 'height: 8rem'
+        fields = ['title', 'description']
 
 
 class RecruitmentApplicationForm(forms.ModelForm):

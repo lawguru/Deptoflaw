@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Verification Link Sent | TPC | CSE | AUS{% endblock %}
+
+{% block content %}
+<div class="container-lg col-xxl-8 p-3 p-sm-4 p-md-5">
+    <h1 class="display-5 fw-bold text-body-emphasis lh-1">Verification Link Sent</h1>
+    <p class="text-body-emphasis">A link to verify your email was sent to {{email}}. Please check your spam folders.</p>
+    <p class="text-body-emphasis">If you are sure that you did not receive the email, you can request a new verification link from your <a href="{% url 'self_user' %}">personal and contact info</a> page.</p>
+    <p class="text-body-emphasis">You can Close this tab now.</p>
+</div>
+{% endblock %}

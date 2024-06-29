@@ -7,13 +7,16 @@ function Menu(e) {
         document.getElementById("nav-menu-hamicon").classList.add("responsive");
     }
     if (document.getElementById("nav2").classList.contains("responsive")) {
+        document.getElementById('content').setAttribute("onclick", "");
         document.getElementById("nav2").setAttribute("onmouseleave", "Menu()");
         document.getElementById("nav2").classList.remove("responsive");
         document.getElementById("nav-menu-hamicon").classList.remove("responsive")
     } else {
         if (e)
-            if (e.getAttribute("id")=="nav-menu")
+            if (e.getAttribute("id") == "nav-menu") {
                 document.getElementById('nav2').setAttribute("onmouseleave", "");
+                document.getElementById('content').setAttribute("onclick", "Menu()");
+            }
         document.getElementById("nav2").classList.add("responsive");
         document.getElementById("nav-menu-hamicon").classList.add("responsive");
     }
@@ -26,23 +29,23 @@ function Menu(e) {
     }
 }
 
-var prevScrollpos = window.pageYOffset;
-window.onscroll = function() {
-var currentScrollPos = window.pageYOffset;
-  if (prevScrollpos > currentScrollPos) {
-    document.getElementById("navbar").classList.remove("hidden");
-    document.getElementById("nav").classList.remove("hidden");
-    document.getElementById("nav2").classList.remove("hidden");
-    if (window.innerWidth > 575) {
-        document.getElementById("content").style.marginLeft = document.getElementById("nav").offsetWidth - document.querySelector(".inverted-topleft-corner").offsetWidth + "px"
+var prevScrollpos = window.scrollY;
+window.onscroll = function () {
+    var currentScrollPos = window.scrollY;
+    if (prevScrollpos > currentScrollPos) {
+        document.getElementById("navbar").classList.remove("hidden");
+        document.getElementById("nav").classList.remove("hidden");
+        document.getElementById("nav2").classList.remove("hidden");
+        if (window.innerWidth > 575) {
+            document.getElementById("content").style.marginLeft = document.getElementById("nav").offsetWidth - document.querySelector(".inverted-topleft-corner").offsetWidth + "px"
+        }
+    } else {
+        document.getElementById("navbar").classList.add("hidden");
+        document.getElementById("nav").classList.add("hidden");
+        document.getElementById("nav2").classList.add("hidden");
+        document.getElementById("content").style.marginLeft = "0";
     }
-} else {
-    document.getElementById("navbar").classList.add("hidden");
-    document.getElementById("nav").classList.add("hidden");
-    document.getElementById("nav2").classList.add("hidden");
-    document.getElementById("content").style.marginLeft = "0";
-}
-  prevScrollpos = currentScrollPos;
+    prevScrollpos = currentScrollPos;
 }
 
 if (window.innerWidth > 575) {

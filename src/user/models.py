@@ -1,6 +1,12 @@
 from django.db import models
 from django.db.models import Q
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from random import randint
+from django.urls import reverse
+import datetime
 
 # Create your models here.
 
@@ -43,7 +49,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     short_name = models.CharField(
         max_length=150, editable=False, blank=True, default='')
     is_coordinator = models.BooleanField(editable=False, default=False)
+    is_developer = models.BooleanField(editable=False, default=False)
     is_doctor = models.BooleanField(editable=False, default=False)
+    is_quoter = models.BooleanField(editable=False, default=False)
 
     @property
     def subtext(self):
@@ -56,6 +64,10 @@ class User(AbstractBaseUser, PermissionsMixin):
                 subtext = self.student_profile.course + ' ' + 'Drop Out'
             elif self.student_profile.passed_out:
                 subtext = self.student_profile.course + ' ' + 'Alumni'
+            subtext = (subtext +
+                       (', TPC Website Developer' if self.is_developer else '') +
+                       (', TPC Website Administrator' if self.is_superuser and not self.is_developer else '') +
+                       (', TPC Coordinator' if self.is_coordinator and not self.is_superuser else ''))[::-1].replace(',', 'dna ', 1)[::-1]
         if self.role == 'staff':
             subtext = (self.staff_profile.designation +
                        (', Coordinator' if self.is_coordinator and not self.staff_profile.is_tpc_head and not self.staff_profile.is_hod else '') +
@@ -89,6 +101,16 @@ class User(AbstractBaseUser, PermissionsMixin):
             return self.first_name
 
     @property
+    def reset_password_users(self):
+        return User.objects.filter(pk=self.pk)
+
+    @property
+    def set_password_users(self):
+        if self.is_superuser:
+            return User.objects.filter(pk=self.pk)
+        return User.objects.filter(is_superuser=True)
+
+    @property
     def edit_users(self):
         if self.is_superuser:
             return User.objects.filter(pk=self.pk)
@@ -116,7 +138,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def approve_users(self):
-        if self.is_approved:
+        if self.is_approved or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(Q(Q(is_superuser=True) | Q(is_coordinator=True))).distinct()
 
@@ -128,13 +150,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def make_superuser_users(self):
-        if self.is_superuser:
+        if self.is_superuser or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(is_superuser=True)
 
     @property
     def make_coordinator_users(self):
-        if self.is_coordinator:
+        if self.is_coordinator or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(Q(Q(is_superuser=True) | Q(is_coordinator=True))).distinct()
 
@@ -144,11 +166,22 @@ class User(AbstractBaseUser, PermissionsMixin):
             return User.objects.none()
         if self.is_coordinator:
             return User.objects.filter(is_superuser=True)
-        
+
+    @property
+    def make_quoter_users(self):
+        if self.is_quoter or not self.is_approved:
+            return User.objects.none()
+        return User.objects.filter(is_superuser=True)
+
+    @property
+    def remove_quoter_users(self):
+        if not self.is_quoter:
+            return User.objects.none()
+        return User.objects.filter(is_superuser=True)
 
     @property
     def make_cr_users(self):
-        if not hasattr(self, 'student_profile') or self.student_profile.is_cr:
+        if not hasattr(self, 'student_profile') or self.student_profile.is_cr or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(
             Q(is_superuser=True) | Q(is_coordinator=True) |
@@ -169,13 +202,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def make_hod_users(self):
-        if not hasattr(self, 'staff_profile') or self.staff_profile.is_hod:
+        if not hasattr(self, 'staff_profile') or self.staff_profile.is_hod or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(Q(is_superuser=True) | Q(staff_profile__is_hod=True)).distinct()
 
     @property
     def make_tpc_head_users(self):
-        if not hasattr(self, 'staff_profile') or self.staff_profile.is_tpc_head:
+        if not hasattr(self, 'staff_profile') or self.staff_profile.is_tpc_head or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(Q(is_superuser=True) | Q(staff_profile__is_hod=True) | Q(staff_profile__is_tpc_head=True)).distinct()
 
@@ -252,10 +285,20 @@ class Email(models.Model):
     email = models.EmailField(unique=True)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True, blank=True, related_name='emails')
+    is_verified = models.BooleanField(default=False)
+    verify_code = models.CharField(max_length=12, editable=False, blank=True, null=True)
+    verify_code_time = models.DateTimeField(editable=False, blank=True, null=True)
+    verify_code_valid_for = models.SmallIntegerField(default=5, editable=False)
+    
+    @property
+    def verify_code_valid(self):
+        if self.verify_code and self.verify_code_time:
+            return (datetime.datetime.now(datetime.timezone.utc) - self.verify_code_time.astimezone(datetime.timezone.utc)).seconds < (self.verify_code_valid_for * 60)
+        return False
 
     @property
     def set_primary_users(self):
-        if self == self.user.primary_email:
+        if self == self.user.primary_email or not self.is_verified:
             return User.objects.none()
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
@@ -269,11 +312,38 @@ class Email(models.Model):
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
+    @property
+    def verify_users(self):
+        if self.is_verified:
+            return User.objects.none()
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
+
+    def send_verification_email(self, request):
+        self.verify_code = str(randint(100000000000, 999999999999))
+        self.save()
+        subject = 'Email Verification | TPC | CSE | AUS'
+        html_message = render_to_string(
+            'email_verification.html',
+            {
+                'verification_url': request.build_absolute_uri(reverse('verify_email', args=[self.pk, self.verify_code])),
+                'valid_for': self.verify_code_valid_for,
+            }
+        )
+        try:
+            return send_mail(subject=subject, message=strip_tags(html_message), from_email=None, recipient_list=[self.email], html_message=html_message)
+        except:
+            return 0
+
     def save(self, *args, **kwargs):
         if not Email.objects.filter(user=self.user).exists() and self.user:
             self.user.primary_email = self
         if hasattr(self, 'primary_of') and self.primary_of:
             self.user = self.primary_of
+        if self.verify_code:
+            self.verify_code_time = datetime.datetime.now()
+        else:
+            self.verify_code_time = None
+
         super().save(*args, **kwargs)
         if self.user:
             self.user.save()

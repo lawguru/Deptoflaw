@@ -22,6 +22,12 @@ class Notice(models.Model):
     class Meta:
         base_manager_name = 'objects'
 
+    kind_choices = [
+        ('N', 'Notice'),
+        ('U', 'Update'),
+    ]
+
+    kind = models.CharField(max_length=1, choices=kind_choices, default='N', editable=False)
     title = models.CharField(max_length=150)
     description = models.TextField()
     date = models.DateTimeField(auto_now_add=True, editable=False)
@@ -44,10 +50,20 @@ class Message(models.Model):
     sender_phone = models.CharField(max_length=150)
     sender_email = models.EmailField()
     message = models.TextField()
+    handled = models.BooleanField(default=False)
+    handled_by = models.ForeignKey(
+        User, null=True, on_delete=models.SET_NULL, related_name='handled_messages')
+    handled_on = models.DateTimeField(null=True, blank=True, editable=False)
+    handled_notes = models.TextField(blank=True, help_text='Notes on how the message was handled or responded to for future reference')
     date = models.DateTimeField(auto_now_add=True, editable=False)
     date_edited = models.DateTimeField(auto_now=True, editable=False)
 
+    @property
     def view_users(self):
+        return User.objects.filter(is_superuser=True, is_coordinator=True)
+    
+    @property
+    def handle_users(self):
         return User.objects.filter(is_superuser=True, is_coordinator=True)
 
     def __str__(self):
@@ -56,8 +72,8 @@ class Message(models.Model):
 
 class Quote(models.Model):
     class Manager(models.Manager):
-        def get_create_permission(self, user):
-            if user.is_superuser:
+        def get_create_permission(self, user, current_user):
+            if (user == current_user and current_user.is_quoter) or current_user.is_superuser:
                 return True
             return False
 
@@ -66,13 +82,22 @@ class Quote(models.Model):
     class Meta:
         base_manager_name = 'objects'
 
+    user = models.ForeignKey(
+        User, null=True, on_delete=models.SET_NULL, related_name='quotes')
     quote = models.TextField()
     author = models.CharField(max_length=150)
     source = models.CharField(max_length=150, blank=True, null=True)
     fictional = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now_add=True, editable=False)
+    date_edited = models.DateTimeField(auto_now=True, editable=False)
 
+    @property
     def edit_users(self):
-        return User.objects.filter(is_superuser=True)
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user)).distinct()
+
+    @property
+    def delete_users(self):
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user)).distinct()
 
     def __str__(self):
         return self.quote + ' - ' + self.author
@@ -161,6 +186,8 @@ class RecruitmentPost(models.Model):
 
     @property
     def edit_users(self):
+        if self.user == None:
+            User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True)).distinct()
         if self.user.is_superuser:
             return User.objects.filter(is_superuser=True)
         if self.user.is_coordinator:
@@ -169,26 +196,44 @@ class RecruitmentPost(models.Model):
 
     @property
     def add_skill_users(self):
+        if self.user == None:
+            User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True)).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
 
     @property
     def remove_skill_users(self):
+        if self.user == None:
+            User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True)).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
 
     @property
+    def view_application_users(self):
+        if self.user == None:
+            User.objects.filter(is_superuser=True).distinct()
+        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
+
+    @property
     def select_application_users(self):
+        if self.user == None:
+            User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
     @property
     def reject_application_users(self):
+        if self.user == None:
+            User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
     @property
     def shortlist_application_users(self):
+        if self.user == None:
+            User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
     @property
     def pending_application_users(self):
+        if self.user == None:
+            User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
     @property
@@ -196,8 +241,8 @@ class RecruitmentPost(models.Model):
         return self.apply_by >= datetime.now().date()
 
 
-class RecruitmentPostUpdate(models.Model):
-    class Manager(models.Manager):
+class RecruitmentPostUpdate(Notice):
+    class Manager(Notice.Manager):
         def get_create_permission(self, post, user):
             if user.is_superuser or user.is_coordinator or (user.role == 'recruiter' and user == post.user):
                 return True
@@ -208,18 +253,12 @@ class RecruitmentPostUpdate(models.Model):
     class Meta:
         base_manager_name = 'objects'
 
-    title = models.CharField(max_length=150)
-    description = models.TextField()
     recruitment_post = models.ForeignKey(
         RecruitmentPost, on_delete=models.RESTRICT, related_name='updates')
-    user = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name='recruitment_post_updates')
-    date = models.DateTimeField(auto_now_add=True, editable=False)
-    date_edited = models.DateTimeField(auto_now=True, editable=False)
-
-    @property
-    def edit_users(self):
-        return User.objects.filter(is_superuser=True).distinct()
+    
+    def save(self, *args, **kwargs):
+        self.kind = 'U'
+        super().save()
 
 
 class RecruitmentApplication(models.Model):
@@ -271,7 +310,7 @@ class RecruitmentApplication(models.Model):
         ('I', 'Shortlisted for Interview'),
     ]
     user = models.ForeignKey(
-        User, null=True, on_delete=models.SET_NULL, related_name='job_applications')
+        User, null=True, on_delete=models.CASCADE, related_name='job_applications')
     recruitment_post = models.ForeignKey(
         RecruitmentPost, on_delete=models.RESTRICT, related_name='applications')
     cover_letter = models.TextField(

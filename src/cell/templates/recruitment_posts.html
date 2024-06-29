@@ -6,11 +6,17 @@
 
 <div class="container-fluid p-3 p-xl-5 min-vh-100">
 
-    <div class="mb-2">
-        <strong class="display-6 fw-bold text-body-emphasis lh-1">Recruitment Posts</strong>
-        {% if user_filter %}
+    <div class="my-5">
+        <strong class="display-6 fw-bold text-body-emphasis lh-1">
+            Recruitment Posts
+        </strong>
+        {% if post_filter %}
         <small class="d-block text-body-secondary">
-            By {{user.full_name}}
+            {% if post_filter == 'by-me' %}
+            By Me
+            {% elif post_filter == 'applied-by-me' %}
+            Applied by Me
+            {% endif %}
         </small>
         {% endif %}
     </diV>
@@ -250,7 +256,7 @@
                             <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
                                 <li>
                                     <form action="#">
-                                        <select class="form-select mb-1" name="start-date-type-filter"
+                                        <select class="form-select" name="start-date-type-filter"
                                             id="start-date-type-filter" onchange="this.parentElement.submit()">
                                             {% for choice in start_date_type_choices %}
                                             <option value="{{ choice.0 }}" {% if start_date_type_filter == choice.0 %}selected{% endif %}>
@@ -259,50 +265,87 @@
                                             {% endfor %}
                                         </select>
                                         {% if start_date_type_filter == 'S' %}
-                                        <input type="date" class="form-control mb-1"
+                                        <input type="date" class="form-control my-1"
                                             name="start-date-filter-lower-limit" id="start-date-filter-lower-limit"
                                             value="{{ start_date_filter_lower_limit }}">
                                         <input type="date" class="form-control mb-1"
                                             name="start-date-filter-upper-limit" id="start-date-filter-upper-limit"
                                             value="{{ start_date_filter_upper_limit }}">
-                                        {% endif %}
                                         <input type="submit" value="Apply" class="btn btn-primary border w-100 m-0">
+                                        {% endif %}
                                     </form>
                                 </li>
                             </ul>
                         </div>
                     </li>
+                    {% if applications_status_choices %}
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Applications
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form id="applications-status-filters-form" action="#">
+                                        {% for choice in applications_status_choices %}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="applications-status-filters"
+                                                value="{{choice.0}}" {% if choice.0 in applications_status_filters %}checked{% endif %}>
+                                            <label class="form-check-label">
+                                                {{choice.1}}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                        <input type="submit" value="Apply" class="btn btn-primary w-100">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    {% endif %}
+                    {% if post_choices %}
                     <li class="nav-item">
                         <div class="nav-link dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                 aria-expanded="false">
                                 More
                             </a>
-                            <form action="#">
-                                <input type="hidden" id="post-filter-form-input" name="post-filter">
-                                <ul class="dropdown-menu" onclick="event.stopPropagation()">
+                            <ul class="dropdown-menu pb-1" onclick="event.stopPropagation()">
+                                <form action="#">
+                                    <input type="hidden" id="post-filter-form-input" name="post-filter">
+                                    {% for choice in post_choices %}
                                     <li>
                                         <input type="submit"
-                                            onclick="document.getElementById('post-filter-form-input').value=''"
-                                            value="Any Post"
-                                            class="dropdown-item {% if post_filter == '' %}active{% endif %}">
+                                            onclick="document.getElementById('post-filter-form-input').value='{{choice.0}}'"
+                                            value="{{choice.1}}"
+                                            class="dropdown-item {% if post_filter == choice.0 %}active{% endif %}">
                                     </li>
-                                    <li>
-                                        <input type="submit"
-                                            onclick="document.getElementById('post-filter-form-input').value='by-me'"
-                                            value="Posted by Me"
-                                            class="dropdown-item {% if post_filter == 'by-me' %}active{% endif %}">
-                                    </li>
-                                    <li>
-                                        <input type="submit"
-                                            onclick="document.getElementById('post-filter-form-input').value='applied-by-me'"
-                                            value="Applied by Me"
-                                            class="dropdown-item {% if post_filter == 'applied-by-me' %}active{% endif %}">
-                                    </li>
-                                </ul>
-                            </form>
+                                    {% endfor %}
+                                </form>
+                                {% if post_filter == 'applied-by-me' %}
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li class="px-1">
+                                    <form id="applied-status-filters-form" action="#">
+                                        {% for choice in applied_status_choices %}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="applied-status-filters"
+                                                value="{{choice.0}}" {% if choice.0 in applied_status_filters %}checked{% endif %}>
+                                            <label class="form-check-label">
+                                                {{choice.1}}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                        <input type="submit" value="Apply" class="btn btn-primary w-100">
+                                    </form>
+                                </li>
+                                {% endif %}
+                            </ul>
                         </div>
                     </li>
+                    {% endif %}
                 </ul>
                 <div style="width: fit-content;">
                     <div class="rounded-circle m-2" onclick="location.href=window.location.href.split('?')[0]"

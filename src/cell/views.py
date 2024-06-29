@@ -49,12 +49,17 @@ class Index(TemplateView):
 
         context['message_from_hod'] = message_from_hod.value
         context['message_from_tpc_head'] = message_from_tpc_head.value
-        context['hod'] = StaffProfile.objects.get(
-            is_hod=True) if StaffProfile.objects.filter(is_hod=True).exists() else None
-        context['tpc_head'] = StaffProfile.objects.get(
-            is_tpc_head=True) if StaffProfile.objects.filter(is_tpc_head=True).exists() else None
-        context['coordinators'] = User.objects.filter(
-            groups__name='coordinators') if User.objects.filter(groups__name='coordinators').exists() else None
+        context['hod'] = User.objects.filter(staff_profile__is_hod=True)
+        context['tpc_head'] = User.objects.filter(
+            staff_profile__is_tpc_head=True).exclude(staff_profile__is_hod=True)
+        context['developers'] = User.objects.filter(is_developer=True).exclude(Q(staff_profile__is_hod=True) | Q(
+            staff_profile__is_tpc_head=True))
+        context['superusers'] = User.objects.filter(is_superuser=True).exclude(Q(staff_profile__is_hod=True) | Q(
+            staff_profile__is_tpc_head=True) | Q(is_developer=True))
+        context['coordinators'] = User.objects.filter(is_coordinator=True).exclude(Q(staff_profile__is_hod=True) | Q(
+            staff_profile__is_tpc_head=True) | Q(is_developer=True) | Q(is_superuser=True))
+        context['team'] = list(chain(context['hod'], context['tpc_head'],
+                               context['developers'], context['superusers'], context['coordinators']))
         return context
 
 
@@ -84,6 +89,10 @@ class Dashboard(TemplateView):
 
         if Notice.objects.get_create_permission(user):
             context['add_notice_form'] = NoticeForm()
+
+        if Quote.objects.get_create_permission(user, user):
+            context['add_quote_form'] = QuoteForm(initial={'user': user})
+            context['quotes_count'] = Quote.objects.count()
 
         if user.role == 'student':
             self.add_student_context(context, user)
@@ -140,6 +149,7 @@ class Dashboard(TemplateView):
             recruitment_post__in=RecruitmentPost.objects.filter(
                 apply_by__gte=datetime.today().date())
         )
+        messages = Message.objects.all()
 
         context.update({
             'unapproved_user_count': unapproved_users.count(),
@@ -149,6 +159,9 @@ class Dashboard(TemplateView):
             'student_count': students.count(),
             'current_student_count': students.filter(is_current=True).count(),
             'alumni_count': students.filter(passed_out=True).count(),
+            'messages_count': messages.count(),
+            'handled_messages_count': messages.filter(handled=True).count(),
+            'unhandled_messages_count': messages.filter(handled=False).count(),
             'applicant_count': applicants.count(),
             'pending_applicant_count': applicants.filter(status='P').count(),
             'selected_applicant_count': applicants.filter(status='S').count(),
@@ -164,14 +177,8 @@ class Dashboard(TemplateView):
     def add_general_context(self):
         active_posts = RecruitmentPost.objects.filter(
             apply_by__gte=datetime.today().date())
-        user_notices = list(chain(
-            Notice.objects.filter(user=self.request.user),
-            RecruitmentPostUpdate.objects.filter(user=self.request.user)
-        ))
-        all_notices = list(chain(
-            Notice.objects.all(),
-            RecruitmentPostUpdate.objects.all()
-        ))
+        user_notices = Notice.objects.filter(user=self.request.user)
+        all_notices = Notice.objects.all()
 
         return {
             'post_count': RecruitmentPost.objects.count(),
@@ -184,83 +191,110 @@ class Dashboard(TemplateView):
 class ListNotice(ListView):
     model = Notice
     template_name = 'notices.html'
-    paginate_by = 100
+    paginate_by = 50
+
+    sorting_options = [
+        ('date', 'Date'),
+        ('user', 'Posted by'),
+        ('title', 'Title'),
+    ]
+    post_sorting_options = [
+        ('recruitment_post__user', 'Recruitment Posted by'),
+    ]
+    user_options = [
+        ('', 'Any'),
+        ('me', 'Me'),
+    ]
+    type_options = [
+        ('', 'Any'),
+        ('notice', 'Notice'),
+        ('post-update', 'Recruitment Post Update'),
+    ]
+    recruitment_post_options = [
+        ('', 'Any'),
+    ]
+    poster_recruitment_post_options = [
+        ('by-me', 'By me'),
+    ]
+    studnet_recruitment_post_options = [
+        ('applied-by-me', 'Applied by me'),
+    ]
 
     def get_queryset(self):
+        query = Q()
+
+        type_filter = self.request.GET.get('type-filter')
+        if type_filter == 'notice':
+            query &= Q(kind='N')
+        elif type_filter == 'post-update':
+            query &= Q(kind='U')
+
+        query = self.apply_user_filter(query)
+        query = self.apply_recruitment_post_filter(query)
+
         queryset = super().get_queryset()
-        queryset2 = RecruitmentPostUpdate.objects.all()
-        queryset2 = self.apply_recruitment_post_filters(queryset2)
-        queryset2 = self.apply_recruitment_post_filter(queryset2)
+        queryset = queryset.filter(query)
 
-        queryset = self.apply_user_filter(queryset)
-        queryset2 = self.apply_user_filter(queryset2)
-
-        sorting = self.request.GET.get('sorting')
+        sorting = self.request.GET.get('sorting', 'date')
         if sorting:
             if sorting == 'date':
                 queryset = queryset.order_by('date')
-                queryset2 = queryset2.order_by('date')
             elif sorting == 'user':
                 queryset = queryset.order_by('user')
-                queryset2 = queryset2.order_by('user')
             elif sorting == 'title':
                 queryset = queryset.order_by('title')
-                queryset2 = queryset2.order_by('title')
-            elif type_filter == 'post-update' and sorting == 'recruitment_post_user':
+            elif type_filter == 'post-update' and sorting == 'recruitment_post__user':
                 queryset = queryset.order_by('recruitment_post__user')
-                queryset2 = queryset2.order_by('recruitment_post__user')
 
         ordering = self.request.GET.get('ordering')
         if ordering:
             if ordering == 'desc':
                 queryset = queryset.reverse()
-                queryset2 = queryset2.reverse()
 
-        type_filter = self.request.GET.get('type-filter')
-        if type_filter == 'notice':
-            return queryset
-        if type_filter == 'post-update':
-            return queryset2
+        return queryset
 
-        queryset = [(notice, NoticeForm(instance=notice))
-                    for notice in queryset]
-        queryset2 = [(update, None) for update in queryset2]
-
-        return list(chain(queryset, queryset2))
-
-    def apply_user_filter(self, queryset):
+    def apply_user_filter(self, query):
         user_filter = self.request.GET.get('user-filter')
         if user_filter == 'me':
-            return queryset.filter(user=self.request.user)
-        return queryset
+            query &= Q(user=self.request.user)
+        return query
 
-    def apply_recruitment_post_filters(self, queryset):
-        recruitment_post_filters = self.request.GET.getlist(
-            'recruitment-post-filters')
-        if recruitment_post_filters:
-            return queryset.filter(recruitment_post__id__in=recruitment_post_filters)
-        return queryset
-
-    def apply_recruitment_post_filter(self, queryset):
+    def apply_recruitment_post_filter(self, query):
         recruitment_post_filter = self.request.GET.get(
             'recruitment-post-filter')
         if recruitment_post_filter == 'by-me':
-            return queryset.filter(recruitment_post__user=self.request.user)
+            query &= Q(
+                recruitmentpostupdate__recruitment_post__user=self.request.user)
         elif recruitment_post_filter == 'applied-by-me':
-            return queryset.filter(recruitment_post__applications__user=self.request.user)
-        return queryset
+            query &= Q(
+                recruitmentpostupdate__recruitment_post__applications__user=self.request.user)
+        return query
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['user_filter'] = self.request.GET.get('user-filter') or ''
-        context['type_filter'] = self.request.GET.get('type-filter') or ''
+        context['page_obj'].object_list = [(RecruitmentPostUpdate.objects.get(notice_ptr_id=notice.id) if notice.kind == 'U' else notice, RecruitmentPostUpdateForm(instance=notice) if notice.kind == 'U' else NoticeForm(instance=notice))
+                                           for notice in context['page_obj'].object_list]
+        context['sorting_options'] = self.sorting_options
+
+        context['type_options'] = self.type_options
+
+        context['type_filter'] = self.request.GET.get('type-filter', '')
+        context['user_filter'] = self.request.GET.get('user-filter', '')
+
+        if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter' or self.request.user.role == 'staff'):
+            context['user_options'] = self.user_options
+
         if context['type_filter'] == 'post-update':
-            context['recruitment_post_filters'] = self.request.GET.getlist(
-                'recruitment-post-filters') or []
+            context['recruitment_post_options'] = self.recruitment_post_options
+            if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter'):
+                context['recruitment_post_options'] += self.poster_recruitment_post_options
+            if self.request.user.is_authenticated and self.request.user.role == 'student':
+                context['recruitment_post_options'] += self.studnet_recruitment_post_options
+            context['sorting_options'] += self.post_sorting_options
             context['recruitment_post_filter'] = self.request.GET.get(
-                'recruitment-post-filter') or ''
-        context['sorting'] = self.request.GET.get('sorting') or 'date'
-        context['ordering'] = self.request.GET.get('ordering') or 'asc'
+                'recruitment-post-filter', '')
+        context['sorting'] = self.request.GET.get('sorting', 'date')
+        context['ordering'] = self.request.GET.get('ordering', 'asc')
         return context
 
 
@@ -269,19 +303,35 @@ class ListRecruitmentPost(ListView):
     template_name = 'recruitment_posts.html'
     paginate_by = 50
 
+    job_type_choices = RecruitmentPost.job_type_choices
+    workplace_type_choices = RecruitmentPost.workplace_type_choices
+    start_date_type_choices = RecruitmentPost.start_date_type_choices
+    applications_status_choices = RecruitmentApplication.status_choices
+    recruiter_post_choices = [
+        ('', 'Any Post'),
+        ('by-me', 'By me'),
+    ]
+    student_post_choices = [
+        ('', 'Any Post'),
+        ('applied-by-me', 'Applied by me'),
+    ]
+
     def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = self.apply_company_filter(queryset)
-        queryset = self.apply_location_filter(queryset)
-        queryset = self.apply_job_type_filters(queryset)
-        queryset = self.apply_workplace_type_filters(queryset)
-        queryset = self.apply_salary_filter(queryset)
-        queryset = self.apply_experience_filter(queryset)
-        queryset = self.apply_start_date_filter(queryset)
-        queryset = self.apply_skill_filter(queryset)
-        queryset = self.apply_active_filter(queryset)
-        queryset = self.apply_applications_filter(queryset)
-        queryset = self.apply_post_filter(queryset)
+        query = Q()
+
+        query = self.apply_company_filter(query)
+        query = self.apply_location_filter(query)
+        query = self.apply_job_type_filters(query)
+        query = self.apply_workplace_type_filters(query)
+        query = self.apply_salary_filter(query)
+        query = self.apply_experience_filter(query)
+        query = self.apply_start_date_filter(query)
+        query = self.apply_skill_filter(query)
+        query = self.apply_post_filter(query)
+        query = self.apply_applications_status_filters(query)
+        query = self.apply_active_filter(query)
+
+        queryset = super().get_queryset().filter(query).distinct()
 
         sorting = self.request.GET.get('sorting')
         if sorting:
@@ -292,109 +342,123 @@ class ListRecruitmentPost(ListView):
             queryset = queryset.reverse()
         return queryset
 
-    def apply_skill_filter(self, queryset):
+    def apply_skill_filter(self, query):
         skill_filter = self.request.GET.getlist('skill-filter')
         if skill_filter:
-            queryset = queryset.filter(skills__name__in=skill_filter)
-        return queryset
+            query &= Q(skills__name__in=skill_filter)
+        return query
 
-    def apply_company_filter(self, queryset):
+    def apply_company_filter(self, query):
         company_filter = self.request.GET.get('company-filter')
         if company_filter:
-            queryset = queryset.filter(company__icontains=company_filter)
-        return queryset
+            query &= Q(company__icontains=company_filter)
+        return query
 
-    def apply_location_filter(self, queryset):
+    def apply_location_filter(self, query):
         location_filter = self.request.GET.get('location-filter')
         if location_filter:
-            queryset = queryset.filter(location__icontains=location_filter)
-        return queryset
+            query &= Q(location__icontains=location_filter)
+        return query
 
-    def apply_job_type_filters(self, queryset):
+    def apply_job_type_filters(self, query):
         job_type_filters = self.request.GET.getlist('job-type-filters')
+        job_type_filters = [job_type for job_type in job_type_filters if job_type in [
+            job_type[0] for job_type in self.job_type_choices]]
         if job_type_filters:
-            queryset = queryset.filter(job_type__in=job_type_filters)
-        return queryset
+            query &= Q(job_type__in=job_type_filters)
+        return query
 
-    def apply_workplace_type_filters(self, queryset):
+    def apply_workplace_type_filters(self, query):
         workplace_type_filters = self.request.GET.getlist(
             'workplace-type-filters')
+        workplace_type_filters = [workplace_type for workplace_type in workplace_type_filters if workplace_type in [
+            workplace_type[0] for workplace_type in self.workplace_type_choices]]
         if workplace_type_filters:
-            queryset = queryset.filter(
+            query &= Q(
                 workplace_type__in=workplace_type_filters)
-        return queryset
+        return query
 
-    def apply_salary_filter(self, queryset):
+    def apply_salary_filter(self, query):
         expected_salary = self.request.GET.get('expected-salary', 0)
-        if expected_salary:
-            queryset = queryset.filter(minimum_salary__gte=expected_salary)
-        return queryset
+        if expected_salary and expected_salary.replace('.', '', 1).isdigit():
+            query &= Q(minimum_salary__gte=expected_salary)
+        return query
 
-    def apply_experience_filter(self, queryset):
+    def apply_experience_filter(self, query):
         experience_filter_lower_limit = self.request.GET.get(
             'experience-filter-lower-limit')
         experience_filter_upper_limit = self.request.GET.get(
             'experience-filter-upper-limit')
-        if experience_filter_lower_limit:
-            queryset = queryset.filter(
+        if experience_filter_lower_limit and experience_filter_lower_limit.isdigit():
+            query &= Q(
                 experience_duration__gte=experience_filter_lower_limit)
-        if experience_filter_upper_limit:
-            queryset = queryset.filter(
+        if experience_filter_upper_limit and experience_filter_upper_limit.isdigit():
+            query &= Q(
                 experience_duration__lte=experience_filter_upper_limit)
-        return queryset
+        return query
 
-    def apply_start_date_filter(self, queryset):
+    def apply_start_date_filter(self, query):
         start_date_type_filter = self.request.GET.get('start-date-type-filter')
-        if start_date_type_filter:
-            queryset = queryset.filter(start_date_type=start_date_type_filter)
+        if start_date_type_filter and start_date_type_filter in [start_date_type[0] for start_date_type in self.start_date_type_choices]:
+            query &= Q(start_date_type=start_date_type_filter)
             if start_date_type_filter == 'S':
                 start_date_filter_lower_limit = self.request.GET.get(
                     'start-date-filter-lower-limit')
                 start_date_filter_upper_limit = self.request.GET.get(
                     'start-date-filter-upper-limit')
-                if start_date_filter_lower_limit:
-                    queryset = queryset.filter(
-                        start_date__gte=start_date_filter_lower_limit)
-                if start_date_filter_upper_limit:
-                    queryset = queryset.filter(
-                        start_date__lte=start_date_filter_upper_limit)
-        return queryset
+                try:
+                    if start_date_filter_lower_limit and datetime.strptime(start_date_filter_lower_limit, '%Y-%m-%d'):
+                        query &= Q(
+                            start_date__gte=start_date_filter_lower_limit)
+                    if start_date_filter_upper_limit and datetime.strptime(start_date_filter_upper_limit, '%Y-%m-%d'):
+                        query &= Q(
+                            start_date__lte=start_date_filter_upper_limit)
+                except ValueError:
+                    pass
+        return query
 
-    def apply_post_filter(self, queryset):
-        post_filter = self.request.GET.get('post-filter')
+    def apply_post_filter(self, query):
+        if not self.request.user.is_authenticated:
+            return query
+        post_filter = self.request.GET.get('post-filter', '')
         if post_filter == 'by-me':
-            queryset = queryset.filter(user=self.request.user)
+            query &= Q(user=self.request.user)
         elif post_filter == 'applied-by-me':
-            queryset = queryset.filter(
-                applications__user=self.request.user).distinct()
-        return queryset
+            query &= Q(applications__user=self.request.user)
+            query = self.apply_applied_status_filter(query)
+        return query
 
-    def apply_active_filter(self, queryset):
-        is_active_filter = self.request.GET.get('is-active-filter')
+    def apply_applied_status_filter(self, query):
+        applied_status_filters = self.request.GET.getlist(
+            'applied-status-filters')
+        applied_status_filters = [status for status in applied_status_filters if status in [
+            status[0] for status in self.applications_status_choices]]
+
+        if len(applied_status_filters):
+            applications = RecruitmentApplication.objects.filter(
+                user=self.request.user, status__in=applied_status_filters)
+            query &= Q(applications__in=applications)
+
+        return query
+
+    def apply_applications_status_filters(self, query):
+        applications_status_filters = self.request.GET.getlist(
+            'applications-status-filters', [])
+        applications_status_filters = [status for status in applications_status_filters if status in [
+            status[0] for status in self.applications_status_choices]]
+
+        if applications_status_filters:
+            query &= Q(
+                applications__status__in=applications_status_filters)
+
+        return query
+
+    def apply_active_filter(self, query):
+        is_active_filter = self.request.GET.get('is-active-filter', 'true')
         if is_active_filter is not None:
             if is_active_filter.lower() != 'false':
-                queryset = queryset.filter(
-                    apply_by__gte=datetime.today().date())
-        return queryset
-
-    def apply_applications_filter(self, queryset):
-        if self.request.user.is_authenticated and self.request.user.role == 'recruiter' and not self.request.GET.get('post-filter') == 'applied-by-me':
-            return queryset
-        elif self.request.user.is_authenticated and not self.request.user.is_superuser and not self.request.user.is_coordinator:
-            return queryset
-
-        applications_filter_lower_limit = self.request.GET.get(
-            'applications-filter-lower-limit', 0)
-        queryset = queryset.annotate(application_count=Count('applications')).filter(
-            application_count__gte=applications_filter_lower_limit)
-
-        applications_status_filters = self.request.GET.getlist(
-            'applications-status-filters')
-        if applications_status_filters:
-            queryset = queryset.filter(
-                applications__status__in=applications_status_filters).distinct()
-
-        return queryset
+                query &= Q(apply_by__gte=datetime.today().date())
+        return query
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -403,10 +467,10 @@ class ListRecruitmentPost(ListView):
             'location-filter', '')
         context['job_type_filters'] = self.request.GET.getlist(
             'job-type-filters', [])
-        context['job_type_choices'] = RecruitmentPost.job_type_choices
+        context['job_type_choices'] = self.job_type_choices
         context['workplace_type_filters'] = self.request.GET.getlist(
             'workplace-type-filters', [])
-        context['workplace_type_choices'] = RecruitmentPost.workplace_type_choices
+        context['workplace_type_choices'] = self.workplace_type_choices
         context['expected_salary'] = self.request.GET.get(
             'expected-salary', 0)
         context['experience_filter_lower_limit'] = self.request.GET.get(
@@ -420,19 +484,24 @@ class ListRecruitmentPost(ListView):
                 'start-date-filter-lower-limit', '')
             context['start_date_filter_upper_limit'] = self.request.GET.get(
                 'start-date-filter-upper-limit', '')
-        context['start_date_type_choices'] = RecruitmentPost.start_date_type_choices
+        context['start_date_type_choices'] = self.start_date_type_choices
         context['skill_filter'] = self.request.GET.getlist('skill-filter')
         context['is_active_filter'] = self.request.GET.get(
-            'is-active-filter', 'any')
-        if (self.request.user.is_authenticated and self.request.user.role == 'recruiter' and self.request.GET.get('post-filter') == 'applied-by-me') or (self.request.user.is_authenticated and self.request.user.is_superuser and self.request.user.is_coordinator):
-            context['applications_filter_lower_limit'] = self.request.GET.get(
-                'applications-filter-lower-limit', 0)
-            context['applications_status_filters'] = self.request.GET.getlist(
-                'applications-status-filters', [])
+            'is-active-filter', 'true')
+
         context['post_filter'] = self.request.GET.get('post-filter', '')
         if self.request.user.is_authenticated and self.request.user.role == 'student':
-            context['applied_posts'] = RecruitmentPost.objects.filter(
-                applications__user=self.request.user).distinct()
+            context['post_choices'] = self.student_post_choices
+            context['applied_status_filters'] = self.request.GET.getlist(
+                'applied-status-filters', [])
+            context['applied_status_choices'] = self.applications_status_choices
+
+        if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter'):
+            context['post_choices'] = self.recruiter_post_choices
+            if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_coordinator or (self.request.user.role == 'recruiter' and context['post_filter'] == 'by-me')):
+                context['applications_status_filters'] = self.request.GET.getlist(
+                    'applications-status-filters', [])
+                context['applications_status_choices'] = self.applications_status_choices
 
         context['sorting_options'] = [
             ('apply_by', 'Apply By date'),
@@ -443,6 +512,232 @@ class ListRecruitmentPost(ListView):
         context['ordering'] = self.request.GET.get('ordering', 'asc')
 
         return context
+
+
+@method_decorator(login_required, name="dispatch")
+class MessageListView(ListView):
+    model = Message
+    template_name = 'messages.html'
+    paginate_by = 50
+    status_options = [
+        ('', 'Any'),
+        ('handled', 'Handled'),
+        ('unhandled', 'Unhandled'),
+    ]
+    sorting_options = [
+        ('date', 'Date Received'),
+        ('sender', 'Sender\'s Name'),
+        ('sender_company', 'Company'),
+        ('sender_designation', 'Designation'),
+        ('sender_phone', 'Phone'),
+        ('sender_email', 'Email'),
+    ]
+    handled_sorting_option = [
+        ('handled_on', 'Date Handled')
+    ]
+
+    def get_queryset(self):
+        query = Q()
+
+        status_filter = self.request.GET.get('status-filter', '')
+        if status_filter == 'handled':
+            query &= Q(handled=True)
+        elif status_filter == 'unhandled':
+            query &= Q(handled=False)
+
+        company_filter = self.request.GET.get('company-filter')
+        if company_filter:
+            query &= Q(sender_company__icontains=company_filter)
+
+        designation_filter = self.request.GET.get('designation-filter')
+        if designation_filter:
+            query &= Q(sender_designation__icontains=designation_filter)
+
+        phone_filter = self.request.GET.get('phone-filter')
+        if phone_filter:
+            query &= Q(sender_phone__icontains=phone_filter)
+
+        email_filter = self.request.GET.get('email-filter')
+        if email_filter:
+            query &= Q(sender_email__icontains=email_filter)
+
+        name_filter = self.request.GET.get('name-filter')
+        if name_filter:
+            query &= Q(sender__icontains=name_filter)
+
+        queryset = super().get_queryset().filter(query)
+
+        sorting = self.request.GET.get('sorting', 'date')
+        if sorting:
+            if sorting == 'sender_company':
+                queryset = queryset.order_by('sender_company')
+            elif sorting == 'sender_designation':
+                queryset = queryset.order_by('sender_designation')
+            elif sorting == 'sender_phone':
+                queryset = queryset.order_by('sender_phone')
+            elif sorting == 'sender_email':
+                queryset = queryset.order_by('sender_email')
+            elif sorting == 'sender':
+                queryset = queryset.order_by('sender')
+            else:
+                if sorting == 'date' or status_filter == 'unhandled':
+                    queryset = queryset.order_by('date')
+                else:
+                    if sorting == 'handled_on':
+                        queryset = queryset.order_by('handled_on')
+                    else:
+                        queryset = queryset.order_by('date')
+
+        ordering = self.request.GET.get('ordering')
+        if ordering == 'desc':
+            queryset = queryset.reverse()
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['page_obj'].object_list = [(message, MessageHandledForm(
+            instance=message)) for message in context['page_obj'].object_list]
+
+        context['sorting_options'] = self.sorting_options
+        context['status_options'] = self.status_options
+
+        context['sorting'] = self.request.GET.get('sorting', 'date')
+        context['ordering'] = self.request.GET.get('ordering', 'asc')
+
+        context['status_filter'] = self.request.GET.get(
+            'status-filter', '')
+        if context['status_filter'] == 'handled':
+            context['sorting_options'] = self.handled_sorting_option + \
+                context['sorting_options']
+
+        context['company_filter'] = self.request.GET.get('company-filter', '')
+        context['designation_filter'] = self.request.GET.get(
+            'designation-filter', '')
+        context['phone_filter'] = self.request.GET.get('phone-filter', '')
+        context['email_filter'] = self.request.GET.get('email-filter', '')
+        context['name_filter'] = self.request.GET.get('name-filter', '')
+
+        return context
+
+    def get(self, request):
+        if request.user.is_superuser or request.user.is_coordinator:
+            return super().get(request)
+        raise PermissionDenied()
+
+
+@method_decorator(login_required, name="dispatch")
+class QuoteListView(ListView):
+    model = Quote
+    template_name = 'quotes.html'
+    paginate_by = 50
+
+    sorting_options = [
+        ('date', 'Date'),
+        ('date_edited', 'Date Edited'),
+        ('author', 'Author'),
+        ('quote', 'Quote'),
+        ('source', 'Source'),
+    ]
+    user_options = [
+        ('', 'Anyone'),
+        ('me', 'Me'),
+    ]
+    fictional_options = [
+        ('on', 'Fictional'),
+        ('off', 'Non-Fictional'),
+    ]
+
+    def get_queryset(self):
+        query = Q()
+
+        author_filter = self.request.GET.get('author-filter')
+        if author_filter:
+            query &= Q(author__icontains=author_filter)
+
+        quote_filter = self.request.GET.get('quote-filter')
+        if quote_filter:
+            query &= Q(quote__icontains=quote_filter)
+
+        source_filter = self.request.GET.get('source-filter')
+        if source_filter:
+            query &= Q(source__icontains=source_filter)
+
+        user_filter = self.request.GET.get('user-filter', '')
+        if user_filter == 'me':
+            query &= Q(user=self.request.user)
+
+        fictional_filters = self.request.GET.getlist('fictional-filters')
+        fictional_filters = [fictional for fictional in fictional_filters if fictional in [
+            fictional[0] for fictional in self.fictional_options]]
+        fictional_filters = [True if fictional ==
+                             'on' else False for fictional in fictional_filters]
+        if fictional_filters:
+            query &= Q(fictional__in=fictional_filters)
+
+        queryset = super().get_queryset().filter(query)
+
+        sorting = self.request.GET.get('sorting', 'date')
+        if sorting:
+            if sorting == 'date_edited':
+                queryset = queryset.order_by('date_edited')
+            elif sorting == 'author':
+                queryset = queryset.order_by('author')
+            elif sorting == 'quote':
+                queryset = queryset.order_by('quote')
+            elif sorting == 'source':
+                queryset = queryset.order_by('source')
+            else:
+                queryset = queryset.order_by('date')
+
+        ordering = self.request.GET.get('ordering', 'asc')
+        if ordering == 'desc':
+            queryset = queryset.reverse()
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['page_obj'].object_list = [(quote, QuoteForm(
+            instance=quote)) for quote in context['page_obj'].object_list]
+
+        context['sorting_options'] = self.sorting_options
+        context['user_options'] = self.user_options
+        context['fictional_options'] = self.fictional_options
+
+        context['sorting'] = self.request.GET.get('sorting', 'date')
+        context['ordering'] = self.request.GET.get('ordering', 'asc')
+
+        context['author_filter'] = self.request.GET.get('author-filter', '')
+        context['quote_filter'] = self.request.GET.get('quote-filter', '')
+        context['source_filter'] = self.request.GET.get('source-filter', '')
+        context['user_filter'] = self.request.GET.get('user-filter', '')
+        context['fictional_filters'] = self.request.GET.getlist(
+            'fictional-filters', [])
+
+        return context
+
+
+@method_decorator(login_required, name="dispatch")
+class MessageSetHandled(View):
+    form = MessageHandledForm
+
+    def post(self, request, pk):
+        if not Message.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        message = Message.objects.get(pk=pk)
+        if request.user not in message.handle_users:
+            raise PermissionDenied()
+        form = self.form(request.POST, instance=message)
+        if form.is_valid():
+            message.handled = True
+            message.handled_on = datetime.now()
+            message.handled_by = request.user
+            message.handled_notes = form.cleaned_data['handled_notes']
+            message.save()
+        return redirect(reverse('messages')+f'?status-filter=handled&sorting=handled_on&ordering=desc')
 
 
 @method_decorator(login_required, name="dispatch")
@@ -503,50 +798,71 @@ class RecruitmentApplications(ListView):
     paginate_by = 100
     template_name = 'recruitment_applications.html'
 
+    course_choices = StudentProfile.course_choices
+    status_choices = RecruitmentApplication.status_choices
+    sorting_options = [
+        ('applied_on', 'Applied On'),
+        ('name', 'Name'),
+        ('total_skills', 'Total Skills'),
+        ('skill_matches', 'Skill Matches'),
+        ('other_skills_count', 'Other Skills Count'),
+        ('course', 'Course'),
+        ('year', 'Year'),
+        ('cgpa', 'CGPA'),
+        ('backlogs', 'Backlogs'),
+    ]
+
     def get_queryset(self):
-        queryset = self.model.objects.filter(
-            recruitment_post=self.kwargs['pk'])
         skill_filters = self.request.GET.get('skill-filters')
-        course_filters = self.request.GET.getlist('course-filters')
-        year_lower_limit = self.request.GET.get('year-lower-limit')
+        course_filters = self.request.GET.getlist('course-filters', [])
+        year_lower_limit = self.request.GET.get('year-lower-limit', 0)
         year_upper_limit = self.request.GET.get('year-upper-limit')
-        cgpa_lower_limit = self.request.GET.get('cgpa-lower-limit')
+        cgpa_lower_limit = self.request.GET.get('cgpa-lower-limit', 0)
         backlogs_upper_limit = self.request.GET.get('backlogs-upper-limit')
-        status_filters = self.request.GET.getlist('status-filters')
-        sorting = self.request.GET.get('sorting')
-        ordering = self.request.GET.get('ordering')
+        status_filters = self.request.GET.getlist('status-filters', [])
+        sorting = self.request.GET.get('sorting', 'applied_on')
+        ordering = self.request.GET.get('ordering', 'asc')
+
+        query = Q(recruitment_post=self.kwargs['pk'])
 
         if skill_filters:
-            for and_filter in json.loads(skill_filters):
-                queryset = queryset.filter(
-                    user__skills__in=and_filter).distinct()
+            try:
+                for and_filter in json.loads(skill_filters):
+                    query &= Q(user__skills__in=and_filter)
+            except:
+                pass
 
+        course_filters = [course for course in course_filters if course in [
+            course[0] for course in self.course_choices]]
         if course_filters:
-            queryset = queryset.filter(
+            query &= Q(
                 student_profile__course__in=course_filters)
 
         if year_lower_limit or year_upper_limit:
             students = StudentProfile.objects
 
-            if year_lower_limit:
+            if year_lower_limit and year_lower_limit.isdigit():
                 students = students.filter(year__gte=year_lower_limit)
 
-            if year_upper_limit:
+            if year_upper_limit and year_upper_limit.isdigit():
                 students = students.filter(year__lte=year_upper_limit)
 
-            queryset = queryset.filter(
-                user__student_profile__in=students)
+            query &= Q(user__student_profile__in=students)
 
-        if cgpa_lower_limit:
-            queryset = queryset.filter(
+        if cgpa_lower_limit and cgpa_lower_limit.replace('.', '', 1).isdigit():
+            query &= Q(
                 user__student_profile__cgpa__gte=cgpa_lower_limit)
 
-        if backlogs_upper_limit:
-            queryset = queryset.filter(
+        if backlogs_upper_limit and backlogs_upper_limit.isdigit():
+            query &= Q(
                 user__student_profile__backlog_count__lte=backlogs_upper_limit)
 
+        status_filters = [status for status in status_filters if status in [
+            status[0] for status in self.status_choices]]
         if status_filters:
-            queryset = queryset.filter(status__in=status_filters)
+            query &= Q(status__in=status_filters)
+
+        queryset = super().get_queryset().filter(query)
 
         if sorting:
             if sorting == 'name':
@@ -567,8 +883,8 @@ class RecruitmentApplications(ListView):
                 queryset = queryset.order_by(f'skill_matches')
             elif sorting == 'other_skills_count':
                 queryset = queryset.order_by(f'other_skills_count')
-        else:
-            queryset = queryset.order_by(f'applied_on')
+            else:
+                queryset = queryset.order_by(f'applied_on')
 
         if ordering:
             if ordering == 'desc':
@@ -578,16 +894,19 @@ class RecruitmentApplications(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         context['post'] = RecruitmentPost.objects.get(pk=self.kwargs['pk'])
-        skill_filters = self.request.GET.get('skill-filters')
-        course_filters = self.request.GET.getlist('course-filters')
-        year_lower_limit = self.request.GET.get('year-lower-limit')
+        context['sorting_options'] = self.sorting_options
+
+        skill_filters = self.request.GET.get('skill-filters', [])
+        course_filters = self.request.GET.getlist('course-filters', [])
+        year_lower_limit = self.request.GET.get('year-lower-limit', 0)
         year_upper_limit = self.request.GET.get('year-upper-limit')
-        cgpa_lower_limit = self.request.GET.get('cgpa-lower-limit')
+        cgpa_lower_limit = self.request.GET.get('cgpa-lower-limit', 0)
         backlogs_upper_limit = self.request.GET.get('backlogs-upper-limit')
-        status_filters = self.request.GET.getlist('status-filters')
-        sorting = self.request.GET.get('sorting')
-        ordering = self.request.GET.get('ordering')
+        status_filters = self.request.GET.getlist('status-filters', [])
+        sorting = self.request.GET.get('sorting', 'applied_on')
+        ordering = self.request.GET.get('ordering', 'asc')
 
         context['skills_dict'] = {}
         context['skill_filters'] = '[]'
@@ -630,19 +949,31 @@ class RecruitmentApplications(ListView):
             context['ordering'] = ordering
         return context
 
+    def get(self, request, pk):
+        if not RecruitmentPost.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        if request.user not in RecruitmentPost.objects.get(pk=pk).view_application_users:
+            raise PermissionDenied()
+        return super().get(request, pk=pk)
+
 
 @method_decorator(login_required, name="dispatch")
 class RecruitmentApplicationsCSV(RecruitmentApplications):
     content_type = 'text/csv'
 
     def get(self, request, pk):
+        if not RecruitmentPost.objects.filter(pk=pk).exists():
+            raise ObjectDoesNotExist()
+        if request.user not in RecruitmentPost.objects.get(pk=pk).view_application_users:
+            raise PermissionDenied()
+
         queryset = self.get_queryset()
 
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="applications.csv"'
 
         writer = csv.writer(response)
-        
+
         row = []
         row.append('Name')
         row.append('Application Status')
@@ -674,19 +1005,24 @@ class RecruitmentApplicationsCSV(RecruitmentApplications):
             row.append(application.cover_letter)
             row.append(application.answers)
             row.append(application.user.bio)
-            row.append(application.user.primary_email.email if application.user.primary_email else '')
-            row.append(application.user.primary_phone_number.__str__() if application.user.primary_phone_number else '')
+            row.append(
+                application.user.primary_email.email if application.user.primary_email else '')
+            row.append(application.user.primary_phone_number.__str__()
+                       if application.user.primary_phone_number else '')
             row.append(f'{application.user.primary_address.address}, {application.user.primary_address.city}, {application.user.primary_address.state}, {application.user.primary_address.country}, {application.user.primary_address.pincode}' if application.user.primary_address else '')
             row.append(application.user.student_profile.registration_year)
             row.append(application.user.student_profile.registration_number)
-            row.append(f'{application.user.student_profile.roll}-{application.user.student_profile.number}')
+            row.append(
+                f'{application.user.student_profile.roll}-{application.user.student_profile.number}')
             row.append(application.user.student_profile.course)
             row.append(application.user.student_profile.year)
             row.append(application.user.student_profile.cgpa)
             row.append(application.user.student_profile.backlog_count)
             row.append(application.user.student_profile.pass_out_year)
-            row.append(', '.join([skill.name for skill in application.user.skills.all()]))
-            row.append(request.build_absolute_uri(reverse('resume', args=[application.user.id])))
+            row.append(
+                ', '.join([skill.name for skill in application.user.skills.all()]))
+            row.append(request.build_absolute_uri(
+                reverse('resume', args=[application.user.id])))
             writer.writerow(row)
 
         return response
@@ -722,6 +1058,44 @@ class ChangeNotice(View):
             return redirect(reverse('notices') + f'#notice-{notice.id}')
         else:
             raise BadRequest()
+
+
+@method_decorator(login_required, name="dispatch")
+class AddQuote(AddUserKeyObject):
+    model = Quote
+    form = QuoteForm
+    redirect_url_name = 'quotes'
+
+    def get_redirect_url_args(self, request, *args, **kwargs):
+        return []
+
+    def get_redirect_url_params(self, request, *args, **kwargs):
+        return f'?sorting=date&ordering=desc'
+
+
+@method_decorator(login_required, name="dispatch")
+class ChangeQuote(ChangeUserKeyObject):
+    model = Quote
+    form = QuoteForm
+    redirect_url_name = 'quotes'
+
+    def get_redirect_url_args(self, request, pk, *args, **kwargs):
+        return []
+
+    def get_redirect_url_params(self, request, *args, **kwargs):
+        return f'?sorting=date_edited&ordering=desc'
+
+
+@method_decorator(login_required, name="dispatch")
+class DeleteQuote(DeleteUserKeyObject):
+    model = Quote
+    redirect_url_name = 'quotes'
+
+    def get_redirect_url_args(self, request, pk, *args, **kwargs):
+        return []
+
+    def get_redirect_url_params(self, request, *args, **kwargs):
+        return ''
 
 
 @method_decorator(login_required, name="dispatch")

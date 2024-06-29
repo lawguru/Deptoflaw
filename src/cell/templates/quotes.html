@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block title %}Quotes | TPC | CSE | AUS{% endblock %}
+{% load humanize %}
+{% block content %}
+<div class="container-lg col-xxl-10 p-3 p-sm-4 p-md-5">
+    <div class="my-5">
+        <strong class="display-6 fw-bold text-body-emphasis lh-1">
+            Quotes
+        </strong>
+    </div>
+
+    <nav class="navbar navbar-expand-xl bg-body p-0 mb-3 border rounded-2">
+        <div class="container-fluid">
+            <a class="lead text-body-emphasis me-3" href="#">Filters</a>
+            <div class="d-flex align-items-center gap-2">
+                <div class="nav-link dropdown">
+                    <a class="nav-link dropdown-toggle p-2" href="#" role="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        Sort By
+                    </a>
+                    <form action="#">
+                        <input id="sort-by-form-input" type="hidden" name="sorting" value="{{sorting}}">
+                        <input id="ordering-form-input" type="hidden" name="ordering" value="{{ordering}}">
+                        <ul class="dropdown-menu" onclick="event.stopPropagation()">
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('ordering-form-input').value='asc'"
+                                    value="Low to High"
+                                    class="dropdown-item {% if ordering != 'desc' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('ordering-form-input').value='desc'"
+                                    value="High to Low"
+                                    class="dropdown-item {% if ordering == 'desc' %} active {% endif %}">
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            {% for choice in sorting_options %}
+                            <li>
+                                <input type="submit"
+                                    onclick="document.getElementById('sort-by-form-input').value='{{choice.0}}'" value="{{choice.1}}"
+                                    class="dropdown-item {% if sorting == choice.0 %} active {% endif %}">
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </form>
+                </div>
+                <button class="navbar-toggler btn btn-outline-primary rounded-circle p-2 lh-1" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#filters-navbar" aria-controls="filters-navbar"
+                    aria-expanded="false" aria-label="Toggle filters nav">
+                    <span class="bi bi-funnel"></span>
+                </button>
+            </div>
+            <div class="collapse navbar-collapse" id="filters-navbar">
+                <ul class="navbar-nav me-auto mb-2 mb-xl-0">
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Author
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        <div class="input-group" style="min-width: 20ch;">
+                                            <input type="text" class="form-control" name="author-filter"
+                                                id="author-filter" placeholder="Author"
+                                                value="{{author_filter}}">
+                                            <button type="submit" class="btn btn-outline-primary border m-0"
+                                                data-bs-toggle="tooltip" data-bs-title="Apply">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Quote
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        <div class="input-group" style="min-width: 20ch;">
+                                            <input type="text" class="form-control" name="quote-filter"
+                                                id="quote-filter" placeholder="Quote"
+                                                value="{{quote_filter}}">
+                                            <button type="submit" class="btn btn-outline-primary border m-0"
+                                                data-bs-toggle="tooltip" data-bs-title="Apply">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Source
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form action="#">
+                                        <div class="input-group" style="min-width: 20ch;">
+                                            <input type="text" class="form-control" name="source-filter"
+                                                id="source-filter" placeholder="Source"
+                                                value="{{source_filter}}">
+                                            <button type="submit" class="btn btn-outline-primary border m-0"
+                                                data-bs-toggle="tooltip" data-bs-title="Apply">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Added by
+                            </a>
+                            <form action="#">
+                                <input id="user-form-input" type="hidden" name="user-filter" value="{{user_filter}}">
+                                <ul class="dropdown-menu" onclick="event.stopPropagation()">
+                                    {% for choice in user_options %}
+                                    <li>
+                                        <input type="submit"
+                                            onclick="document.getElementById('user-form-input').value='{{choice.0}}'" value="{{choice.1}}"
+                                            class="dropdown-item {% if user_filter == choice.0 %} active {% endif %}">
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </form>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Fictional
+                            </a>
+                            <ul class="dropdown-menu p-1" onclick="event.stopPropagation()">
+                                <li>
+                                    <form id="fictional-filters-form" action="#">
+                                        {% for option in fictional_options %}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="fictional-filters"
+                                                value="{{option.0}}" {% if option.0 in fictional_filters %}checked{% endif %}>
+                                            <label class="form-check-label">
+                                                {{option.1}}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                        <input type="submit" value="Apply" class="btn btn-primary w-100">
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+                <div style="width: fit-content;">
+                    <div class="rounded-circle m-2" onclick="location.href=window.location.href.split('?')[0]"
+                        data-bs-toggle="tooltip" data-bs-title="Clear all Filters">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <ul class="list-group">
+        {% for quote in page_obj %}
+        <li class="list-group-item border-0 py-4">
+            <div class="d-flex justify-content-center">
+                <figure class="mb-1">
+                    <blockquote class="blockquote">
+                        <p class="fs-4 fw-bold text-body-emphasis mb-4 text-center fst-italic">"{{ quote.0.quote }}"</p>
+                    </blockquote>
+                    <figcaption class="blockquote-footer text-end mb-0">
+                        {{ quote.0.author }}{% if quote.0.fictional %}, <cite title="Source Title">fictional character</cite>
+                        {% endif %}
+                        {% if quote.0.source %}
+                        in <cite title="Source Title">{{ quote.0.source }}</cite>
+                        {% endif %}
+                    </figcaption>
+                </figure>
+            </div>
+            <div class="text-body-secondary">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <strong>Added by {{ quote.0.user.full_name }}</strong>
+                    </div>
+                    <div>
+                        {% if request.user in quote.0.edit_users %}
+                        <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                            data-bs-target="#change-quote-{{ quote.0.pk }}-modal">
+                            <i class="bi bi-pen"></i>
+                        </a>
+                        <div class="modal fade" id="change-quote-{{ quote.0.pk }}-modal" data-bs-backdrop="static" data-bs-keyboard="false"
+                            tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                            Edit Quote
+                                        </strong>
+                                        <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="change-quote-{{ quote.0.pk }}-form" action="{% url 'change_quote' quote.0.pk %}"
+                                            method="POST">
+                                            {% csrf_token %}
+                                            <div class="d-none">
+                                                {{quote.1.user}}
+                                            </div>
+                                            <div class="form-floating mb-3">
+                                                {{quote.1.quote }}
+                                                {{quote.1.quote.label_tag }}
+                                            </div>
+                                            <div class="form-floating mb-3">
+                                                {{quote.1.author }}
+                                                {{quote.1.author.label_tag }}
+                                            </div>
+                                            <div class="form-floating mb-3">
+                                                {{quote.1.source }}
+                                                {{quote.1.source.label_tag }}
+                                            </div>
+                                            <div class="form-check">
+                                                {{quote.1.fictional }}
+                                                {{quote.1.fictional.label_tag }}
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <input type="submit" form="change-quote-{{ quote.0.pk }}-form"
+                                            class="btn btn-primary btn-lg w-100 m-0" value="Save"
+                                            onclick="if (this.form.checkValidity() === false) { this.form.reportValidity(); return; } this.disabled = true; this.value = 'Saving...'; this.form.submit();">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if request.user in quote.0.delete_users %}
+                        <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
+                            data-bs-target="#delete-quote-{{ quote.0.pk }}-modal">
+                            <i class="bi bi-x-circle"></i>
+                        </a>
+                        <div class="modal fade" id="delete-quote-{{ quote.0.pk }}-modal" data-bs-backdrop="static"
+                            data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-fullscreen-sm-down">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <strong class="modal-title fs-3 fw-bold text-body-emphasis">
+                                            Confirmation
+                                        </strong>
+                                        <button type="button" class="btn-close m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>
+                                            {{ quote.0.quote }}
+                                        </p>
+                                        <p>
+                                            By {{ quote.0.author }}
+                                        </p>
+                                        <p class="mb-0">
+                                            Delete this Quote?
+                                        </p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <form class="w-100 m-0" action="{% url 'delete_quote' quote.0.pk %}" method="POST">
+                                            {% csrf_token %}
+                                            <input type="submit" class="btn btn-danger btn-lg border border-0 w-100 m-0" value="Delete">
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div class="d-flex align-items-center justify-content-between w-100">
+        <small class="lh-1 text-body-secondary">Shown {{page_obj.start_index}} to {{page_obj.end_index}} of
+            {{page_obj.paginator.count}} results</small>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center m-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link"
+                        href="?page=1{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">1</a></li>
+                {% if page_obj.previous_page_number > 1 %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ page_obj.previous_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">&laquo;</a>
+                </li>
+                {% endif %}
+                {% endif %}
+                <li class="page-item"><a class="page-link" href="#">Page {{page_obj.number}} of
+                        {{page_obj.paginator.num_pages}}</a></li>
+                {% if page_obj.has_next %}
+                {% if page_obj.paginator.num_pages > page_obj.next_page_number %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ page_obj.next_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">&raquo;</a>
+                </li>
+                {% endif %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ page_obj.paginator.num_pages }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}">{{
+                        page_obj.paginator.num_pages }}</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+<script>
+    function getUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        let paramObj = {};
+        for (let [key, value] of params.entries()) {
+            // Check if key already exists in paramObj
+            if (paramObj[key]) {
+                // If key already exists and is an array, push the new value
+                if (Array.isArray(paramObj[key])) {
+                    paramObj[key].push(value);
+                } else { // If key is not an array, convert it to an array with existing and new values
+                    paramObj[key] = [paramObj[key], value];
+                }
+            } else { // If key doesn't exist in paramObj, set it to the new value
+                paramObj[key] = value;
+            }
+        }
+        return paramObj;
+    }
+
+    // Function to add hidden input fields with the current URL parameters
+    function addHiddenInputs() {
+        const params = getUrlParams();
+        const forms = document.querySelectorAll('form');
+        for (let key in params) {
+            forms.forEach(form => {
+                if (!form.elements[key]) {
+                    if (Array.isArray(params[key])) { // Handle multi-valued fields
+                        params[key].forEach(value => {
+                            let input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = key;
+                            input.value = value;
+                            form.appendChild(input);
+                        });
+                    } else { // Handle single-valued fields
+                        let input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = params[key];
+                        form.appendChild(input);
+                    }
+                }
+            });
+        }
+    }
+    window.onload = addHiddenInputs();
+</script>
+{% endblock %}

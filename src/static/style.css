@@ -5497,7 +5497,7 @@ textarea.form-control-lg {
   --bs-modal-padding: 1rem;
   --bs-modal-margin: 0.5rem;
   --bs-modal-color: ;
-  --bs-modal-bg: var(--bs-body-bg);
+  --bs-modal-bg: var(--bs-accent-bg-subtle);
   --bs-modal-border-color: var(--bs-border-color-translucent);
   --bs-modal-border-width: var(--bs-border-width);
   --bs-modal-border-radius: var(--bs-border-radius-lg);
@@ -12104,10 +12104,6 @@ body {
   font-size: 1rem;
 }
 
-body::-webkit-scrollbar {
-  display: none;
-}
-
 button {
   font-weight: bold;
   padding: 0.5rem;
@@ -12126,12 +12122,12 @@ svg {
   fill: currentColor;
 }
 
-a {
+a:not(.link) {
   text-decoration: none;
   color: var(--bs-primary-text-emphasis);
 }
 
-a:hover:not(.no-shadow) * {
+a:hover:not(.no-shadow) {
   text-shadow: 0px 0px 10px var(--bs-primary-text-emphasis);
   color: var(--bs-primary-text-emphasis);
 }

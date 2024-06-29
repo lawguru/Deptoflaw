@@ -3,6 +3,11 @@
 {% block title %}{{user.full_name}} | Resume | TPC | CSE | AUS{% endblock %}
 {% block head %}
 <style>
+
+body {
+    min-width: 23cm;
+}
+
 #print-container {
     margin: 1cm;
     width: 21cm;
@@ -50,9 +55,11 @@
     <div id="print-container">
         <div class="no-print">
             <div class="my-3 d-flex align-items-center justify-content-between">
+                {% if request.user in user.student_profile.view_users %}
                 <a href="{% url 'student_profile' user.student_profile.pk %}">
                     View Profile
                 </a>
+                {% endif %}
                 <button class="btn btn-primary" onclick="window.print()">Print</button>
             </div>
         </div>
