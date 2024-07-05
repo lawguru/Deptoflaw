@@ -2,7 +2,7 @@
     "version": 2,
     "builds": [
       {
-        "src": "project/main/wsgi.py",
+        "src": "main/wsgi.py",
         "use": "@vercel/python",
         "config": { "maxLambdaSize": "15mb", "runtime": "python3.12" }
       },
@@ -21,7 +21,7 @@
       },
       {
         "src": "/(.*)",
-        "dest": "main/wsgi.py"
+        "dest": "project/main/wsgi.py"
       }
     ]
   }
