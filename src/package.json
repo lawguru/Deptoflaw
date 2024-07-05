@@ -12,7 +12,6 @@
     "sass": "^1.77.6"
   },
   "scripts": {
-    "collectstatic": "python ./project/manage.py collectstatic",
     "scss": "sass --style=compressed ./scss/style.scss ./project/static/build/style.min.css",
     "start": "python ./project/manage.py runserver"
   },
