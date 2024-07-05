@@ -26,7 +26,7 @@
                                         If still not approved, <a href="{% url 'index' %}#team-members">contact a Coordinator or TPC member</a>.
                                     </span>
                                 </div>
-                                <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'build_profile' request.user.pk %}">
+                                <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0" href="{% url 'build_profile' request.user.pk %}">
                                     View Profile
                                 </a>
                             </div>
@@ -85,7 +85,7 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <span style="width: 8ch;">Total:</span>
                                 <span class="me-3">{{total_notice_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'notices' %}">
+                                <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0" href="{% url 'notices' %}">
                                     View
                                 </a>
                             </div>
@@ -93,7 +93,7 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <span style="width: 8ch;">By Me:</span>
                                 <span class="me-3">{{user_notice_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'notices' %}?user-filter=me">
+                                <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0" href="{% url 'notices' %}?user-filter=me">
                                     View
                                 </a>
                             </div>
@@ -110,7 +110,7 @@
                         <div class="d-flex align-items-center justify-content-between w-100">
                             <div>
                                 <h2 class="fw-bold text-body-emphasis lh-1">Quotes</h2>
-                                <div>A Random Quote appears on the <a class="link" href="{% url 'index' %}">home page</a> on every
+                                <div>A Random Quote appears on the <a class="link text-decoration-none" href="{% url 'index' %}">home page</a> on every
                                     visit.</div>
                             </div>
                             <a class="btn border border-0 m-0 fs-5" href="#" data-bs-toggle="modal"
@@ -166,7 +166,7 @@
                             <div class="d-flex align-items-center justify-content-between my-3">
                                 <span style="width: 8ch;">Total:</span>
                                 <span class="me-3">{{quotes_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'quotes' %}">
+                                <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0" href="{% url 'quotes' %}">
                                     View
                                 </a>
                             </div>
@@ -189,7 +189,7 @@
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span style="width: 18ch;">Current Students:</span>
                                     <span class="me-3">{{current_student_count}}</span>
-                                    <a class="btn btn-link rounded-pill link m-0 p-0"
+                                    <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                         href="{% url 'user_list' %}?role-filter=student&enrollment-status=current">
                                         View
                                     </a>
@@ -197,7 +197,7 @@
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span style="width: 18ch;">Alumni:</span>
                                     <span class="me-3">{{alumni_count}}</span>
-                                    <a class="btn btn-link rounded-pill link m-0 p-0"
+                                    <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                         href="{% url 'user_list' %}?role-filter=student&enrollment-status=passed_out">
                                         View
                                     </a>
@@ -219,7 +219,7 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <span style="width: 15ch;">Total pending:</span>
                                 <span class="me-3">{{unapproved_user_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill link m-0 p-0"
+                                <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                     href="{% url 'user_list' %}?is-approved-filter=False">
                                     View
                                 </a>
@@ -227,7 +227,7 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <span style="width: 15ch;">Recruiters:</span>
                                 <span class="me-3">{{unapproved_recruiter_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill link m-0 p-0"
+                                <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                     href="{% url 'user_list' %}?is-approved-filter=False&role-filter=recruiter">
                                     View
                                 </a>
@@ -235,7 +235,7 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <span style="width: 15ch;">Student:</span>
                                 <span class="me-3">{{unapproved_student_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill link m-0 p-0"
+                                <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                     href="{% url 'user_list' %}?is-approved-filter=False&role-filter=student">
                                     View
                                 </a>
@@ -243,7 +243,7 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <span style="width: 15ch;">Staff:</span>
                                 <span class="me-3">{{unapproved_staff_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill link m-0 p-0"
+                                <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                     href="{% url 'user_list' %}?is-approved-filter=False&role-filter=staff">
                                     View
                                 </a>
@@ -257,12 +257,12 @@
                     <i class="bi bi-chat-left-text display-5"></i>
                     <div class="flex-fill">
                         <h2 class="fw-bold text-body-emphasis lh-1">Messages</h2>
-                        <div class="mb-3">Messages received through the <a class="link" href="{% url 'contact' %}">Contact Us</a> page.</div>
+                        <div class="mb-3">Messages received through the <a class="link text-decoration-none" href="{% url 'contact' %}">Contact Us</a> page.</div>
                         <div class="font-monospace" style="width: fit-content;">
                             <div class="d-flex align-items-center justify-content-between">
                                 <span style="width: 15ch;">Total:</span>
                                 <span class="me-3">{{messages_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill link m-0 p-0"
+                                <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                     href="{% url 'messages' %}">
                                     View
                                 </a>
@@ -270,7 +270,7 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <span style="width: 15ch;">Handled:</span>
                                 <span class="me-3">{{handled_messages_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill link m-0 p-0"
+                                <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                     href="{% url 'messages' %}?status-filter=handled">
                                     View
                                 </a>
@@ -278,7 +278,7 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <span style="width: 15ch;">Unhandled:</span>
                                 <span class="me-3">{{unhandled_messages_count|intword}}</span>
-                                <a class="btn btn-link rounded-pill link m-0 p-0"
+                                <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                     href="{% url 'messages' %}?status-filter=unhandled">
                                     View
                                 </a>
@@ -491,7 +491,7 @@
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span style="width: 17ch;">Total posts:</span>
                                     <span class="me-3">{{post_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'recruitment_posts' %}?is-active-filter=False">
+                                    <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0" href="{% url 'recruitment_posts' %}?is-active-filter=False">
                                         View
                                     </a>
                                     <a role="button" class="rounded-pill p-0 m-0 ms-3" data-bs-toggle="popover"
@@ -507,7 +507,7 @@
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span style="width: 17ch;">Active posts:</span>
                                     <span class="me-3">{{active_post_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'recruitment_posts' %}">
+                                    <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0" href="{% url 'recruitment_posts' %}">
                                         View
                                     </a>
                                     <a role="button" class="rounded-pill p-0 m-0 ms-3" data-bs-toggle="popover"
@@ -523,7 +523,7 @@
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span style="width: 17ch;">My Posts:</span>
                                     <span class="me-3">{{user_post_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'recruitment_posts' %}?post-filter=by-me">
+                                    <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0" href="{% url 'recruitment_posts' %}?post-filter=by-me">
                                         View
                                     </a>
                                     <a role="button" class="rounded-pill p-0 m-0 ms-3" data-bs-toggle="popover"
@@ -538,7 +538,7 @@
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span style="width: 17ch;">My Active posts:</span>
                                     <span class="me-3">{{user_active_post_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill link m-0 p-0"
+                                    <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                         href="{% url 'recruitment_posts' %}?post-filter=by-me&is-active-filter=False">
                                         View
                                     </a>
@@ -569,7 +569,7 @@
                                 <div class="d-flex align-items-center justify-content-between">
                                     <strong style="width: 13ch;">Total:</strong>
                                     <span class="me-3">{{user_application_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill link m-0 p-0"
+                                    <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                         href="{% url 'recruitment_posts' %}?post-filter=applied-by-me">
                                         View
                                     </a>
@@ -577,7 +577,7 @@
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span style="width: 13ch;">Pending:</span>
                                     <span class="me-3">{{pending_user_application_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill link m-0 p-0"
+                                    <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                         href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filters=P">
                                         View
                                     </a>
@@ -585,7 +585,7 @@
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span style="width: 13ch;">Selected:</span>
                                     <span class="me-3">{{selected_user_application_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill link m-0 p-0"
+                                    <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                         href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filters=S">
                                         View
                                     </a>
@@ -593,7 +593,7 @@
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span style="width: 13ch;">Rejected:</span>
                                     <span class="me-3">{{rejected_user_application_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill link m-0 p-0"
+                                    <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                         href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filters=R">
                                         View
                                     </a>
@@ -601,7 +601,7 @@
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span style="width: 13ch;">Shortlisted:</span>
                                     <span class="me-3">{{shortlisted_user_application_count|intword}}</span>
-                                    <a class="btn btn-link rounded-pill link m-0 p-0"
+                                    <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0"
                                         href="{% url 'recruitment_posts' %}?post-filter=applied-by-me&applied-status-filters=I">
                                         View
                                     </a>
@@ -623,7 +623,7 @@
                             <div class="font-monospace" style="width: fit-content;">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span>View or Edit list of Subjects
-                                        <a class="btn btn-link rounded-pill link m-0 p-0" href="{% url 'semester_report_card_template' %}">
+                                        <a class="btn btn-link rounded-pill link text-decoration-none m-0 p-0" href="{% url 'semester_report_card_template' %}">
                                             View
                                         </a>
                                     </span>
