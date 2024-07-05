@@ -231,12 +231,15 @@ class AddSkill(View):
             raise PermissionDenied()
         form = self.form(request.POST)
         if form.is_valid():
-            if self.model.objects.filter(name__iexact=form.cleaned_data['name']).exists():
-                obj = self.model.objects.get(
-                    name__iexact=form.cleaned_data['name'])
-            else:
-                obj = self.model.objects.create(
-                    name=form.cleaned_data['name'])
+            skills = form.cleaned_data['name'].split(',')
+            for skill in skills:
+                skill = skill.strip()
+                if not skill:
+                    continue
+                if self.model.objects.filter(name__iexact=skill).exists():
+                    obj = self.model.objects.get(name__iexact=skill)
+                else:
+                    obj = self.model.objects.create(name=skill)
             obj.users.add(user)
             obj.save()
         else:
@@ -279,12 +282,15 @@ class AddLanguage(View):
             raise PermissionDenied()
         form = self.form(request.POST)
         if form.is_valid():
-            if self.model.objects.filter(name__iexact=form.cleaned_data['name']).exists():
-                obj = self.model.objects.get(
-                    name__iexact=form.cleaned_data['name'])
-            else:
-                obj = self.model.objects.create(
-                    name=form.cleaned_data['name'])
+            languages = form.cleaned_data['name'].split(',')
+            for language in languages:
+                language = language.strip()
+                if not language:
+                    continue
+                if self.model.objects.filter(name__iexact=language).exists():
+                    obj = self.model.objects.get(name__iexact=language)
+                else:
+                    obj = self.model.objects.create(name=language)
             obj.users.add(user)
             obj.save()
         else:
