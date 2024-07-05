@@ -93,12 +93,16 @@ class Quote(models.Model):
 
     @property
     def edit_users(self):
-        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user)).distinct()
+        if self.user:
+            return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
+        return User.objects.filter(is_superuser=True)
 
     @property
     def delete_users(self):
-        return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user)).distinct()
-
+        if self.user:
+            return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
+        return User.objects.filter(is_superuser=True)
+    
     def __str__(self):
         return self.quote + ' - ' + self.author
 
