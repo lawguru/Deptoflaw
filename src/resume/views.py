@@ -238,10 +238,12 @@ class AddSkill(View):
                     continue
                 if self.model.objects.filter(name__iexact=skill).exists():
                     obj = self.model.objects.get(name__iexact=skill)
+                    obj.users.add(user)
+                    obj.save()
                 else:
                     obj = self.model.objects.create(name=skill)
-            obj.users.add(user)
-            obj.save()
+                    obj.users.add(user)
+                    obj.save()
         else:
             raise BadRequest()
         return redirect(reverse(self.redirect_url_name, args=[user.pk]))
@@ -289,10 +291,12 @@ class AddLanguage(View):
                     continue
                 if self.model.objects.filter(name__iexact=language).exists():
                     obj = self.model.objects.get(name__iexact=language)
+                    obj.users.add(user)
+                    obj.save()
                 else:
                     obj = self.model.objects.create(name=language)
-            obj.users.add(user)
-            obj.save()
+                    obj.users.add(user)
+                    obj.save()
         else:
             raise BadRequest()
         return redirect(reverse(self.redirect_url_name, args=[user.pk]))

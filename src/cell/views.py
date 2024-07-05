@@ -1202,10 +1202,12 @@ class AddRecruitmentSkill(View):
                     continue
                 if self.model.objects.filter(name__iexact=skill).exists():
                     skill = self.model.objects.get(name__iexact=skill)
+                    post.skills.add(skill)
+                    post.save()
                 else:
                     skill = self.model.objects.create(name=skill)
-            post.skills.add(skill)
-            post.save()
+                    post.skills.add(skill)
+                    post.save()
         else:
             print(form.errors)
             raise BadRequest()
