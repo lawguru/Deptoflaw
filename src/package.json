@@ -1,7 +1,7 @@
 {
   "name": "tpc-website",
   "version": "1.0.0",
-  "description": "Training and Placement Cell Website",
+  "description": "Training and Placement Cell Website for Department of CSE, Assam University, Silchar",
   "main": "project/main/wsgi.py",
   "dependencies": {
     "bootstrap-icons": "^1.11.3",
@@ -20,7 +20,7 @@
     "url": "git+https://github.com/Training-and-Placement-Cell-CSE-AUS/TPC-WebSite.git"
   },
   "author": "Himprakash Deka",
-  "license": "MIT",
+  "license": "CC0-1.0",
   "bugs": {
     "url": "https://github.com/Training-and-Placement-Cell-CSE-AUS/TPC-WebSite/issues"
   },
