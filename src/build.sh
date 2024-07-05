@@ -1,8 +1,7 @@
-npm install
 ln -s $(which python3.12) /usr/local/bin/python
-ln -s $(which pip) /usr/local/bin/pip
-npm run venv
-npm run activate
-npm run pip-install
+python -m venv venv
+source venv/bin/activate
+pip install -r ./project/requirements.txt
+npm install
 npm run collectstatic
 npm run scss
