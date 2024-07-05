@@ -105,9 +105,9 @@ LOGIN_URL = 'sign_in'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
-    os.path.join(BASE_DIR, '..', 'node_modules', 'bootstrap', 'dist', 'js'),
-    os.path.join(BASE_DIR, '..', 'node_modules', 'bootstrap-icons', 'font'),
-    os.path.join(BASE_DIR, '..', 'node_modules', 'jquery', 'dist'),
+    os.path.join(BASE_DIR, 'node_modules', 'bootstrap', 'dist', 'js'),
+    os.path.join(BASE_DIR, 'node_modules', 'bootstrap-icons', 'font'),
+    os.path.join(BASE_DIR, 'node_modules', 'jquery', 'dist'),
 ]
 
 AUTHENTICATION_BACKENDS = [
