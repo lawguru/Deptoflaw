@@ -1,5 +1,5 @@
 npm install
-alias python=python3.12
+ln -s $(which python3.12) /usr/local/bin/python
 npm run venv
 npm run activate
 npm run pip-install
