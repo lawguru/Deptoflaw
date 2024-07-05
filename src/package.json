@@ -1,0 +1,32 @@
+{
+  "name": "tpc-website",
+  "version": "1.0.0",
+  "description": "Training and Placement Cell Website",
+  "main": "project/main/wsgi.py",
+  "dependencies": {
+    "bootstrap-icons": "^1.11.3",
+    "bootstrap-nord": "^1.2.0",
+    "jquery": "^3.7.1"
+  },
+  "devDependencies": {
+    "sass": "^1.77.6"
+  },
+  "scripts": {
+    "venv": "python -m venv venv",
+    "activate": "source venv/bin/activate",
+    "pip-install": "pip install -r ./project/requirements.txt",
+    "collectstatic": "python ./project/manage.py collectstatic",
+    "scss": "sass --style=compressed ./scss/style.scss ./project/static/build/style.min.css",
+    "start": "python ./project/manage.py runserver"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Training-and-Placement-Cell-CSE-AUS/TPC-WebSite.git"
+  },
+  "author": "Himprakash Deka",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Training-and-Placement-Cell-CSE-AUS/TPC-WebSite/issues"
+  },
+  "homepage": "https://github.com/Training-and-Placement-Cell-CSE-AUS/TPC-WebSite#readme"
+}

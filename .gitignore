@@ -31,3 +31,9 @@ __pycache__/
 # Igonre files inside migrations except __init__.py
 **/migrations/*
 !**/migrations/__init__.py
+
+# Ignore node_modules
+node_modules/
+
+# Ignore build files
+build/

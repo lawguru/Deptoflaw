@@ -1,0 +1,49 @@
+@import "./bootstrap.scss";
+@import "./navbar.scss";
+
+body {
+    margin: 0px;
+    min-width: 370px;
+    font-size: 1rem;
+}
+
+button {
+    font-weight: bold;
+    padding: 0.5rem;
+    font-size: 1rem;
+    margin: 0.5rem 0.2rem;
+    box-shadow: none;
+    border-radius: 2rem;
+}
+
+pre {
+    width: auto;
+    overflow: auto;
+}
+
+svg {
+    fill: currentColor;
+}
+
+a {
+    &:not(.link) {
+        text-decoration: none;
+        color: var(--bs-primary-text-emphasis);
+    }
+
+    &:hover {
+        &:not(.no-shadow) {
+            text-shadow: 0px 0px 10px var(--bs-primary-text-emphasis);
+            color: var(--bs-primary-text-emphasis);
+        }
+
+        svg {
+            filter: drop-shadow(0px 0px 10px rgb(47, 128, 237));
+            fill: var(--bs-primary-text-emphasis);
+        }
+
+        img {
+            box-shadow: 0px 0px 10px var(--bs-primary-text-emphasis);
+        }
+    }
+}
