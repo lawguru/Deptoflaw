@@ -12,7 +12,7 @@
             </p>
         </div>
 
-        <div class="my-4 row row-cols-auto g-0 row-gap-2 align-items-center justify-content-around">
+        <div class="my-4 row row-cols-auto g-0 gap-2 align-items-center justify-content-start">
             <div class="col d-flex">
                 <span
                     class="badge d-flex align-items-center py-0 ps-1 pe-3 text-secondary-emphasis bg-secondary-subtle border border-secondary-subtle rounded-pill">
@@ -708,6 +708,7 @@
                                     {{ application.cover_letter }}
                                 </p>
                             </div>
+                            {% if post.questionaires %}
                             <div>
                                 <h3>questionaires</h3>
                                 <p>
@@ -718,6 +719,7 @@
                                     {{ application.answers }}
                                 </p>
                             </div>
+                            {% endif %}
                         </div>
                         <div class="modal-footer">
                             <div
@@ -806,17 +808,23 @@
                                     {{ apply_form.cover_letter.help_text }}
                                 </div>
                                 {% endif %}
-                                <div class="form-text">
-                                    <h5 class="mt-5 text-body-emphasis">
-                                        Please Answer the following questions in the space provided
-                                    </h5>
-                                    <p>
-                                        {{ post.questionaires }}
-                                    </p>
-                                </div>
-                                <div class="form-floating">
-                                    {{ apply_form.answers }}
-                                    {{ apply_form.answers.label_tag }}
+                                <div class="
+                                    {% if not post.questionaires %}
+                                    d-none
+                                    {% endif %}
+                                ">
+                                    <div class="form-text">
+                                        <h5 class="mt-5 text-body-emphasis">
+                                            Please Answer the following questions in the space provided
+                                        </h5>
+                                        <p>
+                                            {{ post.questionaires }}
+                                        </p>
+                                    </div>
+                                    <div class="form-floating">
+                                        {{ apply_form.answers }}
+                                        {{ apply_form.answers.label_tag }}
+                                    </div>
                                 </div>
                             </form>
                         </div>

@@ -1195,14 +1195,19 @@ class AddRecruitmentSkill(View):
             raise PermissionDenied()
         form = self.form(request.POST)
         if form.is_valid():
-            if self.model.objects.filter(name__iexact=form.cleaned_data['name']).exists():
-                skill = self.model.objects.get(
-                    name__iexact=form.cleaned_data['name'])
-            else:
-                skill = self.model.objects.create(
-                    name=form.cleaned_data['name'])
-            post.skills.add(skill)
-            post.save()
+            skills = form.cleaned_data['name'].split(',')
+            for skill in skills:
+                skill = skill.strip()
+                if not skill:
+                    continue
+                if self.model.objects.filter(name__iexact=skill).exists():
+                    skill = self.model.objects.get(name__iexact=skill)
+                    post.skills.add(skill)
+                    post.save()
+                else:
+                    skill = self.model.objects.create(name=skill)
+                    post.skills.add(skill)
+                    post.save()
         else:
             print(form.errors)
             raise BadRequest()

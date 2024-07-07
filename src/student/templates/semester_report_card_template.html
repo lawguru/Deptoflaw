@@ -167,10 +167,10 @@
             const subjectinputgroup = document.getElementById('subject-input-group')
             const newel = document.createElement('tr');
             field_group_HTML = subjectinputgroup.innerHTML
-            field_group_HTML = field_group_HTML.replace(/"subject_code_value"/g, subject_code_value);
-            field_group_HTML = field_group_HTML.replace(/"subject_value"/g, subject_value);
-            field_group_HTML = field_group_HTML.replace(/"subject_credit_value"/g, subject_credit_value);
-            field_group_HTML = field_group_HTML.replace(/"subject_passing_grade_point_value"/g, subject_passing_grade_point_value);
+            field_group_HTML = field_group_HTML.replace(/subject_code_value/g, subject_code_value);
+            field_group_HTML = field_group_HTML.replace(/subject_value/g, subject_value);
+            field_group_HTML = field_group_HTML.replace(/subject_credit_value/g, subject_credit_value);
+            field_group_HTML = field_group_HTML.replace(/subject_passing_grade_point_value/g, subject_passing_grade_point_value);
             newel.innerHTML = field_group_HTML;
             dynamicFields.appendChild(newel);
         }

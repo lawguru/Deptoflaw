@@ -360,3 +360,4 @@ class SemesterReportCardTemplate(models.Model):
 
     class Meta:
         unique_together = [['course', 'semester']]
+        ordering = ['course', 'semester']
