@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from random import randint
 from django.urls import reverse
-import datetime
+from django.utils import timezone
 
 # Create your models here.
 
@@ -293,7 +293,7 @@ class Email(models.Model):
     @property
     def verify_code_valid(self):
         if self.verify_code and self.verify_code_time:
-            return (datetime.datetime.now(datetime.timezone.utc) - self.verify_code_time.astimezone(datetime.timezone.utc)).seconds < (self.verify_code_valid_for * 60)
+            return (timezone.now() - self.verify_code_time).seconds < (self.verify_code_valid_for * 60)
         return False
 
     @property
@@ -340,7 +340,7 @@ class Email(models.Model):
         if hasattr(self, 'primary_of') and self.primary_of:
             self.user = self.primary_of
         if self.verify_code:
-            self.verify_code_time = datetime.datetime.now()
+            self.verify_code_time = timezone.now()
         else:
             self.verify_code_time = None
 
