@@ -50,7 +50,7 @@
                                     {{ change_user_form.date_of_birth.label_tag }}
                                 </div>
                                 <div class="form-floating">
-                                    {{ change_user_form.bio }}
+                                    {{ change_user_form.bio|linebreaks }}
                                     {{ change_user_form.bio.label_tag }}
                                     <div class="form-text ms-3">
                                         Put full form of abbreviations in brackets. Eg. HTML (HyperText Markup Language)

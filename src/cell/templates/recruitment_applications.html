@@ -572,15 +572,15 @@
                     </div>
                     <h5 class="mb-0 mt-3 fw-bold text-body-emphasis lh-1 ">Cover Letter</h5>
                     <div>
-                        {{ application.cover_letter }}
+                        {{ application.cover_letter|linebreaks }}
                     </div>
                     <h5 class="mb-0 mt-4 fw-bold text-body-emphasis lh-1 ">Questions</h5>
                     <div>
-                        {{ application.recruitment_post.questionaires }}
+                        {{ application.recruitment_post.questionaires|linebreaks }}
                     </div>
                     <p class="lead mt-3 mb-0 lh-1">Answers</p>
                     <div>
-                        {{ application.answers }}
+                        {{ application.answers|linebreaks }}
                     </div>
                 </div>
             </div>

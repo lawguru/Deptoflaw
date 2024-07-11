@@ -72,7 +72,7 @@
                         </small>
                     </p>
                 </div>
-                <p class="replace-abbreviation">{{ achievement.0.description }}</p>
+                <p class="replace-abbreviation">{{ achievement.0.description|linebreaks }}</p>
                 <span class="d-flex gap-3">
                     {% if request.user in achievement.0.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
@@ -245,7 +245,7 @@
                         </small>
                     </p>
                 </div>
-                <p class="replace-abbreviation">{{ presentation.0.description }}</p>
+                <p class="replace-abbreviation">{{ presentation.0.description|linebreaks }}</p>
                 <span class="d-flex gap-3">
                     {% if request.user in presentation.0.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"
@@ -404,7 +404,7 @@
                         {{ other_info.0.title }}
                     </h4>
                 </div>
-                <p class="replace-abbreviation">{{ other_info.0.description }}</p>
+                <p class="replace-abbreviation">{{ other_info.0.description|linebreaks }}</p>
                 <span class="d-flex gap-3">
                     {% if request.user in other_info.0.edit_users %}
                     <a class="btn border border-0 m-0" href="#" data-bs-toggle="modal"

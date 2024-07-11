@@ -322,13 +322,15 @@ class Email(models.Model):
         self.verify_code = str(randint(100000000000, 999999999999))
         self.save()
         subject = 'Email Verification | TPC | CSE | AUS'
+        url = request.build_absolute_uri(reverse('verify_email', args=[self.pk, self.verify_code]))
         html_message = render_to_string(
             'email_verification.html',
             {
-                'verification_url': request.build_absolute_uri(reverse('verify_email', args=[self.pk, self.verify_code])),
+                'verification_url': url,
                 'valid_for': self.verify_code_valid_for,
             }
         )
+        print(f'Email: {self.email} Verification link: {url}')
         try:
             return send_mail(subject=subject, message=strip_tags(html_message), from_email=None, recipient_list=[self.email], html_message=html_message)
         except:

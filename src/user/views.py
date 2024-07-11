@@ -483,10 +483,12 @@ class ResetPassword(View):
         if code == 'request' or email.verify_code == None:
             email.verify_code = str(randint(100000000000, 999999999999))
             email.save()
+            url = request.build_absolute_uri(reverse('reset_password', args=[email.email, email.verify_code]))
             html_message = render_to_string('reset_password_email.html', {
-                'url': request.build_absolute_uri(reverse('reset_password', args=[email.email, email.verify_code])),
+                'url': url,
                 'valid_for': email.verify_code_valid_for,
             })
+            print(f'User: {email.user.full_name} Password reset link: {url}')
             sent = send_mail(
                 subject='Reset Password | TPC | CSE | AUS',
                 message=strip_tags(html_message),
