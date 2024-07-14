@@ -112,13 +112,13 @@ class Dashboard(TemplateView):
         })
 
     def add_recruiter_context(self, context, user):
-        user_posts = RecruitmentPost.objects.filter(user=user).values('apply_by')
+        user_posts = RecruitmentPost.objects.filter(user=user).values('id', 'apply_by')
         active_user_posts = user_posts.filter(
             apply_by__gte=datetime.today().date())
         user_applicants = RecruitmentApplication.objects.filter(
-            recruitment_post__in=user_posts)
+            recruitment_post_id__in=user_posts.values('id'))
         active_user_applicants = user_applicants.filter(
-            recruitment_post__in=active_user_posts)
+            recruitment_post_id__in=active_user_posts.values('id'))
 
         context.update({
             'user_post_count': user_posts.count(),
@@ -138,7 +138,7 @@ class Dashboard(TemplateView):
     def add_admin_context(self, context):
         unapproved_users = User.objects.filter(is_approved=False).values('role')
         students = StudentProfile.objects.filter(user__is_approved=True).values('is_current', 'passed_out')
-        applicants = RecruitmentApplication.objects.all().values('status')
+        applicants = RecruitmentApplication.objects.all().values('status', 'recruitment_post_id')
         active_applicants = applicants.filter(
             recruitment_post__in=RecruitmentPost.objects.filter(
                 apply_by__gte=datetime.today().date())
@@ -226,7 +226,7 @@ class ListNotice(ListView):
         query = self.apply_user_filter(query)
         query = self.apply_recruitment_post_filter(query)
 
-        queryset = super().get_queryset().filter(query).select_related('user').distinct().values()
+        queryset = super().get_queryset().filter(query).select_related('user').distinct()
 
         sorting = self.request.GET.get('sorting', 'date')
         if sorting:
