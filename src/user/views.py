@@ -79,7 +79,7 @@ class UserListView(ListView):
         return queryset
 
     def get_fetched_queryset(self):
-        student_profiles = StudentProfile.objects.all().only('course', 'cgpa', 'backlog_count', 'registration_year', 'enrollment_status', 'pass_out_year')
+        student_profiles = StudentProfile.objects.all().only('course', 'cgpa', 'backlog_count', 'registration_year', 'is_current', 'passed_out', 'dropped_out', 'pass_out_year')
         staff_profiles = StaffProfile.objects.all().only('designation', 'qualification')
         recruiter_profiles = RecruiterProfile.objects.all().only('company', 'designation')
         skills = Skill.objects.all()
@@ -180,6 +180,8 @@ class UserListView(ListView):
             elif enrollment_status == 'passed_out':
                 students = self.apply_pass_out_year_filters(
                     students.filter(passed_out=True))
+            elif enrollment_status == 'dropped_out':
+                students = students.filter(dropped_out=True)
             query &= Q(student_profile__in=students)
         return query
 
