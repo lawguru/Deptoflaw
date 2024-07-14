@@ -19,18 +19,6 @@ class StudentProfile(models.Model):
             return super().get_queryset().annotate(
                 academic_half=models.Value(
                     current_academic_half, output_field=models.CharField()),
-                passed_out=models.ExpressionWrapper(models.Case(
-                    models.When(passed_semesters__gte=models.F(
-                        'course_duration') * 2, then=True),
-                    default=False,
-                    output_field=models.BooleanField()
-                ), output_field=models.BooleanField()),
-                is_current=models.ExpressionWrapper(models.Case(
-                    models.When(passed_semesters__lt=models.F(
-                        'course_duration') * 2, then=True),
-                    default=False,
-                    output_field=models.BooleanField()
-                ), output_field=models.BooleanField()),
                 year=models.Case(
                     models.When(
                         passed_out=True,
@@ -107,7 +95,9 @@ class StudentProfile(models.Model):
         help_text='10 digit number from Exam Roll no.', validators=[MinValueValidator(1000000000), MaxValueValidator(9999999999)])
     id_number = models.PositiveSmallIntegerField('ID Number',
                                                  help_text='Number at the end of ID Card', validators=[MinValueValidator(1), MaxValueValidator(999)])
+    passed_out = models.BooleanField(default=False)
     dropped_out = models.BooleanField(default=False)
+    is_current = models.BooleanField(default=True)
     is_cr = models.BooleanField(default=False)
 
     id_card = models.CharField(
@@ -197,6 +187,8 @@ class StudentProfile(models.Model):
                         self.pass_out_year = max([semester_report_card.year_of_exam for semester_report_card in self.semester_report_cards.all()])
                     else:
                         self.pass_out_year = None
+        self.passed_out = self.passed_semesters >= self.course_duration * 2
+        self.is_current = self.passed_semesters < self.course_duration * 2
         if self.is_cr:
             self.user.is_approved = True
         super().save(*args, **kwargs)
