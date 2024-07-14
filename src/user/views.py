@@ -79,7 +79,7 @@ class UserListView(ListView):
         return queryset
 
     def get_fetched_queryset(self):
-        student_profiles = StudentProfile.objects.all().only('course', 'cgpa', 'backlogs', 'registration_year', 'enrollment_status', 'pass_out_year', 'drop-out-year')
+        student_profiles = StudentProfile.objects.all().only('course', 'cgpa', 'backlogs', 'registration_year', 'enrollment_status', 'pass_out_year', 'drop_out_year')
         staff_profiles = StaffProfile.objects.all().only('designation', 'qualification')
         recruiter_profiles = RecruiterProfile.objects.all().only('company', 'designation')
         skills = Skill.objects.all()
