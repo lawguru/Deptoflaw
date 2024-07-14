@@ -864,7 +864,7 @@ class RecruitmentApplications(ListView):
                 queryset=StudentProfile.objects.all()
                     .prefetch_related(
                         Prefetch('semester_report_cards', queryset=SemesterReportCard.objects.all().only('sgpa', 'backlogs', 'semester', 'is_complete'))
-                    ).only('cgpa', 'backlogs')
+                    ).only('cgpa', 'backlogs_count')
             )
         ).filter(role='student').only('full_name', 'primary_email', 'primary_phone_number', 'primary_address', 'bio')
         queryset = super().get_queryset().prefetch_related(
