@@ -35,7 +35,7 @@ class Index(TemplateView):
             current_academic_half.value = 'odd'
             current_academic_half.save()
 
-        links = Link.objects.filter(title__in=['Portfolio', 'Website', 'GitHub', 'LinkedIn']).values()
+        links = Link.objects.filter(title__in=['Portfolio', 'Website', 'GitHub', 'LinkedIn'])
 
         users = User.objects.filter(
             Q(staff_profile__is_hod=True) | Q(staff_profile__is_tpc_head=True) | Q(is_developer=True) | Q(is_superuser=True) | Q(is_coordinator=True)
@@ -863,12 +863,12 @@ class RecruitmentApplications(ListView):
                 'student_profile',
                 queryset=StudentProfile.objects.all()
                     .prefetch_related(
-                        'semester_report_cards', queryset=SemesterReportCard.objects.all().values('sgpa', 'backlogs', 'semester', 'is_complete')
-                    ).values('cgpa', 'backlogs')
+                        Prefetch('semester_report_cards', queryset=SemesterReportCard.objects.all().only('sgpa', 'backlogs', 'semester', 'is_complete'))
+                    ).only('cgpa', 'backlogs')
             )
-        ).filter(role='student').values('full_name', 'subtext', 'primary_email', 'primary_phone_number', 'primary_address', 'bio')
+        ).filter(role='student').only('full_name', 'subtext', 'primary_email', 'primary_phone_number', 'primary_address', 'bio')
         queryset = super().get_queryset().prefetch_related(
-            'user', queryset=student_users
+            Prefetch('user', queryset=student_users)
         ).filter(query).distinct().values()
 
         if sorting:
