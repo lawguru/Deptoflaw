@@ -41,7 +41,7 @@ class Index(TemplateView):
             Q(staff_profile__is_hod=True) | Q(staff_profile__is_tpc_head=True) | Q(is_developer=True) | Q(is_superuser=True) | Q(is_coordinator=True)
         ).select_related('primary_email', 'primary_phone_number').prefetch_related(
             Prefetch('links', queryset=links)
-        ).values('full_name', 'subtext')
+        ).values('full_name')
 
         context['hod'] = User.objects.filter(staff_profile__is_hod=True)
         context['tpc_head'] = User.objects.filter(
@@ -866,7 +866,7 @@ class RecruitmentApplications(ListView):
                         Prefetch('semester_report_cards', queryset=SemesterReportCard.objects.all().only('sgpa', 'backlogs', 'semester', 'is_complete'))
                     ).only('cgpa', 'backlogs')
             )
-        ).filter(role='student').only('full_name', 'subtext', 'primary_email', 'primary_phone_number', 'primary_address', 'bio')
+        ).filter(role='student').only('full_name', 'primary_email', 'primary_phone_number', 'primary_address', 'bio')
         queryset = super().get_queryset().prefetch_related(
             Prefetch('user', queryset=student_users)
         ).filter(query).distinct().values()
