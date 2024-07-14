@@ -528,6 +528,7 @@ class UserPerformAction(View):
             if request.user not in user.delete_users:
                 raise PermissionDenied()
             user.delete()
+            return JsonResponse([{'name': 'This user is deleted', 'url': ''}], safe=False)
         elif action == 'make_superuser':
             if request.user not in user.make_superuser_users:
                 raise PermissionDenied()
