@@ -79,22 +79,17 @@ class UserListView(ListView):
         return queryset
 
     def get_fetched_queryset(self):
-        student_profiles = StudentProfile.objects.all()
-            .values('course', 'year', 'cgpa', 'backlogs', 'registration_year', 'enrollment_status', 'pass_out_year', 'drop-out-year')
-        staff_profiles = StaffProfile.objects.all()
-            .values('designation', 'qualification')
-        recruiter_profiles = RecruiterProfile.objects.all()
-            .values('company', 'designation')
+        student_profiles = StudentProfile.objects.all().values('course', 'year', 'cgpa', 'backlogs', 'registration_year', 'enrollment_status', 'pass_out_year', 'drop-out-year')
+        staff_profiles = StaffProfile.objects.all().values('designation', 'qualification')
+        recruiter_profiles = RecruiterProfile.objects.all().values('company', 'designation')
         skills = Skills.objects.all()
 
-        return super().get_queryset()
-            .select_related('primary_email', 'primary_phone_number', 'primary_address')
-            .prefetch_related(
-                Prefetch('student_profile', queryset=student_profiles),
-                Prefetch('staff_profile', queryset=staff_profiles),
-                Prefetch('recruiter_profile', queryset=recruiter_profiles),
-                Prefetch('skills', queryset=skills)
-            ).values('id', 'full_name', 'short_name', 'is_approved', 'role')
+        return super().get_queryset().select_related('primary_email', 'primary_phone_number', 'primary_address').prefetch_related(
+            Prefetch('student_profile', queryset=student_profiles),
+            Prefetch('staff_profile', queryset=staff_profiles),
+            Prefetch('recruiter_profile', queryset=recruiter_profiles),
+            Prefetch('skills', queryset=skills)
+        ).values('id', 'full_name', 'short_name', 'is_approved', 'role')
 
     def apply_approval_filter(self, query):
         is_approved_filter = self.request.GET.get('is-approved-filter')

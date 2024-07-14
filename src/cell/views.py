@@ -37,12 +37,11 @@ class Index(TemplateView):
 
         links = Link.objects.filter(title_in=['Portfolio', 'Website', 'GitHub', 'LinkedIn']).values()
 
-        users = User.objects.filter(Q(staff_profile__is_hod=True) | Q(staff_profile__is_tpc_head=True) | Q(is_developer=True) | Q(is_superuser=True) | Q(is_coordinator=True))
-            .select_related('primary_email', 'primary_phone_number')
-            .prefetch_related(
-                Prefetch('links', queryset=links)
-            )
-            .values('full_name', 'subtext')
+        users = User.objects.filter(
+            Q(staff_profile__is_hod=True) | Q(staff_profile__is_tpc_head=True) | Q(is_developer=True) | Q(is_superuser=True) | Q(is_coordinator=True)
+        ).select_related('primary_email', 'primary_phone_number').prefetch_related(
+            Prefetch('links', queryset=links)
+        ).values('full_name', 'subtext')
 
         context['hod'] = User.objects.filter(staff_profile__is_hod=True)
         context['tpc_head'] = User.objects.filter(
@@ -325,11 +324,9 @@ class ListRecruitmentPost(ListView):
         query = self.apply_applications_status_filters(query)
         query = self.apply_active_filter(query)
 
-        queryset = super().get_queryset()
-            .select_related('user')
-            .prefetch_related(
-                Prefetch('skills', queryset=Skill.objects.all())
-            ).filter(query).distinct().values()
+        queryset = super().get_queryset().select_related('user').prefetch_related(
+            Prefetch('skills', queryset=Skill.objects.all())
+        ).filter(query).distinct().values()
 
         sorting = self.request.GET.get('sorting')
         if sorting:
@@ -860,22 +857,19 @@ class RecruitmentApplications(ListView):
         if status_filters:
             query &= Q(status__in=status_filters)
 
-        student_users = User.objects
-            .prefetch_related(
-                Prefetch('skills', queryset=Skill.objects.all()),
-                Prefetch(
-                    'student_profile',
-                    queryset=StudentProfile.objects.all()
-                        .prefetch_related(
-                            'semester_report_cards', queryset=SemesterReportCard.objects.all().values('sgpa', 'backlogs', 'semester', 'is_complete')
-                        ).values('cgpa', 'backlogs')
-                )
-            ).filter(role='student').values('full_name', 'subtext', 'primary_email', 'primary_phone_number', 'primary_address', 'bio')
-        queryset = super().get_queryset()
-            .prefetch_related(
-                'user', queryset=student_users
+        student_users = User.objects.prefetch_related(
+            Prefetch('skills', queryset=Skill.objects.all()),
+            Prefetch(
+                'student_profile',
+                queryset=StudentProfile.objects.all()
+                    .prefetch_related(
+                        'semester_report_cards', queryset=SemesterReportCard.objects.all().values('sgpa', 'backlogs', 'semester', 'is_complete')
+                    ).values('cgpa', 'backlogs')
             )
-            .filter(query).distinct().values()
+        ).filter(role='student').values('full_name', 'subtext', 'primary_email', 'primary_phone_number', 'primary_address', 'bio')
+        queryset = super().get_queryset().prefetch_related(
+            'user', queryset=student_users
+        ).filter(query).distinct().values()
 
         if sorting:
             if sorting == 'name':
