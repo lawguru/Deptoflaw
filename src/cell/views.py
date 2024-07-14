@@ -27,7 +27,7 @@ class Index(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if Quote.objects.exists():
-            context['quote'] = Quote.objects.order_by('?').first().values()
+            context['quote'] = Quote.objects.order_by('?').values().first()
 
         current_academic_half, created = Setting.objects.get_or_create(
             key='current_academic_half')
