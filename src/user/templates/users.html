@@ -369,35 +369,6 @@
                                             <input type="submit" value="Apply" class="btn btn-primary w-100">
                                         </form>
                                     </li>
-                                    {% elif enrollment_status == 'dropped_out' %}
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
-                                    <li class="px-2 py-1 text-body-emphasis fw-bold">
-                                        Dropout Year
-                                    </li>
-                                    <li class="px-1">
-                                        <form id="dropout-year-filter-form" action="#">
-                                            <div class="input-group mb-1" style="min-width: 30ch;">
-                                                <div class="input-group-text bg-body">
-                                                    Lower limit
-                                                </div>
-                                                <input type="number" class="form-control"
-                                                    name="dropout-year-lower-limit" id="dropout-year-lower-limit-input"
-                                                    value="{{drop_out_year_lower_limit}}">
-                                            </div>
-                                            <div class="input-group mb-1" style="min-width: 20ch;">
-                                                <div class="input-group-text bg-body">
-                                                    Upper limit
-                                                </div>
-                                                <input type="number" class="form-control"
-                                                    name="dropout-year-upper-limit" id="dropout-year-upper-limit-input"
-                                                    placeholder="Default is None" value="{{drop_out_year_upper_limit}}">
-                                            </div>
-                                            <input type="submit" value="Apply" class="btn btn-primary w-100">
-                                        </form>
-                                    </li>
-                                    {% endif %}
                                 </ul>
                             </form>
                         </div>

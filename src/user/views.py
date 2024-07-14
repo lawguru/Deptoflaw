@@ -79,7 +79,7 @@ class UserListView(ListView):
         return queryset
 
     def get_fetched_queryset(self):
-        student_profiles = StudentProfile.objects.all().only('course', 'cgpa', 'backlogs', 'registration_year', 'enrollment_status', 'pass_out_year', 'drop_out_year')
+        student_profiles = StudentProfile.objects.all().only('course', 'cgpa', 'backlogs', 'registration_year', 'enrollment_status', 'pass_out_year')
         staff_profiles = StaffProfile.objects.all().only('designation', 'qualification')
         recruiter_profiles = RecruiterProfile.objects.all().only('company', 'designation')
         skills = Skill.objects.all()
@@ -180,9 +180,6 @@ class UserListView(ListView):
             elif enrollment_status == 'passed_out':
                 students = self.apply_pass_out_year_filters(
                     students.filter(passed_out=True))
-            elif enrollment_status == 'dropped_out':
-                students = self.apply_drop_out_year_filters(
-                    students.filter(dropped_out=True))
             query &= Q(student_profile__in=students)
         return query
 
@@ -197,19 +194,6 @@ class UserListView(ListView):
         if pass_out_year_upper_limit and pass_out_year_upper_limit.isdigit():
             students = students.filter(
                 pass_out_year__lte=pass_out_year_upper_limit)
-        return students
-
-    def apply_drop_out_year_filters(self, students):
-        drop_out_year_lower_limit = self.request.GET.get(
-            'drop-out-year-lower-limit')
-        drop_out_year_upper_limit = self.request.GET.get(
-            'drop-out-year-upper-limit')
-        if drop_out_year_lower_limit and drop_out_year_lower_limit.isdigit():
-            students = students.filter(
-                drop_out_year__gte=drop_out_year_lower_limit)
-        if drop_out_year_upper_limit and drop_out_year_upper_limit.isdigit():
-            students = students.filter(
-                drop_out_year__lte=drop_out_year_upper_limit)
         return students
 
     def apply_staff_filters(self, query):
@@ -341,8 +325,6 @@ class UserListView(ListView):
             'enrollment-status', '')
         if context['enrollment_status'] == 'passed_out':
             self.add_pass_out_year_context(context)
-        elif context['enrollment_status'] == 'dropped_out':
-            self.add_drop_out_year_context(context)
 
     def add_staff_context(self, context):
         context['sorting_options'] += self.staff_sorting_options
@@ -377,12 +359,6 @@ class UserListView(ListView):
             'pass-out-year-lower-limit', '0')
         context['pass_out_year_upper_limit'] = self.request.GET.get(
             'pass-out-year-upper-limit', '')
-
-    def add_drop_out_year_context(self, context):
-        context['drop_out_year_lower_limit'] = self.request.GET.get(
-            'drop-out-year-lower-limit', '0')
-        context['drop_out_year_upper_limit'] = self.request.GET.get(
-            'drop-out-year-upper-limit', '')
 
     def get(self, request):
         if not request.user.is_superuser and not request.user.is_coordinator and request.user.role != 'staff' :
