@@ -35,7 +35,7 @@ class Index(TemplateView):
             current_academic_half.value = 'odd'
             current_academic_half.save()
 
-        links = Link.objects.filter(title_in=['Portfolio', 'Website', 'GitHub', 'LinkedIn']).values()
+        links = Link.objects.filter(title__in=['Portfolio', 'Website', 'GitHub', 'LinkedIn']).values()
 
         users = User.objects.filter(
             Q(staff_profile__is_hod=True) | Q(staff_profile__is_tpc_head=True) | Q(is_developer=True) | Q(is_superuser=True) | Q(is_coordinator=True)
