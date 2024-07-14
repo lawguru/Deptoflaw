@@ -6,6 +6,8 @@ from user.models import User
 from resume.models import Skill
 from django.db.models import OuterRef, Subquery, Func
 from django.db.models import Q
+from django.utils.functional import cached_property
+
 
 # Create your models here.
 

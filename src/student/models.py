@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import Q
 from user.models import User
 from settings.models import Setting
+from django.utils.functional import cached_property
 
 
 # Create your models here.

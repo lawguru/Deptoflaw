@@ -7,6 +7,8 @@ from django.utils.html import strip_tags
 from random import randint
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.functional import cached_property
+
 
 # Create your models here.
 

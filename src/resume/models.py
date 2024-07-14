@@ -3,6 +3,8 @@ from django.db.models.functions import Lower
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Q
 from user.models import User
+from django.utils.functional import cached_property
+
 
 # Create your models here.
 
