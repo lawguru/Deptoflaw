@@ -89,7 +89,7 @@ class UserListView(ListView):
             Prefetch('staff_profile', queryset=staff_profiles),
             Prefetch('recruiter_profile', queryset=recruiter_profiles),
             Prefetch('skills', queryset=skills)
-        ).values('id', 'full_name', 'short_name', 'is_approved', 'role')
+        )
 
     def apply_approval_filter(self, query):
         is_approved_filter = self.request.GET.get('is-approved-filter')
