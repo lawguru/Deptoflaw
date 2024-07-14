@@ -1,0 +1,402 @@
+[
+    {
+        "model": "student.semesterreportcardtemplate",
+        "pk": 1,
+        "fields": {
+            "course": "B.Tech",
+            "semester": 1,
+            "subjects": [
+                "Engineering Physics",
+                "Mathematics",
+                "English",
+                "Engineering",
+                "Workshop/Manufacturing",
+                "Engineering"
+            ],
+            "subject_codes": [
+                "ASH-101",
+                "ASH-102",
+                "ASH-103",
+                "ASH-104",
+                "ASH-105",
+                "ASH-106"
+            ],
+            "subject_credits": [
+                "4",
+                "4",
+                "2",
+                "2",
+                "3",
+                "3"
+            ],
+            "subject_passing_grade_points": [
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5"
+            ]
+        }
+    },
+    {
+        "model": "student.semesterreportcardtemplate",
+        "pk": 2,
+        "fields": {
+            "course": "B.Tech",
+            "semester": 2,
+            "subjects": [
+                "Engineering Chemistry",
+                "Mathematics-II",
+                "Programming for problem Solving",
+                "Basic Electrical Engineering",
+                "English-II",
+                "Engineering Chemistry Lab.",
+                "Programming for problem Solving Lab.",
+                "Basic Electrical Engineering Lab."
+            ],
+            "subject_codes": [
+                "ASH-201",
+                "ASH-202",
+                "ASH-203",
+                "ASH-204",
+                "ASH-205",
+                "ASH-206",
+                "ASH-207",
+                "ASH-208"
+            ],
+            "subject_credits": [
+                "4",
+                "4",
+                "3",
+                "4",
+                "2",
+                "2",
+                "2",
+                "1"
+            ],
+            "subject_passing_grade_points": [
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5"
+            ]
+        }
+    },
+    {
+        "model": "student.semesterreportcardtemplate",
+        "pk": 3,
+        "fields": {
+            "course": "B.Tech",
+            "semester": 3,
+            "subjects": [
+                "Analog Electronic Circuits",
+                "Mathematics-III (Calculus, Differential Equation & Complex Variables)",
+                "Humanities-I (Effective Technical Communication)",
+                "Data Structure",
+                "Digital Electronics",
+                "Microprocessor",
+                "Analog Electronic Circuits Lab.",
+                "Data Structure Lab.",
+                "Digital Electronics Lab."
+            ],
+            "subject_codes": [
+                "CSE-301",
+                "ASH-301A",
+                "ASH-302",
+                "CSE-302",
+                "CSE-303",
+                "CSE-304",
+                "CSE-305",
+                "CSE-306",
+                "CSE-307"
+            ],
+            "subject_credits": [
+                "3",
+                "3",
+                "3",
+                "3",
+                "3",
+                "3",
+                "2",
+                "2",
+                "2"
+            ],
+            "subject_passing_grade_points": [
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5"
+            ]
+        }
+    },
+    {
+        "model": "student.semesterreportcardtemplate",
+        "pk": 4,
+        "fields": {
+            "course": "B.Tech",
+            "semester": 4,
+            "subjects": [
+                "Management-I (Organizational Behaviour)",
+                "Discrete Mathematics & Graph Theory",
+                "Computer Organization & Architecture",
+                "Database Management Systems",
+                "Object Oriented Programming",
+                "Computer Architecture and Microprocessor Lab.",
+                "Database Management Systems Lab.",
+                "Object Oriented Programming Lab.",
+                "Environmental Science"
+            ],
+            "subject_codes": [
+                "ASH-401",
+                "CSE-401",
+                "CSE-402",
+                "CSE-403",
+                "CSE-404",
+                "CSE-405",
+                "CSE-406",
+                "CSE-407",
+                "ASH-402"
+            ],
+            "subject_credits": [
+                "3",
+                "3",
+                "3",
+                "3",
+                "3",
+                "2",
+                "2",
+                "2",
+                "0"
+            ],
+            "subject_passing_grade_points": [
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5"
+            ]
+        }
+    },
+    {
+        "model": "student.semesterreportcardtemplate",
+        "pk": 5,
+        "fields": {
+            "course": "B.Tech",
+            "semester": 5,
+            "subjects": [
+                "Mathematics-IV",
+                "IT Workshop",
+                "Design and Analysis of Algorithm",
+                "Operating System",
+                "Formal Language & Automata Theory",
+                "Machine Learning",
+                "Design & Analysis of Algorithms Lab",
+                "Operating System Lab",
+                "Summer Training(Min 4 weeks)",
+                "Constitution of India"
+            ],
+            "subject_codes": [
+                "ASH-501",
+                "CSE-501",
+                "CSE-502",
+                "CSE-503",
+                "CSE-504",
+                "CSE-505",
+                "CSE-506",
+                "CSE-507",
+                "CSE-508",
+                "ASH-503"
+            ],
+            "subject_credits": [
+                "2",
+                "2",
+                "3",
+                "3",
+                "3",
+                "3",
+                "2",
+                "2",
+                "0",
+                "0"
+            ],
+            "subject_passing_grade_points": [
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5",
+                "5"
+            ]
+        }
+    },
+    {
+        "model": "student.semesterreportcardtemplate",
+        "pk": 6,
+        "fields": {
+            "course": "B.Tech",
+            "semester": 6,
+            "subjects": [
+                "Humanities-II",
+                "Compiler Design",
+                "Computer Networks",
+                "Elective-II",
+                "Compiler Design Lab",
+                "Computer Network Lab",
+                "Project-I"
+            ],
+            "subject_codes": [
+                "ASH-601",
+                "CSE-601",
+                "CSE-602",
+                "CSE-603",
+                "CSE-605",
+                "CSE-606",
+                "CSE-607"
+            ],
+            "subject_credits": [
+                "3",
+                "3",
+                "3",
+                "3",
+                "2",
+                "2",
+                "3"
+            ],
+            "subject_passing_grade_points": [
+                "5.0",
+                "5.0",
+                "5.0",
+                "5.0",
+                "5.0",
+                "5.0",
+                "5.0"
+            ]
+        }
+    },
+    {
+        "model": "student.semesterreportcardtemplate",
+        "pk": 7,
+        "fields": {
+            "course": "B.Tech",
+            "semester": 7,
+            "subjects": [
+                "Elective-III",
+                "Elective-IV",
+                "Elective-V",
+                "Project-II",
+                "Internship(min 6 weeks)"
+            ],
+            "subject_codes": [
+                "CSE-701",
+                "CSE-702",
+                "CSE-703",
+                "CSE-704",
+                "CSE-705"
+            ],
+            "subject_credits": [
+                "3",
+                "3",
+                "3",
+                "4",
+                "2"
+            ],
+            "subject_passing_grade_points": [
+                "5.0",
+                "5.0",
+                "5.0",
+                "5.0",
+                "5.0"
+            ]
+        }
+    },
+    {
+        "model": "student.semesterreportcardtemplate",
+        "pk": 8,
+        "fields": {
+            "course": "B.Tech",
+            "semester": 8,
+            "subjects": [
+                "Elective-VI",
+                "Project-III"
+            ],
+            "subject_codes": [
+                "CSE-801",
+                "CSE-802"
+            ],
+            "subject_credits": [
+                "3",
+                "6"
+            ],
+            "subject_passing_grade_points": [
+                "5.0",
+                "5.0"
+            ]
+        }
+    },
+    {
+        "model": "student.semesterreportcardtemplate",
+        "pk": 9,
+        "fields": {
+            "course": "M.Tech",
+            "semester": 1,
+            "subjects": [],
+            "subject_codes": [],
+            "subject_credits": [],
+            "subject_passing_grade_points": []
+        }
+    },
+    {
+        "model": "student.semesterreportcardtemplate",
+        "pk": 10,
+        "fields": {
+            "course": "M.Tech",
+            "semester": 2,
+            "subjects": [],
+            "subject_codes": [],
+            "subject_credits": [],
+            "subject_passing_grade_points": []
+        }
+    },
+    {
+        "model": "student.semesterreportcardtemplate",
+        "pk": 11,
+        "fields": {
+            "course": "M.Tech",
+            "semester": 3,
+            "subjects": [],
+            "subject_codes": [],
+            "subject_credits": [],
+            "subject_passing_grade_points": []
+        }
+    },
+    {
+        "model": "student.semesterreportcardtemplate",
+        "pk": 12,
+        "fields": {
+            "course": "M.Tech",
+            "semester": 4,
+            "subjects": [],
+            "subject_codes": [],
+            "subject_credits": [],
+            "subject_passing_grade_points": []
+        }
+    }
+]

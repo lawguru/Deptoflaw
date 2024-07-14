@@ -122,19 +122,19 @@ class StudentProfile(models.Model):
     course_duration = models.PositiveSmallIntegerField()
     manually_specify_cgpa = models.BooleanField(default=False)
 
-    @property
+    @cached_property
     def edit_users(self):
         return self.user.edit_users
 
-    @property
+    @cached_property
     def view_users(self):
         return self.user.view_users
 
-    @property
+    @cached_property
     def year_suffix(self):
         return 'st' if self.year == 1 else 'nd' if self.year == 2 else 'rd' if self.year == 3 else 'th'
 
-    @property
+    @cached_property
     def year_name(self):
         if self.year in range(1, 8):
             return {
@@ -149,11 +149,11 @@ class StudentProfile(models.Model):
             }[self.year]
         return f'{self.year}th'
 
-    @property
+    @cached_property
     def semester_suffix(self):
         return 'st' if self.semester == 1 else 'nd' if self.semester == 2 else 'rd' if self.semester == 3 else 'th'
 
-    @property
+    @cached_property
     def semester_name(self):
         if self.semester in range(1, 8):
             return {
@@ -270,7 +270,7 @@ class SemesterReportCard(models.Model):
     sgpa = models.FloatField(default=0)
     is_complete = models.BooleanField(default=False)
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.student_profile.user.is_superuser:
             return User.objects.filter(pk=self.student_profile.user.pk)
@@ -343,11 +343,11 @@ class SemesterReportCardTemplate(models.Model):
     subject_passing_grade_points = models.JSONField(
         default=list, blank=True, null=True)
 
-    @property
+    @cached_property
     def view_users(self):
         return User.objects.all()
 
-    @property
+    @cached_property
     def edit_users(self):
         return User.objects.filter(
             Q(is_superuser=True) | Q(is_coordinator=True) |

@@ -125,13 +125,13 @@ class OtherEducation(models.Model):
     duration = models.PositiveSmallIntegerField(
         help_text='Duration in years', default=3, validators=[MinValueValidator(1), MaxValueValidator(20)])
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self == self.user.primary_address:
             return User.objects.none()
@@ -168,13 +168,13 @@ class Certification(models.Model):
     issue_date = models.DateField()
     description = models.TextField(null=True, blank=True)
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self == self.user.primary_address:
             return User.objects.none()
@@ -272,13 +272,13 @@ class WorkExperience(models.Model):
     end_date = models.DateField()
     description = models.TextField(null=True, blank=True)
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self == self.user.primary_address:
             return User.objects.none()
@@ -314,13 +314,13 @@ class Project(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self == self.user.primary_address:
             return User.objects.none()
@@ -366,13 +366,13 @@ class Patent(models.Model):
     issue_date = models.DateField()
     description = models.TextField(null=True, blank=True)
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self == self.user.primary_address:
             return User.objects.none()
@@ -405,13 +405,13 @@ class Publication(models.Model):
     publication_date = models.DateField()
     description = models.TextField(null=True, blank=True)
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self == self.user.primary_address:
             return User.objects.none()
@@ -443,13 +443,13 @@ class Achievement(models.Model):
     date = models.DateField()
     description = models.TextField()
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self == self.user.primary_address:
             return User.objects.none()
@@ -482,13 +482,13 @@ class Presentation(models.Model):
     date = models.DateField()
     description = models.TextField()
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self == self.user.primary_address:
             return User.objects.none()
@@ -516,13 +516,13 @@ class OtherInfo(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self == self.user.primary_address:
             return User.objects.none()

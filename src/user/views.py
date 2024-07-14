@@ -71,26 +71,30 @@ class UserListView(ListView):
         elif role_filter == 'recruiter':
             query = self.apply_recruiter_filters(query)
 
-        queryset = super().get_queryset()
-        queryset = self.apply_prefetch_related(queryset).filter(query).distinct()
+        queryset = self.get_fetched_queryset().filter(query).distinct()
 
         queryset = self.apply_sorting(queryset)
         queryset = self.apply_ordering(queryset)
 
         return queryset
 
-    def apply_prefetch_related(self, queryset):
-        student_profiles = StudentProfile.objects.annotate(skills_count=Count('user__skills'))
+    def get_fetched_queryset(self):
+        student_profiles = StudentProfile.objects.all()
+            .values('course', 'year', 'cgpa', 'backlogs', 'registration_year', 'enrollment_status', 'pass_out_year', 'drop-out-year')
         staff_profiles = StaffProfile.objects.all()
+            .values('designation', 'qualification')
         recruiter_profiles = RecruiterProfile.objects.all()
+            .values('company', 'designation')
+        skills = Skills.objects.all()
 
-        queryset = queryset.prefetch_related(
-            Prefetch('student_profile', queryset=student_profiles),
-            Prefetch('staff_profile', queryset=staff_profiles),
-            Prefetch('recruiter_profile', queryset=recruiter_profiles)
-        )
-
-        return queryset
+        return super().get_queryset()
+            .select_related('primary_email', 'primary_phone_number', 'primary_address')
+            .prefetch_related(
+                Prefetch('student_profile', queryset=student_profiles),
+                Prefetch('staff_profile', queryset=staff_profiles),
+                Prefetch('recruiter_profile', queryset=recruiter_profiles),
+                Prefetch('skills', queryset=skills)
+            ).values('id', 'full_name', 'short_name', 'is_approved', 'role')
 
     def apply_approval_filter(self, query):
         is_approved_filter = self.request.GET.get('is-approved-filter')
