@@ -326,7 +326,7 @@ class ListRecruitmentPost(ListView):
 
         queryset = super().get_queryset().select_related('user').prefetch_related(
             Prefetch('skills', queryset=Skill.objects.all())
-        ).filter(query).distinct().values()
+        ).filter(query).distinct()
 
         sorting = self.request.GET.get('sorting')
         if sorting:
