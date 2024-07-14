@@ -869,7 +869,7 @@ class RecruitmentApplications(ListView):
         ).filter(role='student').only('full_name', 'primary_email', 'primary_phone_number', 'primary_address', 'bio')
         queryset = super().get_queryset().prefetch_related(
             Prefetch('user', queryset=student_users)
-        ).filter(query).distinct().values()
+        ).filter(query).distinct()
 
         if sorting:
             if sorting == 'name':
