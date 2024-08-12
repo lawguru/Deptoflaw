@@ -287,7 +287,7 @@ class ListNotice(ListView):
             context['recruitment_post_filter'] = self.request.GET.get(
                 'recruitment-post-filter', '')
         context['sorting'] = self.request.GET.get('sorting', 'date')
-        context['ordering'] = self.request.GET.get('ordering', 'asc')
+        context['ordering'] = self.request.GET.get('ordering', 'desc')
         return context
 
 
@@ -599,7 +599,7 @@ class MessageListView(ListView):
         context['status_options'] = self.status_options
 
         context['sorting'] = self.request.GET.get('sorting', 'date')
-        context['ordering'] = self.request.GET.get('ordering', 'asc')
+        context['ordering'] = self.request.GET.get('ordering', 'desc')
 
         context['status_filter'] = self.request.GET.get(
             'status-filter', '')
@@ -703,7 +703,7 @@ class QuoteListView(ListView):
         context['fictional_options'] = self.fictional_options
 
         context['sorting'] = self.request.GET.get('sorting', 'date')
-        context['ordering'] = self.request.GET.get('ordering', 'asc')
+        context['ordering'] = self.request.GET.get('ordering', 'desc')
 
         context['author_filter'] = self.request.GET.get('author-filter', '')
         context['quote_filter'] = self.request.GET.get('quote-filter', '')
