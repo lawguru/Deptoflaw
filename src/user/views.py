@@ -71,26 +71,25 @@ class UserListView(ListView):
         elif role_filter == 'recruiter':
             query = self.apply_recruiter_filters(query)
 
-        queryset = super().get_queryset()
-        queryset = self.apply_prefetch_related(queryset).filter(query).distinct()
+        queryset = self.get_fetched_queryset().filter(query).distinct()
 
         queryset = self.apply_sorting(queryset)
         queryset = self.apply_ordering(queryset)
 
         return queryset
 
-    def apply_prefetch_related(self, queryset):
-        student_profiles = StudentProfile.objects.annotate(skills_count=Count('user__skills'))
-        staff_profiles = StaffProfile.objects.all()
-        recruiter_profiles = RecruiterProfile.objects.all()
+    def get_fetched_queryset(self):
+        student_profiles = StudentProfile.objects.all().only('course', 'cgpa', 'backlog_count', 'registration_year', 'is_current', 'passed_out', 'dropped_out', 'pass_out_year')
+        staff_profiles = StaffProfile.objects.all().only('designation', 'qualification')
+        recruiter_profiles = RecruiterProfile.objects.all().only('company_name', 'designation')
+        skills = Skill.objects.all()
 
-        queryset = queryset.prefetch_related(
+        return super().get_queryset().select_related('primary_email', 'primary_phone_number', 'primary_address').prefetch_related(
             Prefetch('student_profile', queryset=student_profiles),
             Prefetch('staff_profile', queryset=staff_profiles),
-            Prefetch('recruiter_profile', queryset=recruiter_profiles)
+            Prefetch('recruiter_profile', queryset=recruiter_profiles),
+            Prefetch('skills', queryset=skills)
         )
-
-        return queryset
 
     def apply_approval_filter(self, query):
         is_approved_filter = self.request.GET.get('is-approved-filter')
@@ -182,8 +181,7 @@ class UserListView(ListView):
                 students = self.apply_pass_out_year_filters(
                     students.filter(passed_out=True))
             elif enrollment_status == 'dropped_out':
-                students = self.apply_drop_out_year_filters(
-                    students.filter(dropped_out=True))
+                students = students.filter(dropped_out=True)
             query &= Q(student_profile__in=students)
         return query
 
@@ -198,19 +196,6 @@ class UserListView(ListView):
         if pass_out_year_upper_limit and pass_out_year_upper_limit.isdigit():
             students = students.filter(
                 pass_out_year__lte=pass_out_year_upper_limit)
-        return students
-
-    def apply_drop_out_year_filters(self, students):
-        drop_out_year_lower_limit = self.request.GET.get(
-            'drop-out-year-lower-limit')
-        drop_out_year_upper_limit = self.request.GET.get(
-            'drop-out-year-upper-limit')
-        if drop_out_year_lower_limit and drop_out_year_lower_limit.isdigit():
-            students = students.filter(
-                drop_out_year__gte=drop_out_year_lower_limit)
-        if drop_out_year_upper_limit and drop_out_year_upper_limit.isdigit():
-            students = students.filter(
-                drop_out_year__lte=drop_out_year_upper_limit)
         return students
 
     def apply_staff_filters(self, query):
@@ -342,8 +327,6 @@ class UserListView(ListView):
             'enrollment-status', '')
         if context['enrollment_status'] == 'passed_out':
             self.add_pass_out_year_context(context)
-        elif context['enrollment_status'] == 'dropped_out':
-            self.add_drop_out_year_context(context)
 
     def add_staff_context(self, context):
         context['sorting_options'] += self.staff_sorting_options
@@ -378,12 +361,6 @@ class UserListView(ListView):
             'pass-out-year-lower-limit', '0')
         context['pass_out_year_upper_limit'] = self.request.GET.get(
             'pass-out-year-upper-limit', '')
-
-    def add_drop_out_year_context(self, context):
-        context['drop_out_year_lower_limit'] = self.request.GET.get(
-            'drop-out-year-lower-limit', '0')
-        context['drop_out_year_upper_limit'] = self.request.GET.get(
-            'drop-out-year-upper-limit', '')
 
     def get(self, request):
         if not request.user.is_superuser and not request.user.is_coordinator and request.user.role != 'staff' :
@@ -483,10 +460,12 @@ class ResetPassword(View):
         if code == 'request' or email.verify_code == None:
             email.verify_code = str(randint(100000000000, 999999999999))
             email.save()
+            url = request.build_absolute_uri(reverse('reset_password', args=[email.email, email.verify_code]))
             html_message = render_to_string('reset_password_email.html', {
-                'url': request.build_absolute_uri(reverse('reset_password', args=[email.email, email.verify_code])),
+                'url': url,
                 'valid_for': email.verify_code_valid_for,
             })
+            print(f'User: {email.user.full_name} Password reset link: {url}')
             sent = send_mail(
                 subject='Reset Password | TPC | CSE | AUS',
                 message=strip_tags(html_message),
@@ -549,6 +528,7 @@ class UserPerformAction(View):
             if request.user not in user.delete_users:
                 raise PermissionDenied()
             user.delete()
+            return JsonResponse([{'name': 'This user is deleted', 'url': ''}], safe=False)
         elif action == 'make_superuser':
             if request.user not in user.make_superuser_users:
                 raise PermissionDenied()

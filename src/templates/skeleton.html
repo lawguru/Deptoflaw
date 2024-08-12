@@ -9,7 +9,9 @@
     <link rel="stylesheet" type="text/css" href="{% static 'build/style.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'bootstrap-icons.min.css' %}">
     <script src="{% static 'scripts/replaceabbreviations.js' %}"></script>
-    {% block head %}{% endblock %}
+    {% block head %}
+    <meta name=”robots” content="noindex, nofollow">
+    {% endblock %}
 </head>
 
 <body data-bs-spy="scroll" data-bs-target="#nav" data-bs-smooth-scroll="true" class="cursor-none" tabindex="0"

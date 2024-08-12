@@ -6,7 +6,9 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from random import randint
 from django.urls import reverse
-import datetime
+from django.utils import timezone
+from django.utils.functional import cached_property
+
 
 # Create your models here.
 
@@ -53,7 +55,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_doctor = models.BooleanField(editable=False, default=False)
     is_quoter = models.BooleanField(editable=False, default=False)
 
-    @property
+    @cached_property
     def subtext(self):
         subtext = ''
         if self.role == 'student' and hasattr(self, 'student_profile'):
@@ -100,23 +102,23 @@ class User(AbstractBaseUser, PermissionsMixin):
         else:
             return self.first_name
 
-    @property
+    @cached_property
     def reset_password_users(self):
         return User.objects.filter(pk=self.pk)
 
-    @property
+    @cached_property
     def set_password_users(self):
         if self.is_superuser:
             return User.objects.filter(pk=self.pk)
         return User.objects.filter(is_superuser=True)
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.is_superuser:
             return User.objects.filter(pk=self.pk)
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.pk)).distinct()
 
-    @property
+    @cached_property
     def view_users(self):
         if self.is_superuser or self.is_coordinator or self.role == 'staff' or self.role == 'recruiter' or (self.role == 'student' and self.student_profile.is_cr):
             return User.objects.all()
@@ -136,50 +138,50 @@ class User(AbstractBaseUser, PermissionsMixin):
                 )
             ).distinct()
 
-    @property
+    @cached_property
     def approve_users(self):
         if self.is_approved or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(Q(Q(is_superuser=True) | Q(is_coordinator=True))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self.is_approved:
             return User.objects.none()
         return User.objects.filter(Q(Q(is_superuser=True) | Q(is_coordinator=True))).distinct()
 
-    @property
+    @cached_property
     def make_superuser_users(self):
         if self.is_superuser or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(is_superuser=True)
 
-    @property
+    @cached_property
     def make_coordinator_users(self):
         if self.is_coordinator or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(Q(Q(is_superuser=True) | Q(is_coordinator=True))).distinct()
 
-    @property
+    @cached_property
     def remove_coordinator_users(self):
         if self.is_superuser or not self.is_coordinator:
             return User.objects.none()
         if self.is_coordinator:
             return User.objects.filter(is_superuser=True)
 
-    @property
+    @cached_property
     def make_quoter_users(self):
         if self.is_quoter or not self.is_approved:
             return User.objects.none()
         return User.objects.filter(is_superuser=True)
 
-    @property
+    @cached_property
     def remove_quoter_users(self):
         if not self.is_quoter:
             return User.objects.none()
         return User.objects.filter(is_superuser=True)
 
-    @property
+    @cached_property
     def make_cr_users(self):
         if not hasattr(self, 'student_profile') or self.student_profile.is_cr or not self.primary_email.is_verified:
             return User.objects.none()
@@ -192,7 +194,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             )
         ).distinct()
 
-    @property
+    @cached_property
     def remove_cr_users(self):
         if not hasattr(self, 'student_profile') or not self.student_profile.is_cr:
             return User.objects.none()
@@ -200,13 +202,13 @@ class User(AbstractBaseUser, PermissionsMixin):
             Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.pk)
         )
 
-    @property
+    @cached_property
     def make_hod_users(self):
         if not hasattr(self, 'staff_profile') or self.staff_profile.is_hod or not self.primary_email.is_verified:
             return User.objects.none()
         return User.objects.filter(Q(is_superuser=True) | Q(staff_profile__is_hod=True)).distinct()
 
-    @property
+    @cached_property
     def make_tpc_head_users(self):
         if not hasattr(self, 'staff_profile') or self.staff_profile.is_tpc_head or not self.primary_email.is_verified:
             return User.objects.none()
@@ -241,7 +243,7 @@ class PhoneNumber(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE,
                              null=True, blank=True, related_name='phone_numbers')
 
-    @property
+    @cached_property
     def set_primary_users(self):
         if self == self.user.primary_phone_number:
             return User.objects.none()
@@ -249,7 +251,7 @@ class PhoneNumber(models.Model):
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self == self.user.primary_phone_number:
             return User.objects.none()
@@ -290,13 +292,13 @@ class Email(models.Model):
     verify_code_time = models.DateTimeField(editable=False, blank=True, null=True)
     verify_code_valid_for = models.SmallIntegerField(default=5, editable=False)
     
-    @property
+    @cached_property
     def verify_code_valid(self):
         if self.verify_code and self.verify_code_time:
-            return (datetime.datetime.now(datetime.timezone.utc) - self.verify_code_time.astimezone(datetime.timezone.utc)).seconds < (self.verify_code_valid_for * 60)
+            return (timezone.now() - self.verify_code_time).seconds < (self.verify_code_valid_for * 60)
         return False
 
-    @property
+    @cached_property
     def set_primary_users(self):
         if self == self.user.primary_email or not self.is_verified:
             return User.objects.none()
@@ -304,7 +306,7 @@ class Email(models.Model):
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self == self.user.primary_email:
             return User.objects.none()
@@ -312,7 +314,7 @@ class Email(models.Model):
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def verify_users(self):
         if self.is_verified:
             return User.objects.none()
@@ -322,13 +324,15 @@ class Email(models.Model):
         self.verify_code = str(randint(100000000000, 999999999999))
         self.save()
         subject = 'Email Verification | TPC | CSE | AUS'
+        url = request.build_absolute_uri(reverse('verify_email', args=[self.pk, self.verify_code]))
         html_message = render_to_string(
             'email_verification.html',
             {
-                'verification_url': request.build_absolute_uri(reverse('verify_email', args=[self.pk, self.verify_code])),
+                'verification_url': url,
                 'valid_for': self.verify_code_valid_for,
             }
         )
+        print(f'Email: {self.email} Verification link: {url}')
         try:
             return send_mail(subject=subject, message=strip_tags(html_message), from_email=None, recipient_list=[self.email], html_message=html_message)
         except:
@@ -340,7 +344,7 @@ class Email(models.Model):
         if hasattr(self, 'primary_of') and self.primary_of:
             self.user = self.primary_of
         if self.verify_code:
-            self.verify_code_time = datetime.datetime.now()
+            self.verify_code_time = timezone.now()
         else:
             self.verify_code_time = None
 
@@ -372,13 +376,13 @@ class Address(models.Model):
     country = models.CharField(max_length=150)
     pincode = models.PositiveIntegerField('PIN/ZIP Code')
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def set_primary_users(self):
         if self == self.user.primary_address:
             return User.objects.none()
@@ -386,7 +390,7 @@ class Address(models.Model):
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self == self.user.primary_address:
             return User.objects.none()
@@ -450,20 +454,20 @@ class Link(models.Model):
         'spotify': 'bi bi-spotify',
     }
 
-    @property
+    @cached_property
     def icon(self):
         for key, value in self.icons.items():
             if key in self.url.split('.')[0]:
                 return value
         return 'bi bi-link-45deg'
 
-    @property
+    @cached_property
     def set_primary_users(self):
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)
         return User.objects.filter(Q(Q(is_superuser=True) | Q(pk=self.user.pk))).distinct()
 
-    @property
+    @cached_property
     def delete_users(self):
         if self.user.is_superuser:
             return User.objects.filter(pk=self.user.pk)

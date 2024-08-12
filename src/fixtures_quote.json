@@ -1,0 +1,418 @@
+[
+    {
+        "model": "cell.quote",
+        "pk": 1,
+        "fields": {
+            "user": 1,
+            "quote": "Simplicity is the Ultimate Sophistication",
+            "author": "Leonardo da Vinci",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 2,
+        "fields": {
+            "user": 1,
+            "quote": "Education is the most powerful weapon which you can use to change the world.",
+            "author": "Nelson Mandela",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 3,
+        "fields": {
+            "user": 1,
+            "quote": "Perfection is not attainable. But if we chase perfection we can catch excellence.",
+            "author": "Vince Lombardi",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 4,
+        "fields": {
+            "user": 1,
+            "quote": "It is never too late to be what you might have been.",
+            "author": "George Eliot",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 5,
+        "fields": {
+            "user": 1,
+            "quote": "If you can dream it, you can do it.",
+            "author": "Walt Disney",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 6,
+        "fields": {
+            "user": 1,
+            "quote": "Knowledge, like air is vital to life. No one should be denied it.",
+            "author": "V",
+            "source": "V for Vendetta",
+            "fictional": true,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 7,
+        "fields": {
+            "user": 1,
+            "quote": "Arise! Awake! And stop not until the goal is reached.",
+            "author": "Swami Vivekananda",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 8,
+        "fields": {
+            "user": 1,
+            "quote": "Those who can imagine anything, can create the impossible.",
+            "author": "Alan Turing",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 9,
+        "fields": {
+            "user": 1,
+            "quote": "Sometimes it is the people who no one imagines anything of, who do the things that no one can imagine.",
+            "author": "Alan Turing",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 10,
+        "fields": {
+            "user": 1,
+            "quote": "It's not who I am underneath, but what I do that defines me.",
+            "author": "Batman / Bruce Wayne",
+            "source": "Batman Begins",
+            "fictional": true,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 11,
+        "fields": {
+            "user": 1,
+            "quote": "The training is nothing! The will is everything! The will to act.",
+            "author": "Henri Ducard",
+            "source": "Batman Begins",
+            "fictional": true,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 12,
+        "fields": {
+            "user": 1,
+            "quote": "Intelligence is a privilege, and it needs to be used for the greater good of people.",
+            "author": "Doctor Octopus",
+            "source": null,
+            "fictional": true,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 13,
+        "fields": {
+            "user": 1,
+            "quote": "Life doesn't give us purpose. We give life purpose.",
+            "author": "The Flash / Barry Allen",
+            "source": null,
+            "fictional": true,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 14,
+        "fields": {
+            "user": 1,
+            "quote": "You miss 100% of the shots you don't take.",
+            "author": "Wayne Gretzky",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 15,
+        "fields": {
+            "user": 1,
+            "quote": "No man can win every battle, but no man should fall without a struggle.",
+            "author": "Spider-Man / Peter Parker",
+            "source": null,
+            "fictional": true,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 16,
+        "fields": {
+            "user": 1,
+            "quote": "The greatest power on Earth is the magnificent power we all possess, the power of the human brain!",
+            "author": "Professor Xavier",
+            "source": null,
+            "fictional": true,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 17,
+        "fields": {
+            "user": 1,
+            "quote": "Why do we fall Bruce ? So that we can learn to pick ourselves up.",
+            "author": "Thomas Wayne",
+            "source": "Batman Begins",
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 18,
+        "fields": {
+            "user": 1,
+            "quote": "It's not who I am underneath but what I do that defines me.",
+            "author": "Batman / Bruce Wayne",
+            "source": "Batman Begins",
+            "fictional": true,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 19,
+        "fields": {
+            "user": 1,
+            "quote": "Study without desire spoils the memory, and it retains nothing that it takes in.",
+            "author": "Leonardo da Vinci",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 20,
+        "fields": {
+            "user": 1,
+            "quote": "Learning never exhausts the mind.",
+            "author": "Leonardo da Vinci",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 21,
+        "fields": {
+            "user": 1,
+            "quote": "The knowledge of all things is possible",
+            "author": "Leonardo da Vinci",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 22,
+        "fields": {
+            "user": 1,
+            "quote": "Logic will get you from A to Z; imagination will get you everywhere.",
+            "author": "Albert Einstein",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 23,
+        "fields": {
+            "user": 1,
+            "quote": "Life is like riding a bicycle. To keep your balance, you must keep moving.",
+            "author": "Albert Einstein",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 24,
+        "fields": {
+            "user": 1,
+            "quote": "Anyone who has never made a mistake has never tried anything new.",
+            "author": "Albert Einstein",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 25,
+        "fields": {
+            "user": 1,
+            "quote": "Try not to become a man of success. Rather become a man of value.",
+            "author": "Albert Einstein",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 26,
+        "fields": {
+            "user": 1,
+            "quote": "You never fail until you stop trying.",
+            "author": "Albert Einstein",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 27,
+        "fields": {
+            "user": 1,
+            "quote": "The measure of intelligence is the ability to change.",
+            "author": "Albert Einstein",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 28,
+        "fields": {
+            "user": 1,
+            "quote": "Live as if you were to die tomorrow. Learn as if you were to live forever.",
+            "author": "Mahatma Gandhi",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 29,
+        "fields": {
+            "user": 1,
+            "quote": "You must be the change you wish to see in the world.",
+            "author": "Mahatma Gandhi",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 30,
+        "fields": {
+            "user": 1,
+            "quote": "A man is but the product of his thoughts and what he thinks he becomes.",
+            "author": "Mahatma Gandhi",
+            "source": null,
+            "fictional": false,
+            "date": "2024-06-25T11:26:45.413Z",
+            "date_edited": "2024-06-25T11:26:45.687Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 31,
+        "fields": {
+            "user": 1,
+            "quote": "You only get one shot, do not miss your chance to blow. This opportunity comes once in a lifetime.",
+            "author": "Eminem / Marshall Mathers",
+            "source": "Lose Yourself",
+            "fictional": false,
+            "date": "2024-06-25T12:37:14.972Z",
+            "date_edited": "2024-06-26T04:18:31.666Z"
+        }
+    },
+    {
+        "model": "cell.quote",
+        "pk": 33,
+        "fields": {
+            "user": 1,
+            "quote": "There is no certainity, only opportunity.",
+            "author": "V",
+            "source": "V for Vendetta",
+            "fictional": true,
+            "date": "2024-07-02T11:37:02.317Z",
+            "date_edited": "2024-07-02T11:37:02.317Z"
+        }
+    }
+]

@@ -1,8 +1,9 @@
-from django.db.models import Count
+from django.db.models import Count, Q, Prefetch
 from django.shortcuts import render, redirect, reverse
 from staff.models import StaffProfile
 from settings.models import Setting
-from user.models import User
+from user.models import User, Link
+from resume.models import Skill
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.utils.decorators import method_decorator
@@ -10,7 +11,7 @@ from views import AddUserKeyObject, ChangeUserKeyObject, AddObject, DeleteUserKe
 from django.views.generic.base import View, TemplateView
 from django.views.generic.list import ListView
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, BadRequest
-from student.models import StudentProfile
+from student.models import StudentProfile, SemesterReportCard
 from .forms import *
 from .models import Notice, Quote
 import json
@@ -26,20 +27,7 @@ class Index(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if Quote.objects.exists():
-            random_quote = Quote.objects.order_by('?').first()
-            context['quote'] = random_quote
-
-        message_from_hod, created = Setting.objects.get_or_create(
-            key='message_from_hod')
-        if message_from_hod.value == None:
-            message_from_hod.value = 'Welcome to the Department of Computer Science and Engineering at Assam University. The Department of Computer Science and Engineering is one of the premier departments in the University. The Department offers B.Tech, M.Tech and Ph.D. programs in Computer Science and Engineering. The Department has a team of highly qualified, experienced and dedicated faculty members. The Department has state-of-the-art laboratories and infrastructure. The Department has a very active Training and Placement Cell (TPC) which takes care of the training and placement of the students. The Department has a very active student community which organizes various technical and cultural events throughout the year.'
-            message_from_hod.save()
-
-        message_from_tpc_head, created = Setting.objects.get_or_create(
-            key='message_from_tpc_head')
-        if message_from_tpc_head.value == None:
-            message_from_tpc_head.value = 'Welcome to the Training and Placement Cell (TPC) of the Department of Computer Science'
-            message_from_tpc_head.save()
+            context['quote'] = Quote.objects.order_by('?').values().first()
 
         current_academic_half, created = Setting.objects.get_or_create(
             key='current_academic_half')
@@ -47,8 +35,14 @@ class Index(TemplateView):
             current_academic_half.value = 'odd'
             current_academic_half.save()
 
-        context['message_from_hod'] = message_from_hod.value
-        context['message_from_tpc_head'] = message_from_tpc_head.value
+        links = Link.objects.filter(title__in=['Portfolio', 'Website', 'GitHub', 'LinkedIn'])
+
+        users = User.objects.filter(
+            Q(staff_profile__is_hod=True) | Q(staff_profile__is_tpc_head=True) | Q(is_developer=True) | Q(is_superuser=True) | Q(is_coordinator=True)
+        ).select_related('primary_email', 'primary_phone_number').prefetch_related(
+            Prefetch('links', queryset=links)
+        ).values('full_name')
+
         context['hod'] = User.objects.filter(staff_profile__is_hod=True)
         context['tpc_head'] = User.objects.filter(
             staff_profile__is_tpc_head=True).exclude(staff_profile__is_hod=True)
@@ -108,7 +102,7 @@ class Dashboard(TemplateView):
         return context
 
     def add_student_context(self, context, user):
-        user_applications = RecruitmentApplication.objects.filter(user=user)
+        user_applications = RecruitmentApplication.objects.filter(user=user).values('status')
         context.update({
             'user_application_count': user_applications.count(),
             'pending_user_application_count': user_applications.filter(status='P').count(),
@@ -118,13 +112,13 @@ class Dashboard(TemplateView):
         })
 
     def add_recruiter_context(self, context, user):
-        user_posts = RecruitmentPost.objects.filter(user=user)
+        user_posts = RecruitmentPost.objects.filter(user=user).values('id', 'apply_by')
         active_user_posts = user_posts.filter(
             apply_by__gte=datetime.today().date())
         user_applicants = RecruitmentApplication.objects.filter(
-            recruitment_post__in=user_posts)
+            recruitment_post_id__in=user_posts.values('id'))
         active_user_applicants = user_applicants.filter(
-            recruitment_post__in=active_user_posts)
+            recruitment_post_id__in=active_user_posts.values('id'))
 
         context.update({
             'user_post_count': user_posts.count(),
@@ -142,10 +136,10 @@ class Dashboard(TemplateView):
         })
 
     def add_admin_context(self, context):
-        unapproved_users = User.objects.filter(is_approved=False)
-        students = StudentProfile.objects.filter(user__is_approved=True)
-        applicants = RecruitmentApplication.objects.all()
-        active_applicants = RecruitmentApplication.objects.filter(
+        unapproved_users = User.objects.filter(is_approved=False).values('role')
+        students = StudentProfile.objects.filter(user__is_approved=True).values('is_current', 'passed_out')
+        applicants = RecruitmentApplication.objects.all().values('status', 'recruitment_post_id')
+        active_applicants = applicants.filter(
             recruitment_post__in=RecruitmentPost.objects.filter(
                 apply_by__gte=datetime.today().date())
         )
@@ -232,8 +226,7 @@ class ListNotice(ListView):
         query = self.apply_user_filter(query)
         query = self.apply_recruitment_post_filter(query)
 
-        queryset = super().get_queryset()
-        queryset = queryset.filter(query)
+        queryset = super().get_queryset().filter(query).select_related('user').distinct()
 
         sorting = self.request.GET.get('sorting', 'date')
         if sorting:
@@ -246,7 +239,7 @@ class ListNotice(ListView):
             elif type_filter == 'post-update' and sorting == 'recruitment_post__user':
                 queryset = queryset.order_by('recruitment_post__user')
 
-        ordering = self.request.GET.get('ordering')
+        ordering = self.request.GET.get('ordering', 'desc')
         if ordering:
             if ordering == 'desc':
                 queryset = queryset.reverse()
@@ -331,9 +324,11 @@ class ListRecruitmentPost(ListView):
         query = self.apply_applications_status_filters(query)
         query = self.apply_active_filter(query)
 
-        queryset = super().get_queryset().filter(query).distinct()
+        queryset = super().get_queryset().select_related('user').prefetch_related(
+            Prefetch('skills', queryset=Skill.objects.all())
+        ).filter(query).distinct()
 
-        sorting = self.request.GET.get('sorting')
+        sorting = self.request.GET.get('sorting', 'apply_by')
         if sorting:
             queryset = queryset.order_by(sorting)
 
@@ -588,7 +583,7 @@ class MessageListView(ListView):
                     else:
                         queryset = queryset.order_by('date')
 
-        ordering = self.request.GET.get('ordering')
+        ordering = self.request.GET.get('ordering', 'desc')
         if ordering == 'desc':
             queryset = queryset.reverse()
 
@@ -691,7 +686,7 @@ class QuoteListView(ListView):
             else:
                 queryset = queryset.order_by('date')
 
-        ordering = self.request.GET.get('ordering', 'asc')
+        ordering = self.request.GET.get('ordering', 'desc')
         if ordering == 'desc':
             queryset = queryset.reverse()
 
@@ -862,7 +857,19 @@ class RecruitmentApplications(ListView):
         if status_filters:
             query &= Q(status__in=status_filters)
 
-        queryset = super().get_queryset().filter(query)
+        student_users = User.objects.prefetch_related(
+            Prefetch('skills', queryset=Skill.objects.all()),
+            Prefetch(
+                'student_profile',
+                queryset=StudentProfile.objects.all()
+                    .prefetch_related(
+                        Prefetch('semester_report_cards', queryset=SemesterReportCard.objects.all().only('sgpa', 'backlogs', 'is_complete'))
+                    ).only('cgpa', 'backlog_count')
+            )
+        ).filter(role='student').only('full_name', 'primary_email', 'primary_phone_number', 'primary_address', 'bio')
+        queryset = super().get_queryset().prefetch_related(
+            Prefetch('user', queryset=student_users)
+        ).filter(query).distinct()
 
         if sorting:
             if sorting == 'name':

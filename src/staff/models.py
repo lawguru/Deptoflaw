@@ -1,6 +1,8 @@
 from django.db import models
 from django.db.models import Q
 from user.models import User
+from django.utils.functional import cached_property
+
 
 # Create your models here.
 
@@ -57,11 +59,11 @@ class StaffProfile(models.Model):
     is_hod = models.BooleanField(default=False)
     is_tpc_head = models.BooleanField(default=False)
 
-    @property
+    @cached_property
     def edit_users(self):
         return self.user.edit_users
 
-    @property
+    @cached_property
     def view_users(self):
         return self.user.view_users
 

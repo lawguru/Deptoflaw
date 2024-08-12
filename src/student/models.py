@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import Q
 from user.models import User
 from settings.models import Setting
+from django.utils.functional import cached_property
 
 
 # Create your models here.
@@ -18,18 +19,6 @@ class StudentProfile(models.Model):
             return super().get_queryset().annotate(
                 academic_half=models.Value(
                     current_academic_half, output_field=models.CharField()),
-                passed_out=models.ExpressionWrapper(models.Case(
-                    models.When(passed_semesters__gte=models.F(
-                        'course_duration') * 2, then=True),
-                    default=False,
-                    output_field=models.BooleanField()
-                ), output_field=models.BooleanField()),
-                is_current=models.ExpressionWrapper(models.Case(
-                    models.When(passed_semesters__lt=models.F(
-                        'course_duration') * 2, then=True),
-                    default=False,
-                    output_field=models.BooleanField()
-                ), output_field=models.BooleanField()),
                 year=models.Case(
                     models.When(
                         passed_out=True,
@@ -106,7 +95,9 @@ class StudentProfile(models.Model):
         help_text='10 digit number from Exam Roll no.', validators=[MinValueValidator(1000000000), MaxValueValidator(9999999999)])
     id_number = models.PositiveSmallIntegerField('ID Number',
                                                  help_text='Number at the end of ID Card', validators=[MinValueValidator(1), MaxValueValidator(999)])
+    passed_out = models.BooleanField(default=False)
     dropped_out = models.BooleanField(default=False)
+    is_current = models.BooleanField(default=True)
     is_cr = models.BooleanField(default=False)
 
     id_card = models.CharField(
@@ -122,19 +113,19 @@ class StudentProfile(models.Model):
     course_duration = models.PositiveSmallIntegerField()
     manually_specify_cgpa = models.BooleanField(default=False)
 
-    @property
+    @cached_property
     def edit_users(self):
         return self.user.edit_users
 
-    @property
+    @cached_property
     def view_users(self):
         return self.user.view_users
 
-    @property
+    @cached_property
     def year_suffix(self):
         return 'st' if self.year == 1 else 'nd' if self.year == 2 else 'rd' if self.year == 3 else 'th'
 
-    @property
+    @cached_property
     def year_name(self):
         if self.year in range(1, 8):
             return {
@@ -149,11 +140,11 @@ class StudentProfile(models.Model):
             }[self.year]
         return f'{self.year}th'
 
-    @property
+    @cached_property
     def semester_suffix(self):
         return 'st' if self.semester == 1 else 'nd' if self.semester == 2 else 'rd' if self.semester == 3 else 'th'
 
-    @property
+    @cached_property
     def semester_name(self):
         if self.semester in range(1, 8):
             return {
@@ -196,6 +187,8 @@ class StudentProfile(models.Model):
                         self.pass_out_year = max([semester_report_card.year_of_exam for semester_report_card in self.semester_report_cards.all()])
                     else:
                         self.pass_out_year = None
+        self.passed_out = self.passed_semesters >= self.course_duration * 2
+        self.is_current = self.passed_semesters < self.course_duration * 2
         if self.is_cr:
             self.user.is_approved = True
         super().save(*args, **kwargs)
@@ -270,7 +263,7 @@ class SemesterReportCard(models.Model):
     sgpa = models.FloatField(default=0)
     is_complete = models.BooleanField(default=False)
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.student_profile.user.is_superuser:
             return User.objects.filter(pk=self.student_profile.user.pk)
@@ -343,11 +336,11 @@ class SemesterReportCardTemplate(models.Model):
     subject_passing_grade_points = models.JSONField(
         default=list, blank=True, null=True)
 
-    @property
+    @cached_property
     def view_users(self):
         return User.objects.all()
 
-    @property
+    @cached_property
     def edit_users(self):
         return User.objects.filter(
             Q(is_superuser=True) | Q(is_coordinator=True) |

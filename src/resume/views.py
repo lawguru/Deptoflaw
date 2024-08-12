@@ -30,11 +30,11 @@ class EducationInfo(TemplateView):
         context = super().get_context_data(**kwargs)
         context['user'] = user
         context['othereducations'] = [(other_education, OtherEducationForm(
-            instance=other_education)) for other_education in OtherEducation.objects.filter(user=user)]
+            instance=other_education)) for other_education in OtherEducation.objects.filter(user=user).values()]
         context['certifications'] = [(certification, CertificationForm(
-            instance=certification)) for certification in Certification.objects.filter(user=user)]
-        context['skills'] = Skill.objects.filter(users__pk=user.pk)
-        context['languages'] = Language.objects.filter(users__pk=user.pk)
+            instance=certification)) for certification in Certification.objects.filter(user=user).values()]
+        context['skills'] = Skill.objects.filter(users__pk=user.pk).values()
+        context['languages'] = Language.objects.filter(users__pk=user.pk).values()
 
         if Skill.objects.get_add_permission(user, self.request.user):
             context['skill_form'] = SkillForm()
@@ -76,9 +76,9 @@ class ExperienceInfo(TemplateView):
         context = super().get_context_data(**kwargs)
         context['user'] = user
         context['work_experiences'] = [(work_experiences, WorkExperienceForm(
-            instance=work_experiences)) for work_experiences in WorkExperience.objects.filter(user=user)]
+            instance=work_experiences)) for work_experiences in WorkExperience.objects.filter(user=user).values()]
         context['projects'] = [(project, ProjectForm(instance=project))
-                               for project in Project.objects.filter(user=user)]
+                               for project in Project.objects.filter(user=user).values()]
         
         if WorkExperience.objects.get_create_permission(user, self.request.user):
             context['work_experience_form'] = WorkExperienceForm(
@@ -107,9 +107,9 @@ class IPInfo(TemplateView):
         context = super().get_context_data(**kwargs)
         context['user'] = user
         context['patents'] = [(patent, PatentForm(instance=patent))
-                              for patent in Patent.objects.filter(user=user)]
+                              for patent in Patent.objects.filter(user=user).values()]
         context['publications'] = [(publication, PublicationForm(
-            instance=publication)) for publication in Publication.objects.filter(user=user)]
+            instance=publication)) for publication in Publication.objects.filter(user=user).values()]
         
         if Patent.objects.get_create_permission(user, self.request.user):
             context['patent_form'] = PatentForm(initial={'user': user.pk})
@@ -138,11 +138,11 @@ class OtherInfos(TemplateView):
         context = super().get_context_data(**kwargs)
         context['user'] = user
         context['achievements'] = [(achievement, AchievementForm(
-            instance=achievement)) for achievement in Achievement.objects.filter(user=user)]
+            instance=achievement)) for achievement in Achievement.objects.filter(user=user).values()]
         context['presentations'] = [(presentation, PresentationForm(
-            instance=presentation)) for presentation in Presentation.objects.filter(user=user)]
+            instance=presentation)) for presentation in Presentation.objects.filter(user=user).values()]
         context['other_infos'] = [(other_info, OtherInfoForm(
-            instance=other_info)) for other_info in OtherInfo.objects.filter(user=user)]
+            instance=other_info)) for other_info in OtherInfo.objects.filter(user=user).values()]
         
         if Achievement.objects.get_create_permission(user, self.request.user):
             context['achievement_form'] = AchievementForm(

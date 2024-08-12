@@ -310,7 +310,7 @@
                         {% endif %}
                     </div>
                     <div class="mb-3">
-                        {{message.0.message}}
+                        {{message.0.message|linebreaks}}
                     </div>
                     {% if message.0.handled %}
                     <div>

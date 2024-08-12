@@ -6,6 +6,8 @@ from user.models import User
 from resume.models import Skill
 from django.db.models import OuterRef, Subquery, Func
 from django.db.models import Q
+from django.utils.functional import cached_property
+
 
 # Create your models here.
 
@@ -35,7 +37,7 @@ class Notice(models.Model):
     user = models.ForeignKey(
         'user.User', null=True, on_delete=models.SET_NULL, related_name='notices')
 
-    @property
+    @cached_property
     def edit_users(self):
         return User.objects.filter(is_superuser=True)
 
@@ -58,11 +60,11 @@ class Message(models.Model):
     date = models.DateTimeField(auto_now_add=True, editable=False)
     date_edited = models.DateTimeField(auto_now=True, editable=False)
 
-    @property
+    @cached_property
     def view_users(self):
         return User.objects.filter(is_superuser=True, is_coordinator=True)
     
-    @property
+    @cached_property
     def handle_users(self):
         return User.objects.filter(is_superuser=True, is_coordinator=True)
 
@@ -91,13 +93,13 @@ class Quote(models.Model):
     date = models.DateTimeField(auto_now_add=True, editable=False)
     date_edited = models.DateTimeField(auto_now=True, editable=False)
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.user:
             return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
         return User.objects.filter(is_superuser=True)
 
-    @property
+    @cached_property
     def delete_users(self):
         if self.user:
             return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
@@ -188,7 +190,7 @@ class RecruitmentPost(models.Model):
     selected_application_instructions = models.TextField(blank=True)
     shortlisted_application_instructions = models.TextField(blank=True)
 
-    @property
+    @cached_property
     def edit_users(self):
         if self.user == None:
             User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True)).distinct()
@@ -198,49 +200,49 @@ class RecruitmentPost(models.Model):
             return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True)).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
 
-    @property
+    @cached_property
     def add_skill_users(self):
         if self.user == None:
             User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True)).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
 
-    @property
+    @cached_property
     def remove_skill_users(self):
         if self.user == None:
             User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True)).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(is_coordinator=True) | Q(pk=self.user.pk)).distinct()
 
-    @property
+    @cached_property
     def view_application_users(self):
         if self.user == None:
             User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
-    @property
+    @cached_property
     def select_application_users(self):
         if self.user == None:
             User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
-    @property
+    @cached_property
     def reject_application_users(self):
         if self.user == None:
             User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
-    @property
+    @cached_property
     def shortlist_application_users(self):
         if self.user == None:
             User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
-    @property
+    @cached_property
     def pending_application_users(self):
         if self.user == None:
             User.objects.filter(is_superuser=True).distinct()
         return User.objects.filter(Q(is_superuser=True) | Q(pk=self.user.pk)).distinct()
 
-    @property
+    @cached_property
     def is_active(self):
         return self.apply_by >= datetime.now().date()
 
@@ -324,25 +326,25 @@ class RecruitmentApplication(models.Model):
     status = models.CharField(
         max_length=1, choices=status_choices, default='P')
 
-    @property
+    @cached_property
     def select_users(self):
         if self.status == 'P':
             return self.recruitment_post.select_application_users
         return User.objects.none()
 
-    @property
+    @cached_property
     def reject_users(self):
         if self.status == 'P':
             return self.recruitment_post.reject_application_users
         return User.objects.none()
 
-    @property
+    @cached_property
     def shortlist_users(self):
         if self.status == 'P':
             return self.recruitment_post.shortlist_application_users
         return User.objects.none()
 
-    @property
+    @cached_property
     def pending_users(self):
         if self.status != 'P':
             return self.recruitment_post.pending_application_users
