@@ -239,7 +239,7 @@ class ListNotice(ListView):
             elif type_filter == 'post-update' and sorting == 'recruitment_post__user':
                 queryset = queryset.order_by('recruitment_post__user')
 
-        ordering = self.request.GET.get('ordering')
+        ordering = self.request.GET.get('ordering', 'desc')
         if ordering:
             if ordering == 'desc':
                 queryset = queryset.reverse()
@@ -328,7 +328,7 @@ class ListRecruitmentPost(ListView):
             Prefetch('skills', queryset=Skill.objects.all())
         ).filter(query).distinct()
 
-        sorting = self.request.GET.get('sorting')
+        sorting = self.request.GET.get('sorting', 'apply_by')
         if sorting:
             queryset = queryset.order_by(sorting)
 
@@ -583,7 +583,7 @@ class MessageListView(ListView):
                     else:
                         queryset = queryset.order_by('date')
 
-        ordering = self.request.GET.get('ordering')
+        ordering = self.request.GET.get('ordering', 'desc')
         if ordering == 'desc':
             queryset = queryset.reverse()
 
@@ -686,7 +686,7 @@ class QuoteListView(ListView):
             else:
                 queryset = queryset.order_by('date')
 
-        ordering = self.request.GET.get('ordering', 'asc')
+        ordering = self.request.GET.get('ordering', 'desc')
         if ordering == 'desc':
             queryset = queryset.reverse()
 

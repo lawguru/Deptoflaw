@@ -1,0 +1,122 @@
+[
+    {
+        "model": "user.user",
+        "pk": 2,
+        "fields": {
+            "password": "pbkdf2_sha256$720000$IXWNMfhkcxnM42Z7rAPYwT$gRP5bXilD9/zvWwbTzkHT5IJxnl9XfdcM6K0vOEXYgA=",
+            "first_name": "Rishav",
+            "last_name": "Raj",
+            "bio": "I am a Computer science student, studying in Assam University.",
+            "is_approved": true,
+            "is_staff": false,
+            "is_superuser": false,
+            "last_login": "2024-07-10T17:27:05.703Z",
+            "date_joined": "2024-06-19T15:49:10.537Z",
+            "role": "student",
+            "primary_email": 2,
+            "primary_phone_number": null,
+            "primary_address": null,
+            "full_name": "Rishav Raj",
+            "short_name": "Rishav",
+            "is_coordinator": true,
+            "is_developer": false,
+            "is_doctor": false,
+            "is_quoter": false,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "user.user",
+        "pk": 3,
+        "fields": {
+            "password": "pbkdf2_sha256$720000$S5GmINyxU6yH9AtHJ57xLw$tpCEqUy9T2rI/U2cNkHADGuVqTCsO9fDj2rsbo3yhyw=",
+            "first_name": "Vikrant",
+            "last_name": "Kumar",
+            "bio": "Full Stack Web Developer.",
+            "is_approved": true,
+            "is_staff": false,
+            "is_superuser": false,
+            "last_login": "2024-06-24T14:57:45.732Z",
+            "date_joined": "2024-06-22T18:29:38.418Z",
+            "role": "student",
+            "primary_email": 3,
+            "primary_phone_number": null,
+            "primary_address": null,
+            "full_name": "Vikrant Kumar",
+            "short_name": "Vikrant",
+            "is_coordinator": true,
+            "is_developer": false,
+            "is_doctor": false,
+            "is_quoter": false,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "user.email",
+        "pk": 2,
+        "fields": {
+            "email": "srishav1911@gmail.com",
+            "user": 2,
+            "is_verified": true,
+            "verify_code": null,
+            "verify_code_time": null,
+            "verify_code_valid_for": 5
+        }
+    },
+    {
+        "model": "user.email",
+        "pk": 3,
+        "fields": {
+            "email": "vk909143@gmail.com",
+            "user": 3,
+            "is_verified": false,
+            "verify_code": null,
+            "verify_code_time": null,
+            "verify_code_valid_for": 5
+        }
+    },
+    {
+        "model": "student.studentprofile",
+        "pk": 2,
+        "fields": {
+            "user": 2,
+            "registration_number": 20210000096,
+            "course": "B.Tech",
+            "number": 1181200207,
+            "id_number": 31,
+            "dropped_out": false,
+            "is_cr": false,
+            "id_card": "21CSEBTC022",
+            "registration_year": 2021,
+            "backlog_count": 0,
+            "pass_out_year": null,
+            "passed_semesters": 0,
+            "cgpa": 0.0,
+            "course_duration": 4,
+            "manually_specify_cgpa": false
+        }
+    },
+    {
+        "model": "student.studentprofile",
+        "pk": 3,
+        "fields": {
+            "user": 3,
+            "registration_number": 20210000202,
+            "course": "B.Tech",
+            "number": 1181700164,
+            "id_number": 143,
+            "dropped_out": false,
+            "is_cr": false,
+            "id_card": "21CSEBTC022",
+            "registration_year": 2021,
+            "backlog_count": 0,
+            "pass_out_year": null,
+            "passed_semesters": 0,
+            "cgpa": 0.0,
+            "course_duration": 4,
+            "manually_specify_cgpa": false
+        }
+    }
+]
