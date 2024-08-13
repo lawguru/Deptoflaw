@@ -23,26 +23,22 @@
                         <input id="sort-by-form-input" type="hidden" name="sorting" value="{{sorting}}">
                         <input id="ordering-form-input" type="hidden" name="ordering" value="{{ordering}}">
                         <ul class="dropdown-menu" onclick="event.stopPropagation()">
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('ordering-form-input').value='asc'"
-                                    value="Low to High"
-                                    class="dropdown-item {% if ordering != 'desc' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('ordering-form-input').value='desc'"
-                                    value="High to Low"
-                                    class="dropdown-item {% if ordering == 'desc' %} active {% endif %}">
-                            </li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
                             {% for choice in sorting_options %}
                             <li>
-                                <input type="submit"
-                                    onclick="document.getElementById('sort-by-form-input').value='{{choice.0}}'" value="{{choice.1}}"
-                                    class="dropdown-item {% if sorting == choice.0 %} active {% endif %}">
+                                <button type="submit"
+                                    {% if sorting != choice.0 %}
+                                    onclick="document.getElementById('sort-by-form-input').value='{{choice.0}}'"
+                                    {% elif ordering != 'desc' %}
+                                    onclick="document.getElementById('ordering-form-input').value='desc'"
+                                    {% else %}
+                                    onclick="document.getElementById('ordering-form-input').value='asc'"
+                                    {% endif %}
+                                    class="dropdown-item m-0 {% if sorting == choice.0 %} active {% endif %} d-flex align-items-center justify-content-between gap-2">
+                                    <span>{{choice.1}}</span>
+                                    {% if sorting == choice.0 %}
+                                    <i class="bi {% if ordering != 'desc' %} bi-sort-down-alt {% else %} bi-sort-down {% endif %}"></i>
+                                    {% endif %}
+                                </button>
                             </li>
                             {% endfor %}
                         </ul>
