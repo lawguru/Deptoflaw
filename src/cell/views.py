@@ -210,7 +210,7 @@ class ListNotice(ListView):
     poster_recruitment_post_options = [
         ('by-me', 'By me'),
     ]
-    studnet_recruitment_post_options = [
+    student_recruitment_post_options = [
         ('applied-by-me', 'Applied by me'),
     ]
 
@@ -267,7 +267,7 @@ class ListNotice(ListView):
         context = super().get_context_data(**kwargs)
         context['page_obj'].object_list = [(RecruitmentPostUpdate.objects.get(notice_ptr_id=notice.id) if notice.kind == 'U' else notice, RecruitmentPostUpdateForm(instance=notice) if notice.kind == 'U' else NoticeForm(instance=notice))
                                            for notice in context['page_obj'].object_list]
-        context['sorting_options'] = self.sorting_options
+        context['sorting_options'] = self.sorting_options.copy()
 
         context['type_options'] = self.type_options
 
@@ -278,11 +278,11 @@ class ListNotice(ListView):
             context['user_options'] = self.user_options
 
         if context['type_filter'] == 'post-update':
-            context['recruitment_post_options'] = self.recruitment_post_options
+            context['recruitment_post_options'] = self.recruitment_post_options.copy()
             if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_coordinator or self.request.user.role == 'recruiter'):
                 context['recruitment_post_options'] += self.poster_recruitment_post_options
             if self.request.user.is_authenticated and self.request.user.role == 'student':
-                context['recruitment_post_options'] += self.studnet_recruitment_post_options
+                context['recruitment_post_options'] += self.student_recruitment_post_options
             context['sorting_options'] += self.post_sorting_options
             context['recruitment_post_filter'] = self.request.GET.get(
                 'recruitment-post-filter', '')
