@@ -33,7 +33,7 @@
                     <form action="#">
                         <input id="sort-by-form-input" type="hidden" name="sorting" value="{{sorting}}">
                         <input id="ordering-form-input" type="hidden" name="ordering" value="{{ordering}}">
-                        <ul class="dropdown-menu" onclick="event.stopPropagation()">
+                        <ul class="dropdown-menu dropdown-menu-end" onclick="event.stopPropagation()">
                             {% for choice in sorting_options %}
                             <li>
                                 <button type="submit"
@@ -354,9 +354,9 @@
 
     <ul class="list-group list-group-flush my-5">
         {% for post in page_obj %}
-        <li class="list-group-item list-group-item-action list-group-item-accent">
+        <li class="list-group-item list-group-item-action list-group-item-accent p-2">
             <a href="{% url 'view_recruitment_post' post.id %}"
-                class="d-flex align-items-center justify-content-between m-0 p-4 icon-link icon-link-hover no-shadow">
+                class="d-flex align-items-center justify-content-between m-0 p-2 ps-4 icon-link icon-link-hover no-shadow">
                 <div class="d-flex align-items-center gap-4">
                     <div class="me-auto">
                         <strong class="fw-bold lead text-body-emphasis lh-1">

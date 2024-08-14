@@ -72,7 +72,7 @@ class User(AbstractBaseUser, PermissionsMixin):
                        (', TPC Coordinator' if self.is_coordinator and not self.is_superuser else ''))[::-1].replace(',', 'dna ', 1)[::-1]
         if self.role == 'staff':
             subtext = (self.staff_profile.designation +
-                       (', Coordinator' if self.is_coordinator and not self.staff_profile.is_tpc_head and not self.staff_profile.is_hod else '') +
+                       (', TPC Coordinator' if self.is_coordinator and not self.staff_profile.is_tpc_head and not self.staff_profile.is_hod else '') +
                        (', TPC Head' if self.staff_profile.is_tpc_head else '') +
                        (', HOD' if self.staff_profile.is_hod else ''))[::-1].replace(',', 'dna ', 1)[::-1]
         if self.role == 'recruiter':

@@ -35,7 +35,7 @@
                     <form action="#">
                         <input id="sort-by-form-input" type="hidden" name="sorting" value="{{sorting}}">
                         <input id="ordering-form-input" type="hidden" name="ordering" value="{{ordering}}">
-                        <ul class="dropdown-menu" onclick="event.stopPropagation()">
+                        <ul class="dropdown-menu dropdown-menu-end" onclick="event.stopPropagation()">
                             {% for choice in sorting_options %}
                             <li>
                                 <button type="submit"
