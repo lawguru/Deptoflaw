@@ -282,7 +282,7 @@ class UserListView(ListView):
         context = super().get_context_data(**kwargs)
         context['skills_dict'] = {}
 
-        context['sorting_options'] = self.sorting_options
+        context['sorting_options'] = self.sorting_options.copy()
         context['roles'] = self.role_choices
 
         context['role_filter'] = self.request.GET.get('role-filter', '')
